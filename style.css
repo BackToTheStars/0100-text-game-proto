@@ -1,0 +1,14 @@
+.textBox {
+    border: 2px black;
+    border-radius: 5px;
+    background-color: gray;
+    max-height: 100px;
+    max-width: 80px;
+    margin: 20px;
+}
+
+#gameBox {
+    border: 1px solid blue;
+    min-height: 600px;
+    min-width: 800px;
+}
