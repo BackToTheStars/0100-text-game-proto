@@ -1,14 +1,42 @@
+html, body {
+    height: 100%;
+}
+
 .textBox {
     border: 2px black;
     border-radius: 5px;
-    background-color: gray;
-    max-height: 100px;
-    max-width: 80px;
+    background-color: darkgray;
     margin: 20px;
 }
 
 #gameBox {
-    border: 1px solid blue;
+    border: 2px solid blue;
     min-height: 600px;
     min-width: 800px;
+}
+
+.paragraphText {
+    overflow-y: auto;
+    overflow-x: auto;
+    min-height: 50px;
+    max-height: 100px;
+}
+
+.headerText {
+    overflow-y: auto;
+    min-width: 100px;
+    max-width: 200px;
+}
+
+.classMenu {
+    width: 10%;
+    height: 100%;
+    background-color: gray;
+    margin: 0;
+}
+
+.gameMenu {
+    height: 100%;
+    margin: 0;
+    width: 90%;
 }
