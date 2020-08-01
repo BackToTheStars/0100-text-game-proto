@@ -16,29 +16,16 @@ function getInputValue(id) {                               // обработчи
 
 function addNewBoxToGame() {                               // вставляет новый блок источника на поле
   let header = getInputValue("headerText");
-  let par = getInputValue("paragraphText");
+  let par = getInputValue("paragraphText");             // вводит текст параграфа
   let newDiv = makeNewBoxMessage(header, par);
   gameBox.appendChild(newDiv);                             // добавляет новый div к заданному div
 }
 
-function makeNewBoxMessage(headStr, parStr) {
+function makeNewBoxMessage(headStr, parStr) {              // создаёт div блока по заданным параметрам
   let div = document.createElement("div");
   div.className = "textBox";
   div.innerHTML = "<h4 class='headerText'>" + headStr + "</h4><hr><p class='paragraphText'>" + parStr + "</p>";
   return div;
-}
-
-function insertNewClassElement(input, ul) {
-  let value = input.value;
-  input.value = "";
-  let li = document.createElement("li");
-  li.innerHTML = value;
-  ul.appendChild(li);
-}
-
-function insertNewClass(childClass) {
-  let parent = document.getElementById("classMenu");
-  parent.appendChild(childClass);
 }
 
 function addNewClass() {                                    // создаёт поле нового класса, напр. "PERSON"
@@ -59,7 +46,18 @@ function createClassField(name) {
   return div;
 }
 
+function insertNewClass(childClass) {
+  let parent = document.getElementById("classMenu");
+  parent.appendChild(childClass);
+}
 
+function insertNewClassElement(input, ul) {
+  let value = input.value;
+  input.value = "";
+  let li = document.createElement("li");
+  li.innerHTML = value;
+  ul.appendChild(li);
+}
 
 
 
