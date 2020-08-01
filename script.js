@@ -1,4 +1,8 @@
-// todo: 1) Typescript
+// todo:
+//  1) Typescript
+//  2) Mouse movements for block and for game field
+//  3) подсвечивание текста цитаты
+
 
 let gameBox = document.getElementById("gameBox");
 
@@ -12,11 +16,11 @@ function getInputValue(id) {
 function makeNewBoxMessage(headStr, parStr) {
   let div = document.createElement("div");
   div.className = "textBox";
-  div.innerHTML = "<h1 class='headerText'>" + headStr + "</h1><hr><p class='paragraphText'>" + parStr + "</p>";
+  div.innerHTML = "<h4 class='headerText'>" + headStr + "</h4><hr><p class='paragraphText'>" + parStr + "</p>";
   return div;
 }
 
-function addNewBoxTOGame() {
+function addNewBoxToGame() {
   let header = getInputValue("headerText");
   let par = getInputValue("paragraphText");
   let newDiv = makeNewBoxMessage(header, par);
@@ -36,10 +40,10 @@ function createClassField(name) {
   let uniqueUlId = "classUl" + name;
   let div = document.createElement("div");
   div.className = "row";
-  div.innerHTML = "<h3>" + name + "</h3>" +
+  div.innerHTML = "<h5>" + name + "</h5>" +
     "<ul id='" + uniqueUlId + "'></ul>" +
     "<input id='" + uniqueInputId + "'> " +
-    "<button onclick='insertNewClassElement(" + uniqueInputId + "," + uniqueUlId + ")'>add</button>";
+    "<button onclick='insertNewClassElement(" + uniqueInputId + "," + uniqueUlId + ")'>Add Element</button>";
   return div;
 }
 
