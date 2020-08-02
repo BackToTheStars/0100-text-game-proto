@@ -5,9 +5,12 @@ html, body {
 .textBox {
     border: 2px black;
     border-radius: 5px;
-    background-color: darkgray;
+    background-color: saddlebrown;
     margin: 20px;
     width: 400px;
+    cursor: move;
+    position: absolute;
+
 }
 
 #gameBox {
@@ -15,6 +18,7 @@ html, body {
     min-height: 600px;
     min-width: 800px;
     width: auto;
+    /*position: relative;*/
 }
 
 .paragraphText {

@@ -22,10 +22,49 @@ function addNewBoxToGame() {                               // вставляет
 }
 
 function makeNewBoxMessage(headStr, parStr) {              // создаёт div блока по заданным параметрам
-  let div = document.createElement("div");
-  div.className = "textBox";
-  div.innerHTML = "<h4 class='headerText'>" + headStr + "</h4><hr><p class='paragraphText'>" + parStr + "</p>";
-  return div;
+  let elmnt = document.createElement("div");
+  elmnt.className = "textBox";
+  elmnt.innerHTML = "<h4 class='headerText'>" + headStr + "</h4><hr><p class='paragraphText'>" + parStr + "</p>";
+
+// *************************************************************************************
+
+//  elmnt.addEventListener('mousemove', (e) => {...});    - window.event is deprecated
+  elmnt.onmousedown = dragMouseDown;
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // get the mouse cursor position at startup:
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.onmouseup = closeDragElement;
+    // call a function whenever the cursor moves:
+    document.onmousemove = elementDrag;
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // calculate the new cursor position:
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    // set the element's new position:
+    elmnt.style.top = pos4 - 100 + "px";
+    elmnt.style.left = pos3 - 500 + "px";
+    // elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+    // elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+  }
+
+  function closeDragElement() {
+    // stop moving when mouse button is released:
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+
+// **************************************************************************************
+  return elmnt;
 }
 
 function addNewClass() {                                    // создаёт поле нового класса, напр. "PERSON"
@@ -58,6 +97,8 @@ function insertNewClassElement(input, ul) {
   li.innerHTML = value;
   ul.appendChild(li);
 }
+
+
 
 
 
