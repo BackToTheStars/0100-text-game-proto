@@ -9,8 +9,6 @@ html, body {
     margin: 20px;
     width: 400px;
     cursor: move;
-    position: absolute;
-
 }
 
 #gameBox {
