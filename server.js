@@ -30,7 +30,7 @@ mongo.connect(config.mongo.url, (err, client) => {
             if (err){
                 response.status(503).send("cant create");
             } else {
-                response.status(200).send("successfully created");
+                response.status(200).send(res.ops[0]);
             }
         })
     });
