@@ -27,10 +27,46 @@ function addNewBoxToGame() {                               // вставляет
   })
 }
 
-function makeNewBoxMessage(headStr, parStr) {              // создаёт div блока по заданным параметрам
+function makeParagraph(text) {
+    let par = document.createElement("p");
+    par.className = "paragraphText";
+    par.innerHTML = text;
+    return par;
+}
+
+function makeHead(text) {
+  let h = document.createElement("h4");
+  h.className = "headerText";
+  h.innerHTML = text;
+  return h;
+}
+
+function makeButton(turn) {
+  let button = document.createElement("button");
+  button.innerHTML = "edit";
+  button.addEventListener('click', ()=>{
+    openTurnModal(turn);
+  });
+  return button;
+}
+
+function makeNewBoxMessage(headStr, parStr) {
+  let param = {
+    head: headStr,
+    par: parStr
+  }
+  // создаёт div блока по заданным параметрам
   let elmnt = document.createElement("div");
   elmnt.className = "textBox";
-  elmnt.innerHTML = "<h4 class='headerText'>" + headStr + "</h4><hr><p class='paragraphText'>" + parStr + "</p>";
+  let p = makeParagraph(parStr);
+  let h = makeHead(headStr);
+  let button = makeButton(param);
+  h.appendChild(button);
+  elmnt.appendChild(h);
+  elmnt.appendChild(p);
+  /*elmnt.innerHTML = "<h4 class='headerText'>" + headStr + "" +
+      "<button onclick='openTurnModal()'>edit</button></h4><hr><p class='paragraphText'>" + parStr + "</p>";*/
+
 
 // *************************************************************************************
 

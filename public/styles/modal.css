@@ -1,0 +1,22 @@
+#modalBackground{
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    left: 0;
+    top: 0;
+    z-index: 1500;
+    background-color: rgba(128, 128, 128, 0.38);
+    display: none;
+}
+
+#modal{
+    position: fixed;
+    min-height: 20%;
+    min-width: 30%;
+    top: 30%;
+    left: 30%;
+    z-index: 2000;
+    display: none;
+    background-color: whitesmoke;
+    border-radius: 5px;
+}
