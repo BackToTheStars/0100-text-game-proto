@@ -5,19 +5,19 @@ let app = express();
 
 let jsonParser = express.json();
 
-app.use('/', express.static(__dirname+ "/public/"));
+app.use('/', express.static(__dirname + "/public/"));   // загружает index.html
 
 app.listen(config.port, () => {
-    console.log("server has started "+config.port);
+    console.log("Server started on port " + config.port);
 });
 
 mongo.connect(config.mongo.url, (err, client) => {
 
-    if (err){
+    if (err) {
         console.log("error with db");
         return;
     } else {
-        console.log("connected to db");
+        console.log("Server connected to the database");
     }
 
     let db = client.db(config.mongo.dbname);
