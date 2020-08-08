@@ -1,0 +1,11 @@
+{
+  "port": 3000,
+  "mongo": {
+    "url": "mongodb://127.0.0.1:27017",
+    "collections": {
+      "classes" : "Classes",
+      "comments" : "Comments",
+      "turns": "Turns"
+    }
+  }
+}

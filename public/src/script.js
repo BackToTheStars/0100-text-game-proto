@@ -17,8 +17,14 @@ function getInputValue(id) {                               // обработчи
 function addNewBoxToGame() {                               // вставляет новый блок источника на поле
   let header = getInputValue("headerText");
   let par = getInputValue("paragraphText");             // вводит текст параграфа
-  let newDiv = makeNewBoxMessage(header, par);
-  gameBox.appendChild(newDiv);                             // добавляет новый div к заданному div
+  let newTurn = {
+    header: header,
+    paragraph: par
+  }
+  saveTurn(newTurn, (data)=>{
+    let newDiv = makeNewBoxMessage(header, par);
+    gameBox.appendChild(newDiv);      // добавляет новый div к заданному div
+  })
 }
 
 function makeNewBoxMessage(headStr, parStr) {              // создаёт div блока по заданным параметрам
@@ -99,9 +105,13 @@ function insertNewClassElement(input, ul) {
 }
 
 
-
-
-
+getTurns( (data) => {
+  let parsedArr = JSON.parse(data);
+  parsedArr.forEach( (elem) => {
+    let newDiv = makeNewBoxMessage(elem.header, elem.paragraph);
+    gameBox.appendChild(newDiv);
+  })
+})
 
 
 
