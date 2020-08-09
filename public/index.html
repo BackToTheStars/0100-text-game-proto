@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="styles/modal.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="/node_modules/quill/dist/quill.min.js"></script>
+    <link rel="stylesheet" href="/node_modules/quill/dist/quill.snow.css"/>
 </head>
 <body>
 <div class="container-fluid">
@@ -34,17 +36,34 @@
     <div id="modalBackground">
 
     </div>
-    <div id="modal">
-        <div class="menuModal">
-            <button>save</button>
-            <button>edit</button>
-            <button onclick="closeTurnModal()">close</button>
+    <div id="modal" class="container">
+        <div class="row my-4">
+            <div class="col">
+               <input class="form-control" id="headerInput"/>
+            </div>
         </div>
-        <h4 id="modalHead"></h4>
-        <p id="modalPar"></p>
-        <input id="modalHeadInput"/>
-        <textarea id="modalParInput"></textarea>
+        <div class="row my-4">
+            <div class="col">
+                <div id="toolbar-container">
+                            <span class="ql-formats">
+                    <select class="ql-background">
+                              <option selected></option>
+                      <option value="yellow"></option>
+                    </select>
+                  </span>
+                </div>
+                <div id="editor-container" class="h-75">
+                </div>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col">
+                <button class="btn btn-primary">save</button>
+                <button class="btn btn-danger" onclick="closeTurnModal()">close</button>
+            </div>
+        </div>
     </div>
+
 
 </div>
 
@@ -53,4 +72,5 @@
 <script src="src/service.js"></script>
 <script src="src/script.js"></script>
 <script src="src/modal.js"></script>
+<script src="src/quillHandler.js"></script>
 </html>
