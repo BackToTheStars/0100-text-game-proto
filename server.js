@@ -6,6 +6,7 @@ let app = express();
 let jsonParser = express.json();
 
 app.use('/', express.static(__dirname + "/public/"));   // загружает index.html
+app.use('/node_modules', express.static(__dirname + "/node_modules/"));
 
 app.listen(config.port, () => {
     console.log("Server started on port " + config.port);

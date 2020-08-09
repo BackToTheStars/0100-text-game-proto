@@ -13,8 +13,9 @@
     position: fixed;
     min-height: 20%;
     min-width: 30%;
+    max-width: 50%;
     top: 30%;
-    left: 30%;
+    left: 25%;
     z-index: 2000;
     display: none;
     background-color: whitesmoke;

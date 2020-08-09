@@ -9,9 +9,15 @@ function hideElement(id) {
     elem.style.display = "none";
 }
 
-function writeText(id, text) {
-    let elem = document.getElementById(id);
-    elem.innerText = text;
+function writeParagraph(id, text) {
+    let editor = document.getElementById(id);
+    let elem = editor.getElementsByClassName("ql-editor")[0];
+    elem.innerText = text
+}
+
+function writeToHeader(id, text) {
+    let header = document.getElementById(id);
+    header.value = text;
 }
 
 function closeTurnModal() {
@@ -22,6 +28,6 @@ function closeTurnModal() {
 function openTurnModal(turn) {
     showElement("modalBackground");
     showElement("modal");
-    writeText("modalHead", turn.head);
-    writeText("modalPar", turn.par);
+    writeParagraph("editor-container", turn.par);
+    writeToHeader("headerInput", turn.head);
 }
