@@ -3,13 +3,11 @@ html, body {
 }
 
 .textBox {
-    border: 2px black;
-    border-radius: 5px;
-    background-color: saddlebrown;
     margin: 20px;
     width: 400px;
     cursor: move;
     position: absolute;
+    border: 1px black;
 }
 
 #gameBox {
@@ -21,6 +19,7 @@ html, body {
 }
 
 .paragraphText {
+    background-color: whitesmoke;
     overflow-y: auto;
     overflow-x: auto;
     min-height: 50px;
@@ -28,7 +27,9 @@ html, body {
 }
 
 .headerText {
+    background-color: lightblue;
     overflow-y: auto;
+    margin-bottom: 0;
     /*min-width: 100px;*/
     /*max-width: 200px;*/
 }

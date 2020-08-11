@@ -1,0 +1,32 @@
+
+ToDo:
+
+  Функциональные:
+  - Миграция на Typescript
+  - Mouse movements for game field
+  - Сохранение позиций TextBox в базе данных, чтобы при открытии блоки оставались на тех же местах
+  - Изменение размера TextBox в ширину и высоту
+  - Подсвечивание текста цитаты, Editor
+  - Вынести логику MouseMove в отдельный файл
+
+  мелкие:
+  - Почему не рисуется border 1px black у TextBox
+  - Поправить Modal Window ширину снизу
+  - Поработать над CSS, flex grid bootstrap
+
+  Выполненные:
+  - Mouse movements for block
+
+
+
+
+
+
+
+
+
+
+
+
+
+
