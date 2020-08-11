@@ -3,12 +3,11 @@ html, body {
 }
 
 .textBox {
-    border: 2px black;
-    border-radius: 5px;
     margin: 20px;
     width: 400px;
     cursor: move;
     position: absolute;
+    border: 1px black;
 }
 
 #gameBox {

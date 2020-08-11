@@ -1,9 +1,3 @@
-// todo:
-//  1) Typescript
-//  2) Mouse movements for block and for game field
-//  3) поработать над CSS, flex grid bootstrap
-//  4) подсвечивание текста цитаты, Editor
-
 
 let gameBox = document.getElementById("gameBox"); // выбирает элемент по id
 
