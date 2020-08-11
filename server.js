@@ -10,6 +10,7 @@ app.use('/node_modules', express.static(__dirname + "/node_modules/"));
 
 app.listen(config.port, () => {
     console.log("Server started on port " + config.port);
+    console.log("App is running on http://localhost:3000/");
 });
 
 mongo.connect(config.mongo.url, (err, client) => {
@@ -41,6 +42,8 @@ mongo.connect(config.mongo.url, (err, client) => {
             if (err){
                 response.status(503).send("cant get turns from db");
             } else {
+                console.log('200 OK /getTurns ');
+                res.map(el => console.log('---', el.header));
                 response.status(200).send(JSON.stringify(res));
             }
         })

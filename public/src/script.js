@@ -2,7 +2,7 @@
 //  1) Typescript
 //  2) Mouse movements for block and for game field
 //  3) поработать над CSS, flex grid bootstrap
-//  4) подсвечивание текста цитаты
+//  4) подсвечивание текста цитаты, Editor
 
 
 let gameBox = document.getElementById("gameBox"); // выбирает элемент по id
@@ -10,7 +10,7 @@ let gameBox = document.getElementById("gameBox"); // выбирает элеме
 function getInputValue(id) {                               // обработчик поля Input
   let input = document.getElementById(id);
   let text = input.value;
-  input.value = "";
+  input.value = '';
   return text;
 }
 
@@ -35,7 +35,7 @@ function makeParagraph(text) {
 }
 
 function makeHead(text) {
-  let h = document.createElement("h4");
+  let h = document.createElement("h5");
   h.className = "headerText";
   h.innerHTML = text;
   return h;
@@ -66,7 +66,6 @@ function makeNewBoxMessage(headStr, parStr) {
   elmnt.appendChild(p);
   /*elmnt.innerHTML = "<h4 class='headerText'>" + headStr + "" +
       "<button onclick='openTurnModal()'>edit</button></h4><hr><p class='paragraphText'>" + parStr + "</p>";*/
-
 
 // *************************************************************************************
 
@@ -106,6 +105,7 @@ function makeNewBoxMessage(headStr, parStr) {
   }
 
 // **************************************************************************************
+
   return elmnt;
 }
 
@@ -139,7 +139,6 @@ function insertNewClassElement(input, ul) {
   li.innerHTML = value;
   ul.appendChild(li);
 }
-
 
 getTurns( (data) => {
   let parsedArr = JSON.parse(data);
