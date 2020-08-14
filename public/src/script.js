@@ -135,11 +135,14 @@ function insertNewClassElement(input, ul) {
 }
 
 getTurns( (data) => {
-  let parsedArr = JSON.parse(data);
-  parsedArr.forEach( (elem) => {
+  for (let elem of data) {
     let newDiv = makeNewBoxMessage(elem.header, elem.paragraph);
     gameBox.appendChild(newDiv);
-  })
+  }
+  // data.forEach( (elem) => {
+  //   let newDiv = makeNewBoxMessage(elem.header, elem.paragraph);
+  //   gameBox.appendChild(newDiv);
+  // })
 })
 
 
