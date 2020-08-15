@@ -1,0 +1,6 @@
+MVC - Model View Controller
+React - MVP Model View Presenter + MVV
+
+Как работает debugger в браузере
+
+Домашка: переписать запросы в models и controllers
