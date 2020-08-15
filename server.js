@@ -1,6 +1,8 @@
 require("./models/db");
 let express = require('express');
-const turnsController = require("./controllers/turns")
+const turnsController = require("./controllers/turns");
+const gameClassesController = require("./controllers/gameClasses");
+const commentsController = require("./controllers/comments")
 let mongo = require('mongodb');
 let config = require('./config.json');
 let app = express();
@@ -26,30 +28,20 @@ mongo.connect(config.mongo.url, (err, client) => {
 
     let db = client.db(config.mongo.dbname);
     // let turnsColl = db.collection(config.mongo.collections.turns);
-    let commentsColl = db.collection(config.mongo.collections.comments);
-    let classesColl = db.collection(config.mongo.collections.classes);
+    // let commentsColl = db.collection(config.mongo.collections.comments);
+    // let classesColl = db.collection(config.mongo.collections.classes);
 
     app.post("/saveTurn", jsonParser, turnsController.saveTurn);
     app.get("/getTurns", turnsController.getTurns);
 
-    app.get("/getClasses", (request, response) => {
-        classesColl.find({}).toArray((err, res) => {
-            if (err) {
-                response.status(503).send("cant get classes from db");
-            } else {
-                response.status(200).send(JSON.stringify(res));
-            }
-        })
-    })
+    app.post("/saveGameClass", jsonParser, gameClassesController.saveGameClass);
+    app.get("/getGameClasses", gameClassesController.getGameClasses)
 
-    app.get("/getComments", (request, response)=>{
-        commentsColl.find({}).toArray( (err, res)=> {
-            if (err){
-                response.status(503).send("cant get comments from db");
-            } else {
-                response.status(200).send(JSON.stringify(res));
-            }
-        })
-    })
+    app.post("/saveComment", jsonParser, commentsController.saveComment)
+    app.get("/getComments", commentsController.getComments)
 
 });
+
+
+
+

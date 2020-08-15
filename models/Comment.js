@@ -2,18 +2,17 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const schema = new Schema({
-  header: {
+  id: {
     type: String,
     required: true
   },
-  paragraph: {
+  comment: {
     type: String,
     required: true
   }
 });
 
-module.exports = mongoose.model('Turn', schema, 'turns');
-
+module.exports = mongoose.model('Comment', schema, 'comments');
 
 
 

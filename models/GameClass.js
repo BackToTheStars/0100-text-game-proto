@@ -2,26 +2,15 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const schema = new Schema({
-  header: {
+  id: {
     type: String,
-    required: true
+    required: true,
   },
-  paragraph: {
+  gameClass: {
     type: String,
     required: true
   }
 });
 
-module.exports = mongoose.model('Turn', schema, 'turns');
-
-
-
-
-
-
-
-
-
-
-
+module.exports = mongoose.model('GameClass', schema, 'gameClasses');
 
