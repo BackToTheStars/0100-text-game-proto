@@ -8,3 +8,7 @@ let quill = new Quill('#editor-container', {
     placeholder: 'Compose an epic...',
     theme: 'snow'
 });
+
+function getQuillTextArr() {
+    return quill.editor.delta.ops;
+}
