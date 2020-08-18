@@ -44,17 +44,13 @@ function makeButton(turn) {
   return button;
 }
 
-function makeNewBoxMessage(headStr, parStr) {
-  let param = {
-    head: headStr,
-    par: parStr
-  }
+function makeNewBoxMessage(turnObj) {
   // создаёт div блока по заданным параметрам
   let elmnt = document.createElement("div");
   elmnt.className = "textBox";
-  let p = makeParagraph(parStr);
-  let h = makeHead(headStr);
-  let button = makeButton(param);
+  let p = makeParagraph(turnObj.paragraph);
+  let h = makeHead(turnObj.header);
+  let button = makeButton(turnObj);
   h.appendChild(button);
   elmnt.appendChild(h);
   elmnt.appendChild(p);
@@ -136,7 +132,7 @@ function insertNewClassElement(input, ul) {
 
 getTurns( (data) => {
   for (let elem of data) {
-    let newDiv = makeNewBoxMessage(elem.header, elem.paragraph);
+    let newDiv = makeNewBoxMessage(elem);
     gameBox.appendChild(newDiv);
   }
   // data.forEach( (elem) => {

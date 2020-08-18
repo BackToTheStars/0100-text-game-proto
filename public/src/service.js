@@ -19,3 +19,16 @@ function saveTurn(turnObj, callback) {
         success: callback
     })
 }
+
+function updateTurn(turnObj, callback) {
+    $.ajax({
+        type: "POST",
+        url: "/updateTurn",
+        data: JSON.stringify({
+            turn: turnObj
+        }),
+        dataType: "json",
+        contentType: "application/json",
+        success: callback
+    })
+}

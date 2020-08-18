@@ -31,6 +31,7 @@ mongo.connect(config.mongo.url, (err, client) => {
     // let commentsColl = db.collection(config.mongo.collections.comments);
     // let classesColl = db.collection(config.mongo.collections.classes);
 
+    app.post("/updateTurn", jsonParser, turnsController.updateTurn);
     app.post("/saveTurn", jsonParser, turnsController.saveTurn);
     app.get("/getTurns", turnsController.getTurns);
 
