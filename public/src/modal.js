@@ -20,7 +20,7 @@ function writeToHeader(id, text) {
     header.value = text;
 }
 
-function closeTurnModal() {
+function cancelTurnModal() {
     hideElement("modalBackground");
     hideElement("modal");
 }
@@ -28,6 +28,28 @@ function closeTurnModal() {
 function openTurnModal(turn) {
     showElement("modalBackground");
     showElement("modal");
-    writeParagraph("editor-container", turn.par);
-    writeToHeader("headerInput", turn.head);
+    writeParagraph("editor-container", turn.paragraph);
+    writeToHeader("headerInput", turn.header);
+    recreateOnclickModalSave(turn._id);
+}
+
+function recreateOnclickModalSave(id) {
+    let button = document.getElementById("modalSaveButton");
+    button.setAttribute("onclick", "saveTurnModal('" + id + "')");
+}
+
+
+function saveTurnModal(id) {
+    hideElement("modalBackground");
+    hideElement("modal");
+    let textArr = getQuillTextArr();
+    let header = getInputValue("headerInput");
+    let turnObj = {
+        header: header,
+        paragraph: textArr,
+        _id: id
+    }
+    updateTurn(turnObj, (data) => {
+        console.log(data);
+    })
 }

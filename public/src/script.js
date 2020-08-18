@@ -56,7 +56,7 @@ function makeNewBoxMessage(headStr, parStr, id, x, y) {
   elmnt.className = "textBox";
   let p = makeParagraph(parStr);
   let h = makeHead(headStr);
-  let button = makeButton(param);
+  let button = makeButton({_id: id, paragraph: parStr, header: headStr});
   h.appendChild(button);
   elmnt.appendChild(h);
   elmnt.appendChild(p);

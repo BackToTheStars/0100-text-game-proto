@@ -21,8 +21,17 @@ app.put("/turns/coordinates", turnsController.updateCoordinates);
 app.post("/saveGameClass", gameClassesController.saveGameClass);
 app.get("/getGameClasses", gameClassesController.getGameClasses)
 
-app.post("/saveComment", commentsController.saveComment)
+
+app.post("/updateTurn", jsonParser, turnsController.updateTurn);
+app.post("/saveTurn", jsonParser, turnsController.saveTurn);
+app.get("/getTurns", turnsController.getTurns);
+
+app.post("/saveGameClass", jsonParser, gameClassesController.saveGameClass);
+app.get("/getGameClasses", gameClassesController.getGameClasses)
+
+app.post("/saveComment", jsonParser, commentsController.saveComment)
 app.get("/getComments", commentsController.getComments)
+
 
 app.listen(config.port, () => {
     console.log("Server started on port " + config.port);
