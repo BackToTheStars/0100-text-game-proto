@@ -19,3 +19,16 @@ function saveTurn(turnObj, callback) {
         success: callback
     })
 }
+
+function turnsUpdateCoordinates(turnObjects, callback) {
+    $.ajax({
+        type: "PUT",
+        url: "/turns/coordinates",
+        data: JSON.stringify({
+            turns: turnObjects
+        }),
+        dataType: "json",
+        contentType: "application/json",
+        success: callback
+    })
+}

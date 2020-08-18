@@ -1,3 +1,10 @@
+// вопрос: почему мы используем Ajax а не Axios?
+// свои атрибуты html: data-id
+
+
+document.querySelector('textBox[data-id="123"]')
+elmnt.setAttribute('data-id', id);
+
 
 let input = document.getElementById(id);
 
