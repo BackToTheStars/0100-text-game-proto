@@ -20,11 +20,29 @@ function addNewBoxToGame() {
   });
 }
 
+function addTextToParagraph(par, text) {
+  if (Array.isArray(text)) {
+    // par.innerHTML = text.map((el) => `<span>${el.insert}</span>`).join("");
+    for (let textItem of text) {
+      const spanEl = document.createElement("span");
+      if (textItem.attributes) {
+        for (let property of Object.keys(textItem.attributes)) {
+          spanEl.style[property] = textItem.attributes[property];
+        }
+      }
+      spanEl.innerText = textItem.insert;
+      par.appendChild(spanEl);
+    }
+  } else {
+    par.innerHTML = text;
+  }
+  return par;
+}
+
 function makeParagraph(text) {
   let par = document.createElement("p");
   par.className = "paragraphText";
-  par.innerHTML = text;
-  return par;
+  return addTextToParagraph(par, text);
 }
 
 function makeHead(text) {
@@ -56,7 +74,7 @@ function makeNewBoxMessage(headStr, parStr, id, x, y) {
   elmnt.className = "textBox";
   let p = makeParagraph(parStr);
   let h = makeHead(headStr);
-  let button = makeButton({_id: id, paragraph: parStr, header: headStr});
+  let button = makeButton({ _id: id, paragraph: parStr, header: headStr });
   h.appendChild(button);
   elmnt.appendChild(h);
   elmnt.appendChild(p);
@@ -174,7 +192,7 @@ const buttonSavePositions = document
       const x = parseInt(textBox.style.left) || 0;
       const y = parseInt(textBox.style.top) || 0;
       const id = textBox.getAttribute("data-id");
-      payload.push({x, y, id});
+      payload.push({ x, y, id });
     }
     turnsUpdateCoordinates(payload, function () {
       console.log("Positions of all turns re-saved.");

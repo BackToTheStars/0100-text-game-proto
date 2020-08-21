@@ -8,7 +8,7 @@ const schema = new Schema({
     required: true,
   },
   paragraph: {
-    type: Array,
+    type: [mongoose.Schema.Types.Mixed],
     required: true
   },
   x: {
