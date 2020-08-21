@@ -1,8 +1,6 @@
-
-
 function fromQuillToJson(arr) {
-    let paragraph
-    arr.forEach( (textElem) => {
+  let paragraph
+  arr.forEach((textElem) => {
 
-    })
+  })
 }

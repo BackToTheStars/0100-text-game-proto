@@ -2,13 +2,13 @@ let colorModule = Quill.import('attributors/class/color');
 Quill.register(colorModule, true);
 
 let quill = new Quill('#editor-container', {
-    modules: {
-        toolbar: '#toolbar-container'
-    },
-    placeholder: 'Compose an epic...',
-    theme: 'snow'
+  modules: {
+    toolbar: '#toolbar-container'
+  },
+  placeholder: 'Compose an epic...',
+  theme: 'snow'
 });
 
 function getQuillTextArr() {
-    return quill.editor.delta.ops;
+  return quill.editor.delta.ops;
 }

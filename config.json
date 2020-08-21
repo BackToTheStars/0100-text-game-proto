@@ -4,9 +4,9 @@
     "url": "mongodb://127.0.0.1:27017",
     "dbname": "TextGame",
     "collections": {
-      "classes" : "Classes",
-      "comments" : "Comments",
-      "turns": "Turns"
+      "classes": "classes",
+      "comments": "comments",
+      "turns": "turns"
     }
   }
 }

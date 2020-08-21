@@ -3,8 +3,8 @@ function getTurns(callback) {
         type: "GET",
         url: "/getTurns",
         data: "",
-        success: callback
-    })
+        success: callback,
+    });
 }
 
 function saveTurn(turnObj, callback) {
@@ -12,12 +12,25 @@ function saveTurn(turnObj, callback) {
         type: "POST",
         url: "/saveTurn",
         data: JSON.stringify({
-            turn: turnObj
+            turn: turnObj,
         }),
         dataType: "json",
         contentType: "application/json",
-        success: callback
-    })
+        success: callback,
+    });
+}
+
+function turnsUpdateCoordinates(turnObjects, callback) {
+    $.ajax({
+        type: "PUT",
+        url: "/turns/coordinates",
+        data: JSON.stringify({
+            turns: turnObjects,
+        }),
+        dataType: "json",
+        contentType: "application/json",
+        success: callback,
+    });
 }
 
 function updateTurn(turnObj, callback) {
@@ -25,10 +38,10 @@ function updateTurn(turnObj, callback) {
         type: "POST",
         url: "/updateTurn",
         data: JSON.stringify({
-            turn: turnObj
+            turn: turnObj,
         }),
         dataType: "json",
         contentType: "application/json",
-        success: callback
-    })
+        success: callback,
+    });
 }
