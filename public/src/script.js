@@ -69,8 +69,8 @@ function makeNewBoxMessage(headStr, parStr, id, x, y) {
   // создаёт div блока по заданным параметрам
   let elmnt = document.createElement("div");
   elmnt.setAttribute("data-id", id);
-  //elmnt.style.left = `${x}px`;
-  //elmnt.style.top = `${y}px`;
+  elmnt.style.left = `${x}px`;
+  elmnt.style.top = `${y}px`;
   elmnt.className = "textBox ui-widget-content";
   let p = makeParagraph(parStr);
   let h = makeHead(headStr);
