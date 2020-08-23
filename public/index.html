@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script
+            src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+            integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+            crossorigin="anonymous"></script>
     <link rel="stylesheet" href="styles/style.css">
     <link rel="stylesheet" href="styles/modal.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script src="/node_modules/quill/dist/quill.min.js"></script>
@@ -28,7 +33,7 @@
             <button onclick="addNewBoxToGame()">add</button>
             <button id="saveTurnPositionsToDb">Save Positions</button>
 
-            <div id="gameBox">
+            <div id="gameBox" class="ui-widget-content">
 
             </div>
         </div>
@@ -40,7 +45,7 @@
     <div id="modal" class="container">
         <div class="row my-4">
             <div class="col">
-               <input class="form-control" id="headerInput"/>
+                <input class="form-control" id="headerInput"/>
             </div>
         </div>
         <div class="row my-4">
