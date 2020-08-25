@@ -28,6 +28,7 @@ function cancelTurnModal() {
 function openTurnModal(turn) {
   showElement("modalBackground");
   showElement("modal");
+  // debugger;
   writeParagraph("editor-container", turn.paragraph);
   writeToHeader("headerInput", turn.header);
   recreateOnclickModalSave(turn._id);
@@ -48,7 +49,20 @@ function saveTurnModal(id) {
     paragraph: textArr,
     _id: id,
   };
+  
   updateTurn(turnObj, (data) => {
-    console.log(data);
+    // openTurnModal(data);
+
+    const element = document.querySelector(`[data-id = "${data._id}"]`);
+    element.remove();
+
+    const newElement = makeNewBoxMessage(
+      data.header,
+      data.paragraph,
+      data._id,
+      data.x,
+      data.y
+    );
+    gameBox.appendChild(newElement);
   });
 }

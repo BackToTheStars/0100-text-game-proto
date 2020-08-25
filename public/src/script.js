@@ -22,6 +22,8 @@ function addNewBoxToGame() {
 
 function addTextToParagraph(par, text) {
   if (Array.isArray(text)) {
+    par.innerHTML = '';
+    const innerPar = document.createElement('p');
     // par.innerHTML = text.map((el) => `<span>${el.insert}</span>`).join("");
     for (let textItem of text) {
       const spanEl = document.createElement("span");
@@ -31,8 +33,9 @@ function addTextToParagraph(par, text) {
         }
       }
       spanEl.innerText = textItem.insert;
-      par.appendChild(spanEl);
+      innerPar.appendChild(spanEl);
     }
+    par.appendChild(innerPar);
   } else {
     par.innerHTML = text;
   }

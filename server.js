@@ -1,4 +1,6 @@
+require("dotenv").config()
 require("./models/db");
+
 let express = require('express');
 const turnsController = require("./controllers/turns");
 const gameClassesController = require("./controllers/gameClasses");
