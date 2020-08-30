@@ -9,9 +9,10 @@ function hideElement(id) {
 }
 
 function writeParagraph(id, text) {
+  console.log(text[0]);
   let editor = document.getElementById(id);
   let elem = editor.getElementsByClassName("ql-editor")[0];
-  //   elem.innerText = text;
+  elem.innerText = text[0];
   return addTextToParagraph(elem, text);
 }
 

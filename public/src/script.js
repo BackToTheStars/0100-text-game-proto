@@ -183,7 +183,8 @@ getTurns((data) => {
     );
     gameBox.appendChild(newDiv);
   }
-  $('.textBox').resizable({aspectRatio: true});
+  $('.textBox').resizable();
+  //{aspectRatio: true}
   $('.textBox').draggable({containment: "#gameBox"});
 });
 

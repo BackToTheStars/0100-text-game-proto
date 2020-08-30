@@ -11,8 +11,8 @@ html, body {
 
 #gameBox {
     border: 1px solid blue;
-    height: 800px;
-    width: 1000px;
+    height: 1000px;
+    width: 1800px;
     overflow-x: auto;
     overflow-y: auto;
 }
