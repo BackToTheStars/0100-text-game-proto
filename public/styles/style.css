@@ -4,9 +4,11 @@ html, body {
 
 .textBox {
     margin: 20px;
-    width: 400px;
-    height: 300px;
+    min-width: 400px;
+    min-height: 300px;
     border: 1px black;
+    position: absolute !important;
+    background-color:#f5f5f5 !important;
 }
 
 #gameBox {
@@ -19,7 +21,8 @@ html, body {
 
 .paragraphText {
     background-color: whitesmoke;
-    height: 70%;
+    min-height: 0;
+    max-height: 70%; 
     width: 100%;
     overflow-y: auto;
     overflow-x: auto;
@@ -28,6 +31,10 @@ html, body {
 .headerText {
     background-color: lightblue;
     margin-bottom: 0;
+    min-height: 0;
+    max-height: 30%; 
+    overflow-y: auto;
+    overflow-x: auto;
     width: 100%;
 }
 
