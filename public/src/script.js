@@ -74,7 +74,7 @@ function makeNewBoxMessage(headStr, parStr, id, x, y) {
   elmnt.setAttribute("data-id", id);
   elmnt.style.left = `${x}px`;
   elmnt.style.top = `${y}px`;
-  elmnt.className = "textBox";
+  elmnt.className = "textBox ui-widget-content";
   let p = makeParagraph(parStr);
   let h = makeHead(headStr);
   let button = makeButton({ _id: id, paragraph: parStr, header: headStr });
@@ -87,7 +87,7 @@ function makeNewBoxMessage(headStr, parStr, id, x, y) {
   // *************************************************************************************
 
   //  elmnt.addEventListener('mousemove', (e) => {...});    - window.event is deprecated
-  elmnt.onmousedown = dragMouseDown;
+ /* elmnt.onmousedown = dragMouseDown;
 
   function dragMouseDown(e) {
     e = e || window.event;
@@ -119,7 +119,7 @@ function makeNewBoxMessage(headStr, parStr, id, x, y) {
     // stop moving when mouse button is released:
     document.onmouseup = null;
     document.onmousemove = null;
-  }
+  }*/
 
   // **************************************************************************************
 
@@ -183,6 +183,8 @@ getTurns((data) => {
     );
     gameBox.appendChild(newDiv);
   }
+  $('.textBox').resizable({aspectRatio: true});
+  $('.textBox').draggable({containment: "#gameBox"});
 });
 
 const buttonSavePositions = document

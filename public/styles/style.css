@@ -5,33 +5,30 @@ html, body {
 .textBox {
     margin: 20px;
     width: 400px;
-    cursor: move;
-    position: absolute;
+    height: 300px;
     border: 1px black;
 }
 
 #gameBox {
     border: 1px solid blue;
-    min-height: 600px;
-    min-width: 800px;
-    width: auto;
-    /*position: relative;*/
+    height: 800px;
+    width: 1000px;
+    overflow-x: auto;
+    overflow-y: auto;
 }
 
 .paragraphText {
     background-color: whitesmoke;
+    height: 70%;
+    width: 100%;
     overflow-y: auto;
     overflow-x: auto;
-    min-height: 50px;
-    max-height: 400px;
 }
 
 .headerText {
     background-color: lightblue;
-    overflow-y: auto;
     margin-bottom: 0;
-    /*min-width: 100px;*/
-    /*max-width: 200px;*/
+    width: 100%;
 }
 
 .classMenu {
