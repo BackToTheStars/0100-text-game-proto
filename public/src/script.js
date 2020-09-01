@@ -169,38 +169,12 @@ function insertNewClassElement(input, ul) {
   ul.appendChild(li);
 }
 
-/** Client code */
-let gameBox = document.getElementById("gameBox"); // выбирает элемент по id
+const saveFieldCoords = (coords) => {
+  localStorage.setItem('gameField', JSON.stringify(coords))
+}
 
-getTurns((data) => {
-  for (let elem of data) {
-    let newDiv = makeNewBoxMessage(
-      elem.header,
-      elem.paragraph,
-      elem._id,
-      elem.x,
-      elem.y
-    );
-    gameBox.appendChild(newDiv);
-  }
-  $('.textBox').resizable();
-  //{aspectRatio: true}
-  $('.textBox').draggable({containment: "#gameBox"});
-});
-
-const buttonSavePositions = document
-  .querySelector("#saveTurnPositionsToDb")
-  .addEventListener("click", (e) => {
-    e.preventDefault();
-    const textBoxes = document.querySelectorAll(".textBox");
-    const payload = [];
-    for (let textBox of textBoxes) {
-      const x = parseInt(textBox.style.left) || 0;
-      const y = parseInt(textBox.style.top) || 0;
-      const id = textBox.getAttribute("data-id");
-      payload.push({ x, y, id });
-    }
-    turnsUpdateCoordinates(payload, function () {
-      console.log("Positions of all turns re-saved.");
-    });
-  });
+const getFieldCoords = () => {
+  const coords = JSON.parse(localStorage.getItem('gameField')) || { left: 0, top: 0 }
+  console.log(coords);
+  return coords;
+}

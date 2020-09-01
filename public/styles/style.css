@@ -9,12 +9,24 @@ html, body {
     border: 1px black;
 }
 
-#gameBox {
-    border: 1px solid blue;
-    height: 1000px;
-    width: 1800px;
+.actions {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    padding: 10px;
+    border: 1px solid #eee;
+}
+
+.gameFieldWrapper {
+    height: 100vh;
     overflow-x: auto;
     overflow-y: auto;
+    border: 1px solid blue;
+}
+
+#gameBox {
+    min-height: 1000px;
+    min-width: 120px;
 }
 
 .paragraphText {
