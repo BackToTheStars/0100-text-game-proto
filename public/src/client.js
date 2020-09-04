@@ -40,6 +40,7 @@ const buttonSavePositions = document
 const getGame = (gameBox, fieldSettings) => {
   // gameBox
   // fieldSettings
+
   const render = () => {                                            // инкапсуляция переменных
     gameBox.style.left = fieldSettings.left + 'px';
     gameBox.style.top = fieldSettings.top + 'px';
@@ -62,7 +63,6 @@ const getGame = (gameBox, fieldSettings) => {
       top: 0
     })
   }
-
   return {
     recalculate: recalculate,                         // возвращаем две верёвки методов, можем за них дёргать
     render: render

@@ -12,7 +12,7 @@ function addNewBoxToGame() {
     let par = getInputValue("paragraphText"); // вводит текст параграфа
     let newTurn = {
         header: header,
-        paragraph: par,
+        paragraph: [{insert: par}]
     };
     saveTurn(newTurn, (data) => {
         let newDiv = makeNewBoxMessage(header, par, data._id, data.x, data.y);
@@ -55,14 +55,24 @@ function makeHead(text) {
     return h;
 }
 
-function makeButton(turn) {
+function makeEditButton(turn) {
     let button = document.createElement("button");
-    button.innerHTML = "edit";
+    button.innerHTML = "Edit";
     button.addEventListener("click", () => {
         openTurnModal(turn);
     });
     return button;
 }
+
+function makeDeleteButton(turn) {                                // refactor with makeEditButton()
+    let button = document.createElement("button");
+    button.innerHTML = "Delete";
+    button.addEventListener("click", () => {
+        // deleteTurn(turn);
+    });
+    return button;
+}
+
 
 function makeNewBoxMessage(headStr, parStr, id, x, y) {
     let param = {
@@ -77,8 +87,10 @@ function makeNewBoxMessage(headStr, parStr, id, x, y) {
     elmnt.className = "textBox ui-widget-content";
     let p = makeParagraph(parStr);
     let h = makeHead(headStr);
-    let button = makeButton({_id: id, paragraph: parStr, header: headStr});
-    h.appendChild(button);
+    let editButton = makeEditButton({_id: id, paragraph: parStr, header: headStr});
+    let deleteButton = makeDeleteButton({_id: id, paragraph: parStr, header: headStr});
+    h.appendChild(editButton);
+    h.appendChild(deleteButton);
     elmnt.appendChild(h);
     elmnt.appendChild(p);
     /*elmnt.innerHTML = "<h4 class='headerText'>" + headStr + "" +
