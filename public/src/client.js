@@ -36,27 +36,19 @@ const buttonSavePositions = document
     });
   });
 
-// $('#gameBox').css({
-//   left: coords.left,
-//   top: style.top
-// });
-
-
-// {containment: ".gameFieldWrapper"});
 
 const getGame = (gameBox, fieldSettings) => {
   // gameBox
   // fieldSettings
-  const render = () => {                                // инкапсуляция переменных
+  const render = () => {                                            // инкапсуляция переменных
     gameBox.style.left = fieldSettings.left + 'px';
     gameBox.style.top = fieldSettings.top + 'px';
-    // gameBox.style.height = fieldSettings.height + 'px';
-    // gameBox.style.width = fieldSettings.width + 'px';
   }
+
   const recalculate = () => {
     // найти textboxes
     const textBoxElements = document.querySelectorAll('.textBox')
-    const left = parseInt(gameBox.style.left); // 123px
+    const left = parseInt(gameBox.style.left);
     const top = parseInt(gameBox.style.top);
     // пересчитать настройки
     for (let textBoxElement of textBoxElements) {
