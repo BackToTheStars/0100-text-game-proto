@@ -2,6 +2,7 @@
 /** Client code */
 let gameBox = document.getElementById("gameBox"); // выбирает элемент по id
 
+
 getTurns((data) => {
   for (let elem of data) {
     let newDiv = makeNewBoxMessage(
@@ -35,29 +36,62 @@ const buttonSavePositions = document
     });
   });
 
-$('#gameBox').draggable({
-  stop: function (event, ui) {
-    saveFieldCoords({
-      left: ui.position.left,
-      top: ui.position.top
-    })
-    // console.log(ui.position.left);
-    // console.log(ui.position.top);
-    // console.log(ui.helper);
-  }
-});
-
-const coords = getFieldCoords();
-
 // $('#gameBox').css({
 //   left: coords.left,
 //   top: style.top
 // });
 
-gameBox.style.left = coords.left + 'px';
-gameBox.style.top = coords.top + 'px';
 
-    // {containment: ".gameFieldWrapper"});
+// {containment: ".gameFieldWrapper"});
 
+const getGame = (gameBox, fieldSettings) => {
+  // gameBox
+  // fieldSettings
+  const render = () => {                                // инкапсуляция переменных
+    gameBox.style.left = fieldSettings.left + 'px';
+    gameBox.style.top = fieldSettings.top + 'px';
+    // gameBox.style.height = fieldSettings.height + 'px';
+    // gameBox.style.width = fieldSettings.width + 'px';
+  }
+  const recalculate = () => {
+    // найти textboxes
+    const textBoxElements = document.querySelectorAll('.textBox')
+    const left = parseInt(gameBox.style.left); // 123px
+    const top = parseInt(gameBox.style.top);
+    // пересчитать настройки
+    for (let textBoxElement of textBoxElements) {
+      textBoxElement.style.left = parseInt(textBoxElement.style.left) + left + 'px';
+      textBoxElement.style.top = parseInt(textBoxElement.style.top) + top + 'px';
+    }
+    gameBox.style.left = 0;
+    gameBox.style.top = 0;
+    saveFieldSettings({
+      left: 0,
+      top: 0
+    })
+  }
 
+  return {
+    recalculate: recalculate,                         // возвращаем две верёвки методов, можем за них дёргать
+    render: render
+  }
+}
 
+fieldSettings = getFieldSettings();
+const game = getGame(gameBox, fieldSettings);
+game.render();
+
+$('#gameBox').draggable({
+  stop: function (event, ui) {
+    saveFieldSettings({
+      left: ui.position.left,
+      top: ui.position.top,
+      height: 1000,
+      width: 1000,
+    })
+    game.recalculate();
+    // console.log(ui.position.left);
+    // console.log(ui.position.top);
+    // console.log(ui.helper);
+  }
+});

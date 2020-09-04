@@ -169,12 +169,21 @@ function insertNewClassElement(input, ul) {
     ul.appendChild(li);
 }
 
-const saveFieldCoords = (coords) => {
-    localStorage.setItem('gameField', JSON.stringify(coords))
+const saveFieldSettings = (settings) => {
+    // left, top,
+    // width, height
+    localStorage.setItem('gameField', JSON.stringify(settings))
 }
 
-const getFieldCoords = () => {
-    const coords = JSON.parse(localStorage.getItem('gameField')) || {left: 0, top: 0}
-    console.log(coords);
-    return coords;
+const getFieldSettings = () => {
+    const settings = JSON.parse(localStorage.getItem('gameField')) || {
+        left: 0,
+        top: 0,
+        width: 1000,
+        height: 1000
+    }
+    return settings;
 }
+
+
+
