@@ -1,7 +1,7 @@
 const Turn = require("../models/Turn");
 
 const updateTurn = async (req, res) => {
-  const { turn } = req.body;
+  const {turn} = req.body;
   const turnModel = await Turn.findByIdAndUpdate(turn._id, turn, {new: true});   //функция ищет по ид и апдейтит
   res.json(turnModel); // new true говорит отдать новую модель, а не старую
 }
@@ -28,7 +28,8 @@ const updateCoordinates = async (req, res) => {
     turnModel.y = y;
     await turnModel.save();
     items.push(turnModel)
-  };
+  }
+  ;
   res.json({
     success: true,
     items

@@ -15,7 +15,7 @@ getTurns((data) => {
   }
   $('.textBox').resizable();
   //{aspectRatio: true}
-  $('.textBox').draggable({ containment: "#gameBox" });
+  $('.textBox').draggable({containment: "#gameBox"});
 });
 
 const buttonSavePositions = document
@@ -28,7 +28,7 @@ const buttonSavePositions = document
       const x = parseInt(textBox.style.left) || 0;
       const y = parseInt(textBox.style.top) || 0;
       const id = textBox.getAttribute("data-id");
-      payload.push({ x, y, id });
+      payload.push({x, y, id});
     }
     turnsUpdateCoordinates(payload, function () {
       console.log("Positions of all turns re-saved.");
