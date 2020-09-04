@@ -3,8 +3,8 @@
   "mongo": {
     "url": "mongodb://127.0.0.1:27017",
     "collections": {
-      "classes" : "Classes",
-      "comments" : "Comments",
+      "classes": "Classes",
+      "comments": "Comments",
       "turns": "Turns"
     }
   }

@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script
-            src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
-            integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
-            crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+            integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="styles/style.css">
     <link rel="stylesheet" href="styles/modal.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
@@ -16,6 +15,7 @@
     <script src="/node_modules/quill/dist/quill.min.js"></script>
     <link rel="stylesheet" href="/node_modules/quill/dist/quill.snow.css"/>
 </head>
+
 <body>
 <div class="container-fluid">
     <div class="row">
@@ -26,16 +26,21 @@
             </div>
         </div>
         <div class="col">
-            Header: <input id="headerText"/>
-            <br>
-            Text: <textarea id="paragraphText"></textarea>
-            <br>
-            <button onclick="addNewBoxToGame()">add</button>
-            <button id="saveTurnPositionsToDb">Save Positions</button>
 
-            <div id="gameBox" class="ui-widget-content">
-
+            <div class="gameFieldWrapper">
+                <div id="gameBox" class="ui-widget-content">
+                </div>
             </div>
+
+            <div class="actions">
+                Header: <input id="headerText"/>
+                <br>
+                Text: <textarea id="paragraphText"></textarea>
+                <br>
+                <button onclick="addNewBoxToGame()">add</button>
+                <button id="saveTurnPositionsToDb">Save Field</button>
+            </div>
+
         </div>
     </div>
 
@@ -51,12 +56,12 @@
         <div class="row my-4">
             <div class="col">
                 <div id="toolbar-container">
-                            <span class="ql-formats">
-                    <select class="ql-background">
-                              <option selected></option>
-                      <option value="yellow"></option>
-                    </select>
-                  </span>
+                        <span class="ql-formats">
+                            <select class="ql-background">
+                                <option selected></option>
+                                <option value="yellow"></option>
+                            </select>
+                        </span>
                 </div>
                 <div id="editor-container" class="h-75">
                 </div>
@@ -80,4 +85,7 @@
 <script src="src/modal.js"></script>
 <script src="src/quillHandler.js"></script>
 <script src="src/Converter.js"></script>
+
+<script src="src/client.js"></script>
+
 </html>

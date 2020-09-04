@@ -4,22 +4,37 @@ html, body {
 
 .textBox {
     margin: 20px;
-    width: 400px;
-    height: 300px;
+    min-width: 400px;
+    min-height: 300px;
     border: 1px black;
+    position: absolute !important;
+    background-color:#f5f5f5 !important;
+}
+
+.actions {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    padding: 10px;
+    border: 1px solid #eee;
+}
+
+.gameFieldWrapper {
+    height: 100vh;
+    overflow-x: auto;
+    overflow-y: auto;
+    border: 1px solid blue;
 }
 
 #gameBox {
-    border: 1px solid blue;
-    height: 800px;
-    width: 1000px;
-    overflow-x: auto;
-    overflow-y: auto;
+    min-height: 1000px;
+    width: 100%;
 }
 
 .paragraphText {
     background-color: whitesmoke;
-    height: 70%;
+    min-height: 0;
+    max-height: 70%; 
     width: 100%;
     overflow-y: auto;
     overflow-x: auto;
@@ -28,6 +43,10 @@ html, body {
 .headerText {
     background-color: lightblue;
     margin-bottom: 0;
+    min-height: 0;
+    max-height: 30%; 
+    overflow-y: auto;
+    overflow-x: auto;
     width: 100%;
 }
 
