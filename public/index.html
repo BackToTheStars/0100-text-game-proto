@@ -6,77 +6,77 @@
     <title>Title</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
-            integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+        integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="styles/style.css">
     <link rel="stylesheet" href="styles/modal.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script src="/node_modules/quill/dist/quill.min.js"></script>
-    <link rel="stylesheet" href="/node_modules/quill/dist/quill.snow.css"/>
+    <link rel="stylesheet" href="/node_modules/quill/dist/quill.snow.css" />
 </head>
 
 <body>
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-2" id="classMenu">
-            <div class="row">
-                Add new class, like "Person": <input id="newClassName"/>
-                <button onclick="addNewClass()"> add</button>
-            </div>
-        </div>
-        <div class="col">
-
-            <div class="gameFieldWrapper">
-                <div id="gameBox" class="ui-widget-content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-2" id="classMenu">
+                <div class="row">
+                    Add new class, like "Person": <input id="newClassName" />
+                    <button onclick="addNewClass()"> add</button>
                 </div>
             </div>
-
-            <div class="actions">
-                Header: <input id="headerText"/>
-                <br>
-                Text: <textarea id="paragraphText"></textarea>
-                <br>
-                <button onclick="addNewBoxToGame()">Add Turn</button>
-                <button id="saveTurnPositionsToDb">Save Field</button>
-            </div>
-
-        </div>
-    </div>
-
-    <div id="modalBackground">
-
-    </div>
-    <div id="modal" class="container">
-        <div class="row my-4">
             <div class="col">
-                <input class="form-control" id="headerInput"/>
+
+                <div class="gameFieldWrapper">
+                    <div id="gameBox" class="ui-widget-content">
+                    </div>
+                </div>
+
+                <div class="actions">
+                    Header: <input id="headerText" />
+                    <br>
+                    Text: <textarea id="paragraphText"></textarea>
+                    <br>
+                    <button onclick="addNewBoxToGame()">Add Turn</button>
+                    <button id="saveTurnPositionsToDb">Save Field</button>
+                </div>
+
             </div>
         </div>
-        <div class="row my-4">
-            <div class="col">
-                <div id="toolbar-container">
+
+        <div id="modalBackground">
+
+        </div>
+        <div id="modal" class="container">
+            <div class="row my-4">
+                <div class="col">
+                    <input class="form-control" id="headerInput" />
+                </div>
+            </div>
+            <div class="row my-4">
+                <div class="col">
+                    <div id="toolbar-container">
                         <span class="ql-formats">
                             <select class="ql-background">
                                 <option selected></option>
                                 <option value="yellow"></option>
                             </select>
                         </span>
+                    </div>
+                    <div id="editor-container" class="h-75">
+                    </div>
                 </div>
-                <div id="editor-container" class="h-75">
+            </div>
+            <div class="row mb-4">
+                <div class="col">
+                    <button class="btn btn-primary" id="modalSaveButton">save</button>
+                    <button class="btn btn-danger" onclick="cancelTurnModal()">close</button>
                 </div>
             </div>
         </div>
-        <div class="row mb-4">
-            <div class="col">
-                <button class="btn btn-primary" id="modalSaveButton">save</button>
-                <button class="btn btn-danger" onclick="cancelTurnModal()">close</button>
-            </div>
-        </div>
+
+
     </div>
-
-
-</div>
 
 
 </body>
