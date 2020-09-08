@@ -16,7 +16,7 @@ getTurns((data) => {
   }
   $('.textBox').resizable();
   //{aspectRatio: true}
-  $('.textBox').draggable({containment: "#gameBox"});
+  $('.textBox').draggable(); //{containment: "#gameBox"});
 });
 
 const buttonSavePositions = document

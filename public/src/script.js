@@ -17,6 +17,8 @@ function addNewBoxToGame() {
     saveTurn(newTurn, (data) => {
         let newDiv = makeNewBoxMessage(header, par, data._id, data.x, data.y);
         gameBox.appendChild(newDiv); // добавляет новый div к заданному div
+        $(newDiv).resizable();
+        $(newDiv).draggable(); //{containment: "#gameBox"});
     });
 }
 
