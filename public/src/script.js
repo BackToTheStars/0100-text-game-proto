@@ -76,7 +76,7 @@ function makeDeleteButton(turn) {                                // refactor wit
 }
 
 
-function makeNewBoxMessage(headStr, parStr, id, x, y) {
+function makeNewBoxMessage(headStr, parStr, id, x, y, height, width) {
     let param = {
         head: headStr,
         par: parStr,
@@ -86,6 +86,8 @@ function makeNewBoxMessage(headStr, parStr, id, x, y) {
     elmnt.setAttribute("data-id", id);
     elmnt.style.left = `${x}px`;
     elmnt.style.top = `${y}px`;
+    elmnt.style.height = `${height}px`;
+    elmnt.style.width = `${width}px`;
     elmnt.className = "textBox ui-widget-content";
     let p = makeParagraph(parStr);
     let h = makeHead(headStr);
