@@ -12,11 +12,13 @@ function addNewBoxToGame() {
     let par = getInputValue("paragraphText"); // вводит текст параграфа
     let newTurn = {
         header: header,
-        paragraph: par,
+        paragraph: [{insert: par}]
     };
     saveTurn(newTurn, (data) => {
         let newDiv = makeNewBoxMessage(header, par, data._id, data.x, data.y);
         gameBox.appendChild(newDiv); // добавляет новый div к заданному div
+        $(newDiv).resizable();
+        $(newDiv).draggable(); //{containment: "#gameBox"});
     });
 }
 
@@ -55,16 +57,26 @@ function makeHead(text) {
     return h;
 }
 
-function makeButton(turn) {
+function makeEditButton(turn) {
     let button = document.createElement("button");
-    button.innerHTML = "edit";
+    button.innerHTML = "Edit";
     button.addEventListener("click", () => {
         openTurnModal(turn);
     });
     return button;
 }
 
-function makeNewBoxMessage(headStr, parStr, id, x, y) {
+function makeDeleteButton(turn) {                                // refactor with makeEditButton()
+    let button = document.createElement("button");
+    button.innerHTML = "Delete";
+    button.addEventListener("click", () => {
+        // deleteTurn(turn);
+    });
+    return button;
+}
+
+
+function makeNewBoxMessage(headStr, parStr, id, x, y, height, width) {
     let param = {
         head: headStr,
         par: parStr,
@@ -74,11 +86,15 @@ function makeNewBoxMessage(headStr, parStr, id, x, y) {
     elmnt.setAttribute("data-id", id);
     elmnt.style.left = `${x}px`;
     elmnt.style.top = `${y}px`;
+    elmnt.style.height = `${height}px`;
+    elmnt.style.width = `${width}px`;
     elmnt.className = "textBox ui-widget-content";
     let p = makeParagraph(parStr);
     let h = makeHead(headStr);
-    let button = makeButton({_id: id, paragraph: parStr, header: headStr});
-    h.appendChild(button);
+    let editButton = makeEditButton({_id: id, paragraph: parStr, header: headStr});
+    let deleteButton = makeDeleteButton({_id: id, paragraph: parStr, header: headStr});
+    h.appendChild(editButton);
+    h.appendChild(deleteButton);
     elmnt.appendChild(h);
     elmnt.appendChild(p);
     /*elmnt.innerHTML = "<h4 class='headerText'>" + headStr + "" +

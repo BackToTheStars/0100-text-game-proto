@@ -19,6 +19,14 @@ const schema = new Schema({
     type: Number,
     default: 0,
   },
+  height: {
+      type: Number,
+      required: true,
+  },
+  width: {
+    type: Number,
+    required: true,
+},
 });
 
 module.exports = mongoose.model('Turn', schema, config.mongo.collections.turns);
