@@ -12,10 +12,12 @@ function addNewBoxToGame() {
     let par = getInputValue("paragraphText"); // вводит текст параграфа
     let newTurn = {
         header: header,
-        paragraph: [{insert: par}]
+        paragraph: [{ insert: par }],
+        height: 300,
+        width: 400
     };
     saveTurn(newTurn, (data) => {
-        let newDiv = makeNewBoxMessage(header, par, data._id, data.x, data.y);
+        let newDiv = makeNewBoxMessage(header, par, data._id, data.x, data.y, data.height, data.width);
         gameBox.appendChild(newDiv); // добавляет новый div к заданному div
         $(newDiv).resizable();
         $(newDiv).draggable(); //{containment: "#gameBox"});
@@ -91,8 +93,8 @@ function makeNewBoxMessage(headStr, parStr, id, x, y, height, width) {
     elmnt.className = "textBox ui-widget-content";
     let p = makeParagraph(parStr);
     let h = makeHead(headStr);
-    let editButton = makeEditButton({_id: id, paragraph: parStr, header: headStr});
-    let deleteButton = makeDeleteButton({_id: id, paragraph: parStr, header: headStr});
+    let editButton = makeEditButton({ _id: id, paragraph: parStr, header: headStr });
+    let deleteButton = makeDeleteButton({ _id: id, paragraph: parStr, header: headStr });
     h.appendChild(editButton);
     h.appendChild(deleteButton);
     elmnt.appendChild(h);
@@ -155,20 +157,20 @@ function createClassField(name) {
     let div = document.createElement("div");
     div.className = "row";
     div.innerHTML =
-      "<h5>" +
-      name +
-      "</h5>" +
-      "<ul id='" +
-      uniqueUlId +
-      "'></ul>" +
-      "<input id='" +
-      uniqueInputId +
-      "'> " +
-      "<button onclick='insertNewClassElement(" +
-      uniqueInputId +
-      "," +
-      uniqueUlId +
-      ")'>Add Element</button>";
+        "<h5>" +
+        name +
+        "</h5>" +
+        "<ul id='" +
+        uniqueUlId +
+        "'></ul>" +
+        "<input id='" +
+        uniqueInputId +
+        "'> " +
+        "<button onclick='insertNewClassElement(" +
+        uniqueInputId +
+        "," +
+        uniqueUlId +
+        ")'>Add Element</button>";
     return div;
 }
 

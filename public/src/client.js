@@ -5,14 +5,13 @@ let gameBox = document.getElementById("gameBox"); // выбирает элеме
 const setSizes = (jQueryElement) => {
     $(jQueryElement).css('height', $(jQueryElement).height() + 'px');
     $(jQueryElement).css('width', $(jQueryElement).width() + 'px');
-
 }
 
 const drawLine = (gameBox, x1, y1, x2, y2) => {
   const line = $(`<svg viewBox="0 0 ${$("#gameBox").width()} ${$("#gameBox").height()}" xmlns="http://www.w3.org/2000/svg" class="line">
-    <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="red" stroke-width="2" />
+    <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="red" stroke-width="1" />
   </svg>`);
-  $(gameBox).append(line)
+  //$(gameBox).append(line);
 }
 
 getTurns((data) => {
