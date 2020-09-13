@@ -15,9 +15,9 @@ app.use('/node_modules', express.static(__dirname + "/node_modules/"));
 app.use(jsonParser);
 
 // app.put("/turns/:id")
-app.post("/saveTurn", turnsController.saveTurn);
+//app.post("/saveTurn", turnsController.saveTurn);
 // app.get("/turns/")
-app.get("/getTurns", turnsController.getTurns);
+//app.get("/getTurns", turnsController.getTurns);
 app.put("/turns/coordinates", turnsController.updateCoordinates);
 
 app.post("/saveGameClass", gameClassesController.saveGameClass);
@@ -26,6 +26,7 @@ app.get("/getGameClasses", gameClassesController.getGameClasses)
 
 app.post("/updateTurn", jsonParser, turnsController.updateTurn);
 app.post("/saveTurn", jsonParser, turnsController.saveTurn);
+app.delete("/deleteTurn", turnsController.deleteTurn);
 app.get("/getTurns", turnsController.getTurns);
 
 app.post("/saveGameClass", jsonParser, gameClassesController.saveGameClass);
