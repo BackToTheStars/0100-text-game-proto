@@ -26,6 +26,7 @@ app.get("/getGameClasses", gameClassesController.getGameClasses)
 
 app.post("/updateTurn", jsonParser, turnsController.updateTurn);
 app.post("/saveTurn", jsonParser, turnsController.saveTurn);
+app.delete("/deleteTurn", turnsController.deleteTurn);
 app.get("/getTurns", turnsController.getTurns);
 
 app.post("/saveGameClass", jsonParser, gameClassesController.saveGameClass);

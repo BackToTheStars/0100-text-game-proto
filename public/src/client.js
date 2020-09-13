@@ -8,13 +8,13 @@ const setSizes = (jQueryElement) => {
 }
 
 const drawLine = (gameBox, x1, y1, x2, y2) => {
-  const line = $(`<svg viewBox="0 0 ${$("#gameBox").width()} ${$("#gameBox").height()}" xmlns="http://www.w3.org/2000/svg" class="line">
+    const line = $(`<svg viewBox="0 0 ${$("#gameBox").width()} ${$("#gameBox").height()}" xmlns="http://www.w3.org/2000/svg" class="line">
     <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="red" stroke-width="1" />
   </svg>`);
-  //$(gameBox).append(line);
+    //$(gameBox).append(line);
 }
 
-getTurns((data) => {
+getTurns((data) => {    // Запрашиваем ходы с сервера и размещаем их на доске игры
     for (let elem of data) {
         let newDiv = makeNewBoxMessage(
             elem.header,
@@ -25,19 +25,18 @@ getTurns((data) => {
             elem.height,
             elem.width
         );
-        gameBox.appendChild(newDiv);
+        gameBox.appendChild(newDiv); // само добавление div-ов ходов
     }
     $('.textBox').resizable();
-    //{aspectRatio: true}
-    $('.textBox').draggable(); //{containment: "#gameBox"});
+    $('.textBox').draggable();
 
     // отрисовка линий
     // получение координат
     const line = {
-      x1: 972 - 338,
-      y1: 165,
-      x2: 1270 - 338,
-      y2: 192
+        x1: 972 - 338,
+        y1: 165,
+        x2: 1270 - 338,
+        y2: 192
     }
     // отрисовка координат
     drawLine(gameBox, line.x1, line.y1, line.x2, line.y2)

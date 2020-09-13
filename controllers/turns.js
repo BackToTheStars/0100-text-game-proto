@@ -6,6 +6,12 @@ const updateTurn = async (req, res) => {
     res.json(turnModel); // new true говорит отдать новую модель, а не старую
 }
 
+const deleteTurn = async (req, res) => {
+    const { turn } = req.body;
+    const turnModel = await Turn.findByIdAndRemove(turn._id);   //функция ищет по ид и удаляет
+    res.json(turnModel); // new true говорит отдать новую модель, а не старую
+}
+
 const saveTurn = async (req, res) => {
     const { turn } = req.body; // деструктуризатор
     const turnModel = new Turn(turn);
@@ -43,4 +49,5 @@ module.exports = {
     getTurns,
     updateCoordinates,
     updateTurn,
+    deleteTurn
 };

@@ -72,7 +72,9 @@ function makeDeleteButton(turn) {                                // refactor wit
     let button = document.createElement("button");
     button.innerHTML = "Delete";
     button.addEventListener("click", () => {
-        // deleteTurn(turn);
+        deleteTurn(turn);
+        const element = document.querySelector(`[data-id = "${turn._id}"]`);
+        element.remove();
     });
     return button;
 }

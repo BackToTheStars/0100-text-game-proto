@@ -45,3 +45,16 @@ function updateTurn(turnObj, callback) {
         success: callback,
     });
 }
+
+function deleteTurn(turnObj, callback) {
+    $.ajax({
+        type: "DELETE",
+        url: "/deleteTurn",
+        data: JSON.stringify({
+            turn: turnObj,
+        }),
+        dataType: "json",
+        contentType: "application/json",
+        success: callback,
+    });
+}
