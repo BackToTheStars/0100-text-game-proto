@@ -8,16 +8,26 @@ function getTurns(callback) {
 }
 
 function saveTurn(turnObj, callback) {
-    $.ajax({
-        type: "POST",
-        url: "/saveTurn",
-        data: JSON.stringify({
-            turn: turnObj,
-        }),
-        dataType: "json",
-        contentType: "application/json",
-        success: callback,
-    });
+    fetch('/saveTurn', {
+        method: 'POST',
+        headers: {
+            'content-type': 'application/json'
+        },
+        body: JSON.stringify({turn: turnObj})
+    })
+    .then(it => {callback(it)})
+    .catch(err=> {console.log(err.stack)});
+        
+    // $.ajax({
+    //     type: "POST",
+    //     url: "/saveTurn",
+    //     data: JSON.stringify({
+    //         turn: turnObj,
+    //     }),
+    //     dataType: "json",
+    //     contentType: "application/json",
+    //     success: callback,
+    // });
 }
 
 function turnsUpdateCoordinates(turnObjects, callback) {

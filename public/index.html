@@ -33,12 +33,20 @@
                 </div>
 
                 <div class="actions">
+                    <select id="turnType">
+                        <option value="picture">Картинка</option>
+                        <option value="article">Новость</option>
+                        <option value="video">Интервью</option>
+                    </select>
+                    <br>
                     Header: <input id="headerText" />
                     <br>
                     Text: <textarea id="paragraphText"></textarea>
                     <br>
                     <button onclick="addNewBoxToGame()">Add Turn</button>
-                    <button id="saveTurnPositionsToDb">Save Field</button>
+                    <button onclick="buttonSavePositions()">Save Field</button>
+                    <button class="btn btn-success" onclick="zoomInOut(1)"> + </button>
+                    <button class="btn btn-danger" onclick="zoomInOut(-1)"> - </button>
                 </div>
 
             </div>
@@ -85,7 +93,7 @@
 <script src="src/modal.js"></script>
 <script src="src/quillHandler.js"></script>
 <script src="src/Converter.js"></script>
-
+<script src="src/zoom.js"></script>
 <script src="src/client.js"></script>
 
 </html>

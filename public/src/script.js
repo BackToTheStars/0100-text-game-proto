@@ -8,11 +8,14 @@ function getInputValue(id) {
 
 function addNewBoxToGame() {
     // вставляет новый блок источника на поле
-    let header = getInputValue("headerText");
-    let par = getInputValue("paragraphText"); // вводит текст параграфа
+    const header = getInputValue("headerText");
+    const par = getInputValue("paragraphText"); // вводит текст параграфа
+    const type = getInputValue("turnType");
+
     let newTurn = {
-        header: header,
+        header,
         paragraph: [{ insert: par }],
+        contentType: type,
         height: 300,
         width: 400
     };

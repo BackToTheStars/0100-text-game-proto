@@ -5,9 +5,9 @@ html, body {
 .textBox {
     margin: 20px;
     min-width: 100px;
-    max-width: 1500px;
+    max-width: 2000px;
     min-height: 50px;
-    max-height: 1200px;
+    max-height: 3000px;
     /* width: 600px;
     height: 600px; */
     border: 1px black;

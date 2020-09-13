@@ -14,6 +14,7 @@ const deleteTurn = async (req, res) => {
 
 const saveTurn = async (req, res) => {
     const { turn } = req.body; // деструктуризатор
+    console.log(JSON.stringify(turn));
     const turnModel = new Turn(turn);
     await turnModel.save();
     res.json(turnModel);
@@ -28,12 +29,15 @@ const updateCoordinates = async (req, res) => {
     const { turns = [] } = req.body;
     const items = [];
     for (let turn of turns) {
-        const { id, x, y, height, width } = turn;
+        const { id, x, y, height, width, contentType } = turn;
+        //console.log(`============================================== id: ${id}`);
         const turnModel = await Turn.findById(id);
+        //console.log('====================================================');
         turnModel.x = x;
         turnModel.y = y;
         turnModel.height = height;
         turnModel.width = width;
+        turnModel.contentType = contentType;
         await turnModel.save();
         items.push(turnModel)
     }

@@ -1,6 +1,7 @@
 
 /** Client code */
 let gameBox = document.getElementById("gameBox"); // выбирает элемент по id
+let gameTurns = [];
 
 const setSizes = (jQueryElement) => {
     $(jQueryElement).css('height', $(jQueryElement).height() + 'px');
@@ -15,6 +16,7 @@ const drawLine = (gameBox, x1, y1, x2, y2) => {
 }
 
 getTurns((data) => {    // Запрашиваем ходы с сервера и размещаем их на доске игры
+    gameTurns = data;
     for (let elem of data) {
         let newDiv = makeNewBoxMessage(
             elem.header,
@@ -42,24 +44,23 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
     drawLine(gameBox, line.x1, line.y1, line.x2, line.y2)
 });
 
-const buttonSavePositions = document
-    .querySelector("#saveTurnPositionsToDb")
-    .addEventListener("click", (e) => {
-        e.preventDefault();
-        const textBoxes = document.querySelectorAll(".textBox");
-        const payload = [];
-        for (let textBox of textBoxes) {
-            const x = parseInt(textBox.style.left) || 0;
-            const y = parseInt(textBox.style.top) || 0;
-            const height = parseInt(textBox.style.height);
-            const width = parseInt(textBox.style.width);
-            const id = textBox.getAttribute("data-id");
-            payload.push({ x, y, height, width, id });
-        }
-        turnsUpdateCoordinates(payload, function () {
-            console.log("Positions of all turns re-saved.");
-        });
+function buttonSavePositions(e) {
+    // e.preventDefault();
+    const textBoxes = document.querySelectorAll(".textBox");
+    const payload = [];
+    for (let textBox of textBoxes) {
+        const x = parseInt(textBox.style.left) || 0;
+        const y = parseInt(textBox.style.top) || 0;
+        const height = parseInt(textBox.style.height);
+        const width = parseInt(textBox.style.width);
+        const id = textBox.getAttribute("data-id");
+        const contentType = 'article';
+        payload.push({ x, y, height, width, id, contentType });
+    }
+    turnsUpdateCoordinates(payload, function () {
+        console.log("Positions of all turns re-saved.");
     });
+};
 
 
 const getGame = (gameBox, fieldSettings) => {
