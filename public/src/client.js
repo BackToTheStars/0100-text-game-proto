@@ -2,6 +2,7 @@
 /** Client code */
 let gameBox = document.getElementById("gameBox"); // выбирает элемент по id
 let gameTurns = [];
+let lineInfoEls = [];
 
 const setSizes = (jQueryElement) => {
     $(jQueryElement).css('height', $(jQueryElement).height() + 'px');
@@ -9,10 +10,28 @@ const setSizes = (jQueryElement) => {
 }
 
 const drawLine = (gameBox, x1, y1, x2, y2) => {
-    const line = $(`<svg viewBox="0 0 ${$("#gameBox").width()} ${$("#gameBox").height()}" xmlns="http://www.w3.org/2000/svg" class="line">
+    if($("#lines").length) {
+        $("#lines").remove();
+    }
+    const line = $(`<svg viewBox="0 0 ${$("#gameBox").width()} ${$("#gameBox").height()}" xmlns="http://www.w3.org/2000/svg" id="lines">
     <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="red" stroke-width="1" />
   </svg>`);
-    //$(gameBox).append(line);
+    $(gameBox).append(line);
+}
+
+const getMarkerCoords = (turnId, markerPos) => {
+    const element = $(`[data-id = "${turnId}"]`);
+    const markerEls = element.find(".paragraphText span").toArray().filter(spanEl => {
+        return $(spanEl).css('background-color') === "rgb(255, 255, 0)"
+    });
+    console.log($(markerEls[markerPos]).offset())
+    console.log($(markerEls[markerPos]).width())
+    return {
+        left: $(markerEls[markerPos]).offset()['left'],
+        top: $(markerEls[markerPos]).offset()['top'],
+        width: $(markerEls[markerPos]).width(),
+        height: $(markerEls[markerPos]).height(),
+    }
 }
 
 getTurns((data) => {    // Запрашиваем ходы с сервера и размещаем их на доске игры
@@ -34,15 +53,32 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
 
     // отрисовка линий
     // получение координат
-    const line = {
-        x1: 972 - 338,
-        y1: 165,
-        x2: 1270 - 338,
-        y2: 192
-    }
-    // отрисовка координат
-    drawLine(gameBox, line.x1, line.y1, line.x2, line.y2)
+    lineInfoEls = [{
+        sourceTurnId: '5f602d2f84471e68ecccde35',
+        sourceMarker: 0,
+        targetTurnId: '5f602dd884471e68ecccde36',
+        targetMarker: 0,
+    }]
+
+    drawLinesByEls(lineInfoEls);
 });
+
+function drawLinesByEls(lineInfoEls) {
+    for(let lineInfo of lineInfoEls) {
+        const sourceCoords = getMarkerCoords(lineInfo.sourceTurnId, lineInfo.sourceMarker);
+        const targetCoords = getMarkerCoords(lineInfo.targetTurnId, lineInfo.targetMarker);
+    
+        const sourceFirst = sourceCoords.left < targetCoords.left;
+        const line = {
+            x1: sourceCoords.left + (sourceFirst ? sourceCoords.width: 0) - 338,
+            y1: sourceCoords.top + Math.floor(sourceCoords.height / 2),
+            x2: targetCoords.left + (sourceFirst ? 0: targetCoords.width) - 338,
+            y2: targetCoords.top + Math.floor(targetCoords.height / 2),
+        }
+        // отрисовка координат
+        drawLine(gameBox, line.x1, line.y1, line.x2, line.y2)
+    }    
+}
 
 function buttonSavePositions(e) {
     // e.preventDefault();
@@ -108,6 +144,7 @@ $('#gameBox').draggable({
             width: 1000,
         })
         game.recalculate();
+        drawLinesByEls(lineInfoEls);
         // console.log(ui.position.left);
         // console.log(ui.position.top);
         // console.log(ui.helper);
