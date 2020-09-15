@@ -22,6 +22,7 @@ html, body {
     left: 30px;
     padding: 10px;
     border: 1px solid #eee;
+    z-index: 4;
 }
 
 .gameFieldWrapper {
@@ -85,7 +86,7 @@ html, body {
     background-color: lightgrey;
 }
 
-.line {
+#lines {
     position: absolute;
     top: 0;
     left: 0;
