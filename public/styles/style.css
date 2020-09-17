@@ -96,3 +96,9 @@ button{
     margin-left: 6px !important;
     font-size: 1.1rem !important;
 }
+
+.red-link-line {
+    outline: 2px solid red;
+    padding-left: 3px;
+    padding-right: 3px;
+}
