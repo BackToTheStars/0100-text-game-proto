@@ -50,14 +50,18 @@ const getYellowElements = (turnId) => {
 getTurns((data) => {    // Запрашиваем ходы с сервера и размещаем их на доске игры
     gameTurns = data;
     for (let elem of data) {
-        let newDiv = makeNewBoxMessage(
-            elem.header,
+        let newDiv = makeNewBoxMessage({
+            turn: elem,
+            data: elem
+        }
+/*            elem.header,
             elem.paragraph,
             elem._id,
             elem.x,
             elem.y,
             elem.height,
             elem.width
+            */
         );
         gameBox.appendChild(newDiv); // само добавление div-ов ходов
         getYellowElements(elem._id).forEach((el, index) => {
@@ -101,6 +105,14 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
 
     drawLinesByEls(lineInfoEls);
 });
+
+function selectChanged() {
+    if (document.getElementById('turnType').value === 'picture') {
+        document.getElementById('image-url-wrapper').style.display = 'block';
+    } else {
+        document.getElementById('image-url-wrapper').style.display = 'none';
+    }
+}
 
 function drawLinesByEls(lineInfoEls) {  
                         // функция рисования красной линии логической связи из точки "А" в точку "Б" 

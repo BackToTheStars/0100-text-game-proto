@@ -57,12 +57,16 @@ function saveTurnModal(id) {
         const element = document.querySelector(`[data-id = "${data._id}"]`);
         element.remove();
 
-        const newElement = makeNewBoxMessage(
-          data.header,
+        const newElement = makeNewBoxMessage({
+            turn: turnObj,
+            data
+        }
+/*          data.header,
           data.paragraph,
           data._id,
           data.x,
           data.y
+          */
         );
         gameBox.appendChild(newElement);
     });
