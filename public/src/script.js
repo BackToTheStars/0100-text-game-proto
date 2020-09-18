@@ -11,16 +11,18 @@ function addNewBoxToGame() {
     const header = getInputValue("headerText");
     const par = getInputValue("paragraphText"); // вводит текст параграфа
     const type = getInputValue("turnType");
+    const imageUrl = getInputValue("image-url");
 
     let newTurn = {
         header,
         paragraph: [{ insert: par }],
         contentType: type,
         height: 300,
-        width: 400
+        width: 400,
+        imageUrl
     };
     saveTurn(newTurn, (data) => {
-        let newDiv = makeNewBoxMessage(header, par, data._id, data.x, data.y, data.height, data.width);
+        let newDiv = makeNewBoxMessage({turn: newTurn, data}/*header, par, data._id, data.x, data.y, data.height, data.width*/);
         gameBox.appendChild(newDiv); // добавляет новый div к заданному div
         $(newDiv).resizable();
         $(newDiv).draggable(); //{containment: "#gameBox"});
@@ -72,9 +74,9 @@ function makeEditButton(turn) {
 }
 
 function makeDeleteButton(turn) {                                // refactor with makeEditButton()
-    let button = document.createElement("button");
-    button.innerHTML = "Delete";
-    button.addEventListener("click", () => {
+    let button = document.createElement('button');
+    button.innerHTML = 'Delete';
+    button.addEventListener('click', () => {
         deleteTurn(turn);
         const element = document.querySelector(`[data-id = "${turn._id}"]`);
         element.remove();
@@ -83,26 +85,34 @@ function makeDeleteButton(turn) {                                // refactor wit
 }
 
 
-function makeNewBoxMessage(headStr, parStr, id, x, y, height, width) {
+function makeNewBoxMessage(obj) {
+    console.log(`${JSON.stringify(obj)}`);
+    const {header, paragraph, height, width, contentType, imageUrl} = obj.turn;   // деструктуризатор для хода
+    const {_id, x, y} = obj.data;
     let param = {
-        head: headStr,
-        par: parStr,
+        head: header,
+        par: paragraph,
     };
     // создаёт div блока по заданным параметрам
-    let elmnt = document.createElement("div");
-    elmnt.setAttribute("data-id", id);
+    const elmnt = document.createElement('div');
+    elmnt.setAttribute('data-id', _id);
     elmnt.style.left = `${x}px`;
     elmnt.style.top = `${y}px`;
     elmnt.style.height = `${height}px`;
     elmnt.style.width = `${width}px`;
-    elmnt.className = "textBox ui-widget-content";
-    let p = makeParagraph(parStr);
-    let h = makeHead(headStr);
-    let editButton = makeEditButton({ _id: id, paragraph: parStr, header: headStr });
-    let deleteButton = makeDeleteButton({ _id: id, paragraph: parStr, header: headStr });
+    elmnt.className = 'textBox ui-widget-content';
+    const p = makeParagraph(paragraph);
+    const h = makeHead(header);
+    const editButton = makeEditButton({ _id, paragraph: paragraph, header: header });
+    const deleteButton = makeDeleteButton({ _id, paragraph: paragraph, header: header });
     h.appendChild(editButton);
     h.appendChild(deleteButton);
     elmnt.appendChild(h);
+    if (contentType && contentType === 'picture') {
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        elmnt.appendChild(img);
+    }
     elmnt.appendChild(p);
     /*elmnt.innerHTML = "<h4 class='headerText'>" + headStr + "" +
         "<button onclick='openTurnModal()'>edit</button></h4><hr><p class='paragraphText'>" + parStr + "</p>";*/

@@ -30,6 +30,10 @@ const schema = new Schema({
     contentType: {
         type: String,
         required: true,
+    },
+    imageUrl: {
+        type: String,
+        required: false,
     }
 });
 

@@ -40,6 +40,10 @@ html, body {
     background: #728db8;
 }
 
+#image-url-wrapper {
+    display: none;
+}
+
 .paragraphText {
     background-color: whitesmoke;
     min-height: 0;
