@@ -1,4 +1,4 @@
-    /* фрагмент 1
+    /* Фрагмент 1
     
     elmnt.innerHTML = "<h4 class='headerText'>" + headStr + "" +
         "<button onclick='openTurnModal()'>edit</button></h4><hr><p class='paragraphText'>" + parStr + "</p>";

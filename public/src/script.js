@@ -22,7 +22,7 @@ function addNewBoxToGame() {
         imageUrl
     };
     saveTurn(newTurn, (data) => {
-        let newDiv = makeNewBoxMessage({turn: newTurn, data}/*header, par, data._id, data.x, data.y, data.height, data.width*/);
+        let newDiv = makeNewBoxMessage({ turn: newTurn, data }/*header, par, data._id, data.x, data.y, data.height, data.width*/);
         gameBox.appendChild(newDiv); // добавляет новый div к заданному div
         $(newDiv).resizable();
         $(newDiv).draggable(); //{containment: "#gameBox"});
@@ -86,9 +86,9 @@ function makeDeleteButton(turn) {                                // refactor wit
 
 
 function makeNewBoxMessage(obj) {
-    console.log(`${JSON.stringify(obj)}`);
-    const {header, paragraph, height, width, contentType, imageUrl} = obj.turn;   // деструктуризатор для хода
-    const {_id, x, y} = obj.data;
+    //console.log(`${JSON.stringify(obj)}`);
+    const { header, paragraph, height, width, contentType, imageUrl } = obj.turn;   // деструктуризатор для хода
+    const { _id, x, y } = obj.data;
     let param = {
         head: header,
         par: paragraph,
@@ -112,7 +112,7 @@ function makeNewBoxMessage(obj) {
     elmnt.appendChild(h);
     elmnt.dataset.contentType = contentType; // data attribute для div-a
     if (contentType && contentType === 'picture') {
-        /*
+
         const wrapper = document.createElement('div');
         wrapper.style.display = 'flex';
         wrapper.style.flexDirection = 'column';   // соглашение, что camelCase = camel-case
@@ -120,29 +120,29 @@ function makeNewBoxMessage(obj) {
         wrapper.style.justifyItems = 'center';
         wrapper.style.alignContent = 'center';
         wrapper.style.justifyContent = 'center';
+        wrapper.style.height = '100%';
         const div = document.createElement('div');
         div.dataset.imgUrl = imageUrl;
         div.style.background = `center / contain no-repeat url("${imageUrl}")`;
-        div.innerText = 'Text';
-        //div.style.height = '200px';
+        div.style.height = '70%';
         div.style.width = '100%';
         wrapper.appendChild(div);
         wrapper.appendChild(p);
         //console.log(getComputedStyle(p).height);
         elmnt.appendChild(wrapper);
-        */
 
-        const img = document.createElement('img');
-        img.src = imageUrl;
-        img.style.height = '80%';
-        img.style.width = '100%';
-        elmnt.appendChild(img);
-        
+        // const img = document.createElement('img');
+        // img.src = imageUrl;
+        // console.log(imageUrl);
+        // img.style.height = '80%';
+        // img.style.width = '100%';
+        // elmnt.appendChild(img);
+
     } else {
         elmnt.appendChild(p);
     }
-    
-    /* здесь был фрагмент 1, сохранён в файле "фрагменты" */
+
+    /* здесь был "Фрагмент 1", сохранён в файле "фрагменты.js" */
 
     return elmnt;
 }
