@@ -43,7 +43,7 @@ const getMarkerCoords = (turnId, markerPos) => {  // берём координа
 const getYellowElements = (turnId) => {
     const element = $(`[data-id = "${turnId}"]`);
     return element.find(".paragraphText span").toArray().filter(spanEl => {
-        return $(spanEl).css('background-color') === "rgb(255, 255, 0)"; 
+        return $(spanEl).css('background-color') === "rgb(255, 255, 0)";
     });
 }
 
@@ -54,18 +54,18 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
             turn: elem,
             data: elem
         }
-/*            elem.header,
-            elem.paragraph,
-            elem._id,
-            elem.x,
-            elem.y,
-            elem.height,
-            elem.width
-            */
+            /*            elem.header,
+                        elem.paragraph,
+                        elem._id,
+                        elem.x,
+                        elem.y,
+                        elem.height,
+                        elem.width
+                        */
         );
         gameBox.appendChild(newDiv); // само добавление div-ов ходов
         getYellowElements(elem._id).forEach((el, index) => {
-            $(el).click((event)=> {
+            $(el).click((event) => {
                 $(el).addClass('red-link-line');
                 if (!newLineInfoEl.sourceTurnId) {
                     newLineInfoEl.sourceTurnId = elem._id;
@@ -74,7 +74,7 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
                     newLineInfoEl.targetTurnId = elem._id;
                     newLineInfoEl.targetMarker = index;
                     lineInfoEls.push(newLineInfoEl)
-                    
+
                     newLineInfoEl = {   // reset 
                         sourceTurnId: null,
                         sourceMarker: null,
@@ -86,7 +86,7 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
                 }
                 //alert(`${elem._id} ${index}`)
                 //alert('yellow el was clicked!');
-            }) 
+            })
         });
     }
     $('.textBox').resizable();
@@ -95,12 +95,12 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
     // отрисовка линий
     // получение координат
     lineInfoEls = [
-    //     {
-    //     sourceTurnId: '5f602d2f84471e68ecccde35',
-    //     sourceMarker: 0,
-    //     targetTurnId: '5f602dd884471e68ecccde36',
-    //     targetMarker: 0,
-    // }
+        //     {
+        //     sourceTurnId: '5f602d2f84471e68ecccde35',
+        //     sourceMarker: 0,
+        //     targetTurnId: '5f602dd884471e68ecccde36',
+        //     targetMarker: 0,
+        // }
     ]
 
     drawLinesByEls(lineInfoEls);
@@ -114,9 +114,9 @@ function selectChanged() {
     }
 }
 
-function drawLinesByEls(lineInfoEls) {  
-                        // функция рисования красной линии логической связи из точки "А" в точку "Б" 
-    
+function drawLinesByEls(lineInfoEls) {
+    // функция рисования красной линии логической связи из точки "А" в точку "Б" 
+
     for (let lineInfo of lineInfoEls) {
         const sourceCoords = getMarkerCoords(lineInfo.sourceTurnId, lineInfo.sourceMarker);
         const targetCoords = getMarkerCoords(lineInfo.targetTurnId, lineInfo.targetMarker);
@@ -139,12 +139,12 @@ function buttonSavePositions(e) {
     const textBoxes = document.querySelectorAll(".textBox");
     const payload = [];
     for (let textBox of textBoxes) {
+        //console.log(textBox.children[0].innerText);
         const x = parseInt(textBox.style.left) || 0;
         const y = parseInt(textBox.style.top) || 0;
         const height = parseInt(textBox.style.height);
         const width = parseInt(textBox.style.width);
-        const id = textBox.getAttribute("data-id");
-        const contentType = 'article';
+        const { id, contentType } = textBox.dataset;
         payload.push({ x, y, height, width, id, contentType });
     }
     turnsUpdateCoordinates(payload, function () {
