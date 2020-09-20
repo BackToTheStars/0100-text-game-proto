@@ -95,66 +95,54 @@ function makeNewBoxMessage(obj) {
     };
     // создаёт div блока по заданным параметрам
     const elmnt = document.createElement('div');
-    elmnt.setAttribute('data-id', _id);
+    elmnt.dataset.id = _id;          // data attribute для div-a
     elmnt.style.left = `${x}px`;
     elmnt.style.top = `${y}px`;
     elmnt.style.height = `${height}px`;
     elmnt.style.width = `${width}px`;
     elmnt.className = 'textBox ui-widget-content';
     const p = makeParagraph(paragraph);
+    //p.style.bottom = '100%';
+    //p.style.position = 'absolute';
     const h = makeHead(header);
     const editButton = makeEditButton({ _id, paragraph: paragraph, header: header });
     const deleteButton = makeDeleteButton({ _id, paragraph: paragraph, header: header });
     h.appendChild(editButton);
     h.appendChild(deleteButton);
     elmnt.appendChild(h);
+    elmnt.dataset.contentType = contentType; // data attribute для div-a
     if (contentType && contentType === 'picture') {
+        /*
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';   // соглашение, что camelCase = camel-case
+        wrapper.style.alignItems = 'center';
+        wrapper.style.justifyItems = 'center';
+        wrapper.style.alignContent = 'center';
+        wrapper.style.justifyContent = 'center';
+        const div = document.createElement('div');
+        div.dataset.imgUrl = imageUrl;
+        div.style.background = `center / contain no-repeat url("${imageUrl}")`;
+        div.innerText = 'Text';
+        //div.style.height = '200px';
+        div.style.width = '100%';
+        wrapper.appendChild(div);
+        wrapper.appendChild(p);
+        //console.log(getComputedStyle(p).height);
+        elmnt.appendChild(wrapper);
+        */
+
         const img = document.createElement('img');
         img.src = imageUrl;
+        img.style.height = '80%';
+        img.style.width = '100%';
         elmnt.appendChild(img);
+        
+    } else {
+        elmnt.appendChild(p);
     }
-    elmnt.appendChild(p);
-    /*elmnt.innerHTML = "<h4 class='headerText'>" + headStr + "" +
-        "<button onclick='openTurnModal()'>edit</button></h4><hr><p class='paragraphText'>" + parStr + "</p>";*/
-
-    // *************************************************************************************
-
-    //  elmnt.addEventListener('mousemove', (e) => {...});    - window.event is deprecated
-    /* elmnt.onmousedown = dragMouseDown;
-   
-     function dragMouseDown(e) {
-       e = e || window.event;
-       e.preventDefault();
-       // get the mouse cursor position at startup:
-       pos3 = e.clientX;
-       pos4 = e.clientY;
-       document.onmouseup = closeDragElement;
-       // call a function whenever the cursor moves:
-       document.onmousemove = elementDrag;
-     }
-   
-     function elementDrag(e) {
-       e = e || window.event;
-       e.preventDefault();
-       // calculate the new cursor position:
-       pos1 = pos3 - e.clientX;
-       pos2 = pos4 - e.clientY;
-       pos3 = e.clientX;
-       pos4 = e.clientY;
-       // set the element's new position:
-       elmnt.style.top = pos4 - 100 + "px";
-       elmnt.style.left = pos3 - 500 + "px";
-       // elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-       // elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-     }
-   
-     function closeDragElement() {
-       // stop moving when mouse button is released:
-       document.onmouseup = null;
-       document.onmousemove = null;
-     }*/
-
-    // **************************************************************************************
+    
+    /* здесь был фрагмент 1, сохранён в файле "фрагменты" */
 
     return elmnt;
 }

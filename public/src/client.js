@@ -139,13 +139,13 @@ function buttonSavePositions(e) {
     const textBoxes = document.querySelectorAll(".textBox");
     const payload = [];
     for (let textBox of textBoxes) {
+        console.log(textBox.children[0].innerText);
         const x = parseInt(textBox.style.left) || 0;
         const y = parseInt(textBox.style.top) || 0;
         const height = parseInt(textBox.style.height);
         const width = parseInt(textBox.style.width);
-        const id = textBox.getAttribute("data-id");
-        const contentType = 'article';
-        payload.push({ x, y, height, width, id, contentType });
+        const {id, contentType} = textBox.dataset;
+        payload.push({ x, y, height, width, id, contentType});
     }
     turnsUpdateCoordinates(payload, function () {
         console.log("Positions of all turns re-saved.");
