@@ -5,3 +5,7 @@ function toggleLinesVisibility() {
     // $("#lines").hide();
     $("#lines").toggle();    // Jquery
 }
+
+function toggleLinesZIndex() {
+    $("#lines").toggleClass("front-elements");
+}

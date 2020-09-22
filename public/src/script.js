@@ -206,5 +206,14 @@ const getFieldSettings = () => {
     return settings;
 }
 
+const saveLinesSettings = (lineInfoEls) => {
+    localStorage.setItem('linkLines', JSON.stringify(lineInfoEls));
+}
+
+const getLinesSettings = () => {
+    const lineInfoEls = JSON.parse(localStorage.getItem('linkLines')) || [];
+    return lineInfoEls;
+}
+
 
 
