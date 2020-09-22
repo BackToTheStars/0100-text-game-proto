@@ -2,7 +2,7 @@
 /** Client code */
 let gameBox = document.getElementById("gameBox"); // выбирает элемент по id
 let gameTurns = [];
-let lineInfoEls = [];
+let lineInfoEls = getLinesSettings();
 let newLineInfoEl = {
     sourceTurnId: null,
     sourceMarker: null,
@@ -15,14 +15,8 @@ const setSizes = (jQueryElement) => {
     $(jQueryElement).css('width', $(jQueryElement).width() + 'px');
 }
 
-const drawLine = (gameBox, x1, y1, x2, y2) => {
-    if ($("#lines").length) {
-        $("#lines").remove();
-    }
-    const line = $(`<svg viewBox="0 0 ${$("#gameBox").width()} ${$("#gameBox").height()}" xmlns="http://www.w3.org/2000/svg" id="lines">
-    <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="red" stroke-width="1" />
-  </svg>`);
-    $(gameBox).append(line);
+const getLine = (gameBox, x1, y1, x2, y2) => {
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="red" stroke-width="1" />`;
 }
 
 const getMarkerCoords = (turnId, markerPos) => {  // берём координаты жёлтых цитат
@@ -73,7 +67,8 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
                 } else {
                     newLineInfoEl.targetTurnId = elem._id;
                     newLineInfoEl.targetMarker = index;
-                    lineInfoEls.push(newLineInfoEl)
+                    lineInfoEls.push(newLineInfoEl);
+                    saveLinesSettings(lineInfoEls);
 
                     newLineInfoEl = {   // reset 
                         sourceTurnId: null,
@@ -81,7 +76,6 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
                         targetTurnId: null,
                         targetMarker: null,
                     }
-
                     drawLinesByEls(lineInfoEls);
                 }
                 //alert(`${elem._id} ${index}`)
@@ -94,14 +88,14 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
 
     // отрисовка линий
     // получение координат
-    lineInfoEls = [
+    // lineInfoEls = [
         //     {
         //     sourceTurnId: '5f602d2f84471e68ecccde35',
         //     sourceMarker: 0,
         //     targetTurnId: '5f602dd884471e68ecccde36',
         //     targetMarker: 0,
         // }
-    ]
+    // ]
 
     drawLinesByEls(lineInfoEls);
 });
@@ -116,7 +110,7 @@ function selectChanged() {
 
 function drawLinesByEls(lineInfoEls) {
     // функция рисования красной линии логической связи из точки "А" в точку "Б" 
-
+    let linesStr ='';
     for (let lineInfo of lineInfoEls) {
         const sourceCoords = getMarkerCoords(lineInfo.sourceTurnId, lineInfo.sourceMarker);
         const targetCoords = getMarkerCoords(lineInfo.targetTurnId, lineInfo.targetMarker);
@@ -130,8 +124,15 @@ function drawLinesByEls(lineInfoEls) {
             y2: targetCoords.top + Math.floor(targetCoords.height / 2),
         }
         // отрисовка координат
-        drawLine(gameBox, line.x1, line.y1, line.x2, line.y2)
+        linesStr += getLine(gameBox, line.x1, line.y1, line.x2, line.y2)
     }
+    if ($("#lines").length) {
+        $("#lines").remove();
+    }
+    const svg = $(`<svg viewBox="0 0 ${$("#gameBox").width()} ${$("#gameBox").height()}" xmlns="http://www.w3.org/2000/svg" id="lines">
+    ${linesStr}
+  </svg>`);
+    $(gameBox).append(svg);
 }
 
 function buttonSavePositions(e) {
