@@ -9,6 +9,7 @@ let newLineInfoEl = {
     targetTurnId: null,
     targetMarker: null,
 }
+let quotesDictionary = {};
 
 const setSizes = (jQueryElement) => {
     $(jQueryElement).css('height', $(jQueryElement).height() + 'px');
@@ -41,14 +42,42 @@ const getYellowElements = (turnId) => {
     });
 }
 
+function deleteLink() {
+    console.log();
+}
+
+function showLinesInfoPanel(quote, quoteLines) {
+    const panelEl = $('.link-lines-info');
+    panelEl.html(`<table>
+        <thead>
+            <tr><th>from</th><th>to</th><th>actions</th></tr>
+        </thead>
+        <tbody>
+            ${quoteLines.map((el) => {
+                return `<tr>
+                    <td>${quotesDictionary[el.sourceTurnId][el.sourceMarker]}</td>
+                    <td>${quotesDictionary[el.targetTurnId][el.targetMarker]}</td>
+                    <td>
+                        <button onClick="deleteLink()">Delete</button>
+                    </td>
+                </tr>`
+            }).join('')}
+        </tbody>
+    </table>`)
+};
+
+
 getTurns((data) => {    // Запрашиваем ходы с сервера и размещаем их на доске игры
     gameTurns = data;
+    quotesDictionary = {};
+
     for (let elem of data) {
+        quotesDictionary[elem._id] = [];
         let newDiv = makeNewBoxMessage({
             turn: elem,
             data: elem
         }
-            /*            elem.header,
+            /*          elem.header,
                         elem.paragraph,
                         elem._id,
                         elem.x,
@@ -58,7 +87,11 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
                         */
         );
         gameBox.appendChild(newDiv); // само добавление div-ов ходов
+
         getYellowElements(elem._id).forEach((el, index) => {
+            
+            quotesDictionary[elem._id].push($(el).text().trim())
+            
             $(el).click((event) => {
                 $(el).addClass('red-link-line');
                 if (!newLineInfoEl.sourceTurnId) {
@@ -78,6 +111,14 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
                     }
                     drawLinesByEls(lineInfoEls);
                 }
+
+                const selectedQuote = lineInfoEls.filter((element) => {
+                    return (element.sourceTurnId === elem._id && element.sourceMarker === index)
+                    || (element.targetTurnId === elem._id && element.targetMarker === index);  
+                });
+                
+                showLinesInfoPanel({turnId:elem._id,markerId:index},selectedQuote);
+               
                 //alert(`${elem._id} ${index}`)
                 //alert('yellow el was clicked!');
             })
