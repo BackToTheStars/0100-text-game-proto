@@ -106,3 +106,15 @@ button{
 #lines.front-elements  {
     z-index: 3;
 }
+
+.link-lines-info {
+    position: absolute;
+    left: 570px;
+    bottom: 30px;
+    background-color: white;
+    min-width: 300px;
+    z-index: 4;
+}
+.link-lines-info table {
+    width: 100%;
+}
