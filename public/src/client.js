@@ -1,5 +1,6 @@
 
 /** Client code */
+
 let gameBox = document.getElementById("gameBox"); // выбирает элемент по id
 let gameTurns = [];
 let lineInfoEls = getLinesSettings();
@@ -25,8 +26,6 @@ const getMarkerCoords = (turnId, markerPos) => {  // берём координа
     const markerEls = element.find(".paragraphText span").toArray().filter(spanEl => {
         return $(spanEl).css('background-color') === "rgb(255, 255, 0)";
     });
-    // console.log($(markerEls[markerPos]).offset())
-    // console.log($(markerEls[markerPos]).width())
     return {
         left: $(markerEls[markerPos]).offset()['left'],
         top: $(markerEls[markerPos]).offset()['top'],
@@ -42,11 +41,11 @@ const getYellowElements = (turnId) => {
     });
 }
 
-function deleteLink() {
+function deleteLink() {  // удаляет линию связи между жёлтами цитатами
     console.log();
 }
 
-function showLinesInfoPanel(quote, quoteLines) {
+function showLinesInfoPanel(quote, quoteLines) {  // показывает информацию, что связано с этой цитатой
     const panelEl = $('.link-lines-info');
     panelEl.html(`<table>
         <thead>
@@ -54,18 +53,17 @@ function showLinesInfoPanel(quote, quoteLines) {
         </thead>
         <tbody>
             ${quoteLines.map((el) => {
-                return `<tr>
+        return `<tr>
                     <td>${quotesDictionary[el.sourceTurnId][el.sourceMarker]}</td>
                     <td>${quotesDictionary[el.targetTurnId][el.targetMarker]}</td>
                     <td>
                         <button onClick="deleteLink()">Delete</button>
                     </td>
                 </tr>`
-            }).join('')}
+    }).join('')}
         </tbody>
     </table>`)
 };
-
 
 getTurns((data) => {    // Запрашиваем ходы с сервера и размещаем их на доске игры
     gameTurns = data;
@@ -89,9 +87,9 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
         gameBox.appendChild(newDiv); // само добавление div-ов ходов
 
         getYellowElements(elem._id).forEach((el, index) => {
-            
+
             quotesDictionary[elem._id].push($(el).text().trim())
-            
+
             $(el).click((event) => {
                 $(el).addClass('red-link-line');
                 if (!newLineInfoEl.sourceTurnId) {
@@ -114,13 +112,10 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
 
                 const selectedQuote = lineInfoEls.filter((element) => {
                     return (element.sourceTurnId === elem._id && element.sourceMarker === index)
-                    || (element.targetTurnId === elem._id && element.targetMarker === index);  
+                        || (element.targetTurnId === elem._id && element.targetMarker === index);
                 });
-                
-                showLinesInfoPanel({turnId:elem._id,markerId:index},selectedQuote);
-               
-                //alert(`${elem._id} ${index}`)
-                //alert('yellow el was clicked!');
+
+                showLinesInfoPanel({ turnId: elem._id, markerId: index }, selectedQuote);
             })
         });
     }
@@ -130,12 +125,12 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
     // отрисовка линий
     // получение координат
     // lineInfoEls = [
-        //     {
-        //     sourceTurnId: '5f602d2f84471e68ecccde35',
-        //     sourceMarker: 0,
-        //     targetTurnId: '5f602dd884471e68ecccde36',
-        //     targetMarker: 0,
-        // }
+    //     {
+    //     sourceTurnId: '5f602d2f84471e68ecccde35',
+    //     sourceMarker: 0,
+    //     targetTurnId: '5f602dd884471e68ecccde36',
+    //     targetMarker: 0,
+    // }
     // ]
 
     drawLinesByEls(lineInfoEls);
@@ -151,7 +146,7 @@ function selectChanged() {
 
 function drawLinesByEls(lineInfoEls) {
     // функция рисования красной линии логической связи из точки "А" в точку "Б" 
-    let linesStr ='';
+    let linesStr = '';
     for (let lineInfo of lineInfoEls) {
         const sourceCoords = getMarkerCoords(lineInfo.sourceTurnId, lineInfo.sourceMarker);
         const targetCoords = getMarkerCoords(lineInfo.targetTurnId, lineInfo.targetMarker);
@@ -176,7 +171,7 @@ function drawLinesByEls(lineInfoEls) {
     $(gameBox).append(svg);
 }
 
-function buttonSavePositions(e) {
+function buttonSavePositions(e) {  // функция сохранения поля
     // e.preventDefault();
     const textBoxes = document.querySelectorAll(".textBox");
     const payload = [];
@@ -196,10 +191,7 @@ function buttonSavePositions(e) {
 
 
 const getGame = (gameBox, fieldSettings) => {
-    // gameBox
-    // fieldSettings
-
-    const render = () => {                                            // инкапсуляция переменных
+    const render = () => {                                    // инкапсуляция переменных
         gameBox.style.left = fieldSettings.left + 'px';
         gameBox.style.top = fieldSettings.top + 'px';
     }
@@ -222,7 +214,7 @@ const getGame = (gameBox, fieldSettings) => {
         })
     }
     return {
-        recalculate: recalculate,                         // возвращаем две верёвки методов, можем за них дёргать
+        recalculate: recalculate,         // возвращаем две верёвки методов, можем за них дёргать
         render: render
     }
 }
@@ -241,8 +233,5 @@ $('#gameBox').draggable({
         })
         game.recalculate();
         drawLinesByEls(lineInfoEls);
-        // console.log(ui.position.left);
-        // console.log(ui.position.top);
-        // console.log(ui.helper);
     }
 });
