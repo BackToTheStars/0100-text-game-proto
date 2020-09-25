@@ -117,16 +117,16 @@ function makeNewBoxMessage(obj) {
         wrapper.style.display = 'flex';
         wrapper.style.flexDirection = 'column';   // соглашение, что camelCase = camel-case
         wrapper.style.alignItems = 'center';
-        wrapper.style.justifyItems = 'center';
-        wrapper.style.alignContent = 'center';
-        wrapper.style.justifyContent = 'center';
+        wrapper.style.justifyContent = 'space-between';
         wrapper.style.height = '100%';
-        const div = document.createElement('div');
-        div.dataset.imgUrl = imageUrl;
-        div.style.background = `center / contain no-repeat url("${imageUrl}")`;
-        div.style.height = '70%';
-        div.style.width = '100%';
-        wrapper.appendChild(div);
+        wrapper.style.width = '100%';
+        const img = document.createElement('img');
+        img.dataset.imgUrl = imageUrl;
+        img.style.background = `center / contain no-repeat url("${imageUrl}")`;
+        img.style.maxHeight = '100%';
+        img.style.maxWidth = '100%';
+        img.src = imageUrl;
+        wrapper.appendChild(img);
         wrapper.appendChild(p);
         //console.log(getComputedStyle(p).height);
         elmnt.appendChild(wrapper);
