@@ -111,8 +111,8 @@ function makeNewBoxMessage(obj) {
     h.appendChild(deleteButton);
     elmnt.appendChild(h);
     elmnt.dataset.contentType = contentType; // data attribute для div-a
+    
     if (contentType && contentType === 'picture') {
-
         const wrapper = document.createElement('div');
         wrapper.style.display = 'flex';
         wrapper.style.flexDirection = 'column';   // соглашение, что camelCase = camel-case
