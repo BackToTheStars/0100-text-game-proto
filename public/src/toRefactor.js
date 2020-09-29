@@ -7,5 +7,6 @@ function toggleLinesVisibility() {
 }
 
 function toggleLinesZIndex() {
+    frontLinesFlag = !frontLinesFlag;
     $("#lines").toggleClass("front-elements");
 }
