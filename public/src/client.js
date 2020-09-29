@@ -4,6 +4,7 @@
 let gameBox = document.getElementById("gameBox"); // выбирает элемент по id
 let gameTurns = [];
 let lineInfoEls = getLinesSettings();
+let linkLineWidth = 2;
 let newLineInfoEl = {
     sourceTurnId: null,
     sourceMarker: null,
@@ -19,7 +20,7 @@ const setSizes = (jQueryElement) => {
 }
 
 const getLine = (gameBox, x1, y1, x2, y2) => {
-    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="red" stroke-width="1" />`;
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="red" stroke-width="${linkLineWidth}" />`;
 }
 
 const getMarkerCoords = (turnId, markerPos) => {  // берём координаты жёлтых цитат
@@ -49,7 +50,7 @@ const getYellowElement = (turnId, markerId) => {
 
 const markYellowElementsWithRed = (lineInfoEls) => {
     $('.red-link-line').removeClass('red-link-line')
-    for(let lineInfoEl of lineInfoEls) {
+    for (let lineInfoEl of lineInfoEls) {
         const leftEl = getYellowElement(lineInfoEl.sourceTurnId, lineInfoEl.sourceMarker);
         $(leftEl).addClass('red-link-line');
         const rightEl = getYellowElement(lineInfoEl.targetTurnId, lineInfoEl.targetMarker);
@@ -88,21 +89,21 @@ function showLinesInfoPanel(quote, quoteLines) {  // показывает инф
     </table>`)
 };
 
-$('.link-lines-info').on('click', '.del-btn', function(){
-    
+$('.link-lines-info').on('click', '.del-btn', function () {
+
     const linkLineDetailsEl = $(this).parents('.link-line-details');
     const sourceTurnId = linkLineDetailsEl.attr('data-sourceTurnId');
     const sourceMarker = linkLineDetailsEl.attr('data-sourceMarker');
     const targetTurnId = linkLineDetailsEl.attr('data-targetTurnId');
     const targetMarker = linkLineDetailsEl.attr('data-targetMarker');
     lineInfoEls = lineInfoEls.filter((el) => {
-        if (el.sourceTurnId != sourceTurnId || 
+        if (el.sourceTurnId != sourceTurnId ||
             el.sourceMarker != sourceMarker ||
             el.targetTurnId != targetTurnId ||
-            el.targetMarker != targetMarker ) {
+            el.targetMarker != targetMarker) {
             return true;
         }
-         return false;
+        return false;
     })
     saveLinesSettings(lineInfoEls);
     markYellowElementsWithRed(lineInfoEls);
@@ -216,7 +217,7 @@ function drawLinesByEls(lineInfoEls, frontFlag = false) {
     const svg = $(`<svg viewBox="0 0 ${$("#gameBox").width()} ${$("#gameBox").height()}" xmlns="http://www.w3.org/2000/svg" id="lines">
     ${linesStr}
   </svg>`);
-    if(frontFlag) {
+    if (frontFlag) {
         svg.addClass('front-elements');
     }
     $(gameBox).append(svg);
