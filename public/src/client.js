@@ -10,6 +10,7 @@ let newLineInfoEl = {
     targetTurnId: null,
     targetMarker: null,
 }
+let frontLinesFlag = true;
 let quotesDictionary = {};
 
 const setSizes = (jQueryElement) => {
@@ -41,6 +42,22 @@ const getYellowElements = (turnId) => {
     });
 }
 
+const getYellowElement = (turnId, markerId) => {
+    const elements = getYellowElements(turnId);
+    return elements[markerId];
+}
+
+const markYellowElementsWithRed = (lineInfoEls) => {
+    $('.red-link-line').removeClass('red-link-line')
+    for(let lineInfoEl of lineInfoEls) {
+        const leftEl = getYellowElement(lineInfoEl.sourceTurnId, lineInfoEl.sourceMarker);
+        $(leftEl).addClass('red-link-line');
+        const rightEl = getYellowElement(lineInfoEl.targetTurnId, lineInfoEl.targetMarker);
+        $(rightEl).addClass('red-link-line');
+    }
+}
+
+
 function deleteLink() {  // удаляет линию связи между жёлтами цитатами
     console.log();
 }
@@ -53,17 +70,46 @@ function showLinesInfoPanel(quote, quoteLines) {  // показывает инф
         </thead>
         <tbody>
             ${quoteLines.map((el) => {
-        return `<tr>
-                    <td>${quotesDictionary[el.sourceTurnId][el.sourceMarker]}</td>
-                    <td>${quotesDictionary[el.targetTurnId][el.targetMarker]}</td>
-                    <td>
-                        <button onClick="deleteLink()">Delete</button>
-                    </td>
-                </tr>`
+        return `<tr
+            class="link-line-details"
+            data-sourceTurnId="${el.sourceTurnId}"
+            data-sourceMarker="${el.sourceMarker}"
+            data-targetTurnId="${el.targetTurnId}"
+            data-targetMarker="${el.targetMarker}"
+        >
+            <td>${quotesDictionary[el.sourceTurnId][el.sourceMarker]}</td>
+            <td>${quotesDictionary[el.targetTurnId][el.targetMarker]}</td>
+            <td>
+                <button class="del-btn">Delete</button>
+            </td>
+        </tr>`
     }).join('')}
         </tbody>
     </table>`)
 };
+
+$('.link-lines-info').on('click', '.del-btn', function(){
+    
+    const linkLineDetailsEl = $(this).parents('.link-line-details');
+    const sourceTurnId = linkLineDetailsEl.attr('data-sourceTurnId');
+    const sourceMarker = linkLineDetailsEl.attr('data-sourceMarker');
+    const targetTurnId = linkLineDetailsEl.attr('data-targetTurnId');
+    const targetMarker = linkLineDetailsEl.attr('data-targetMarker');
+    lineInfoEls = lineInfoEls.filter((el) => {
+        if (el.sourceTurnId != sourceTurnId || 
+            el.sourceMarker != sourceMarker ||
+            el.targetTurnId != targetTurnId ||
+            el.targetMarker != targetMarker ) {
+            return true;
+        }
+         return false;
+    })
+    saveLinesSettings(lineInfoEls);
+    markYellowElementsWithRed(lineInfoEls);
+    drawLinesByEls(lineInfoEls, frontLinesFlag);
+    linkLineDetailsEl.remove();
+})
+
 
 getTurns((data) => {    // Запрашиваем ходы с сервера и размещаем их на доске игры
     gameTurns = data;
@@ -100,6 +146,7 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
                     newLineInfoEl.targetMarker = index;
                     lineInfoEls.push(newLineInfoEl);
                     saveLinesSettings(lineInfoEls);
+                    markYellowElementsWithRed(lineInfoEls);
 
                     newLineInfoEl = {   // reset 
                         sourceTurnId: null,
@@ -107,7 +154,7 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
                         targetTurnId: null,
                         targetMarker: null,
                     }
-                    drawLinesByEls(lineInfoEls);
+                    drawLinesByEls(lineInfoEls, frontLinesFlag);
                 }
 
                 const selectedQuote = lineInfoEls.filter((element) => {
@@ -133,7 +180,8 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
     // }
     // ]
 
-    drawLinesByEls(lineInfoEls);
+    drawLinesByEls(lineInfoEls, frontLinesFlag);
+    markYellowElementsWithRed(lineInfoEls);
 });
 
 function selectChanged() {
@@ -144,7 +192,7 @@ function selectChanged() {
     }
 }
 
-function drawLinesByEls(lineInfoEls) {
+function drawLinesByEls(lineInfoEls, frontFlag = false) {
     // функция рисования красной линии логической связи из точки "А" в точку "Б" 
     let linesStr = '';
     for (let lineInfo of lineInfoEls) {
@@ -168,6 +216,9 @@ function drawLinesByEls(lineInfoEls) {
     const svg = $(`<svg viewBox="0 0 ${$("#gameBox").width()} ${$("#gameBox").height()}" xmlns="http://www.w3.org/2000/svg" id="lines">
     ${linesStr}
   </svg>`);
+    if(frontFlag) {
+        svg.addClass('front-elements');
+    }
     $(gameBox).append(svg);
 }
 
@@ -232,6 +283,6 @@ $('#gameBox').draggable({
             width: 1000,
         })
         game.recalculate();
-        drawLinesByEls(lineInfoEls);
+        drawLinesByEls(lineInfoEls, frontLinesFlag);
     }
 });
