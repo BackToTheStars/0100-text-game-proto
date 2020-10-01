@@ -111,7 +111,7 @@ function makeNewBoxMessage(obj) {
     h.appendChild(deleteButton);
     elmnt.appendChild(h);
     elmnt.dataset.contentType = contentType; // data attribute для div-a
-    
+
     if (contentType && contentType === 'picture') {
         const wrapper = document.createElement('div');
         wrapper.style.display = 'flex';
@@ -190,6 +190,8 @@ function insertNewClassElement(input, ul) {
     ul.appendChild(li);
 }
 
+
+
 const saveFieldSettings = (settings) => {
     // left, top,
     // width, height
@@ -204,6 +206,14 @@ const getFieldSettings = () => {
         height: 1000
     }
     return settings;
+}
+
+const savePanelSettings = (panelSettings) => {
+    localStorage.setItem('classesPanel', JSON.stringify(panelSettings))
+}
+const getPanelSettings = () => {
+    const panelSettings = JSON.parse(localStorage.getItem('classesPanel')) || { visible: false };
+    return panelSettings;
 }
 
 const saveLinesSettings = (lineInfoEls) => {

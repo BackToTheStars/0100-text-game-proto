@@ -4,6 +4,7 @@
 let gameBox = document.getElementById("gameBox"); // выбирает элемент по id
 let gameTurns = [];
 let lineInfoEls = getLinesSettings();
+let classesPanelSettings = getPanelSettings();
 let linkLineWidth = 2;
 let newLineInfoEl = {
     sourceTurnId: null,
@@ -168,7 +169,22 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
         });
     }
     $('.textBox').resizable();
-    $('.textBox').draggable();
+    $('.textBox').draggable({
+        stop: function (event, ui) {
+            // saveFieldSettings({
+            //     left: ui.position.left,
+            //     top: ui.position.top,
+            //     height: 1000,
+            //     width: 1000,
+            // })
+            // game.recalculate();
+            drawLinesByEls(lineInfoEls, frontLinesFlag);
+        }
+    });
+    $(".paragraphText").scroll(function (e) {
+        // определить скрытые маркеры
+        drawLinesByEls(lineInfoEls, frontLinesFlag);
+    });
 
     // отрисовка линий
     // получение координат
@@ -199,13 +215,13 @@ function drawLinesByEls(lineInfoEls, frontFlag = false) {
     for (let lineInfo of lineInfoEls) {
         const sourceCoords = getMarkerCoords(lineInfo.sourceTurnId, lineInfo.sourceMarker);
         const targetCoords = getMarkerCoords(lineInfo.targetTurnId, lineInfo.targetMarker);
-        const sideBarWidth = $("#classMenu").width() + 45;
+        const sideBarWidth = $("#classMenu").width(); // + 45;
 
         const sourceFirst = sourceCoords.left < targetCoords.left;
         const line = {
-            x1: sourceCoords.left + (sourceFirst ? sourceCoords.width : 0) - sideBarWidth + 3,
+            x1: sourceCoords.left + (sourceFirst ? sourceCoords.width : 0) - sideBarWidth + (sourceFirst ? 4 : -4), // + 3,
             y1: sourceCoords.top + Math.floor(sourceCoords.height / 2),
-            x2: targetCoords.left + (sourceFirst ? 0 : targetCoords.width) - sideBarWidth - 5,
+            x2: targetCoords.left + (sourceFirst ? 0 : targetCoords.width) - sideBarWidth + (sourceFirst ? -4 : 4), // - 5,
             y2: targetCoords.top + Math.floor(targetCoords.height / 2),
         }
         // отрисовка координат
@@ -271,6 +287,12 @@ const getGame = (gameBox, fieldSettings) => {
     }
 }
 
+// **** КЛИЕНТСКИЙ КОД  ****
+
+
+if (classesPanelSettings.visible) {
+    $("#classMenu").removeClass("hidden");
+}
 fieldSettings = getFieldSettings();
 const game = getGame(gameBox, fieldSettings);
 game.render();

@@ -118,3 +118,12 @@ button{
 .link-lines-info table {
     width: 100%;
 }
+
+#classMenu.hidden {
+    display: none;
+    width: 0;
+}
+
+.p0 {
+    padding:0;
+}
