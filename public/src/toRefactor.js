@@ -10,3 +10,10 @@ function toggleLinesZIndex() {
     frontLinesFlag = !frontLinesFlag;
     $("#lines").toggleClass("front-elements");
 }
+
+function toggleLeftClassPanel() {
+    $("#classMenu").toggleClass("hidden");
+    classesPanelSettings.visible = !classesPanelSettings.visible;
+    savePanelSettings(classesPanelSettings);
+    drawLinesByEls(lineInfoEls, frontLinesFlag);
+}

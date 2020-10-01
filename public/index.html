@@ -7,11 +7,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
         integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="styles/style.css">
-    <link rel="stylesheet" href="styles/modal.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <link rel="stylesheet" href="styles/modal.css">
+        <link rel="stylesheet" href="styles/style.css">
     <script src="/node_modules/quill/dist/quill.min.js"></script>
     <link rel="stylesheet" href="/node_modules/quill/dist/quill.snow.css" />
 </head>
@@ -19,13 +19,13 @@
 <body>
     <div class="container-fluid">
         <div class="row">
-            <div class="col-2" id="classMenu">
+            <div class="col-2 p0 hidden" id="classMenu">
                 <div class="row">
                     Add new class, like "Person": <input id="newClassName" />
                     <button onclick="addNewClass()"> add</button>
                 </div>
             </div>
-            <div class="col">
+            <div class="col p0">
 
                 <div class="gameFieldWrapper">
                     <div id="gameBox" class="ui-widget-content"></div>
@@ -53,6 +53,7 @@
                     <button onclick="zoomInOut(-1)"> - </button>
                     <button onclick="toggleLinesVisibility()">Toggle Links</button>
                     <button onClick="toggleLinesZIndex()">Move/Scroll</button>
+                    <button onClick="toggleLeftClassPanel()">Left Panel</button>
                 </div>
 
                 <div class="link-lines-info">
