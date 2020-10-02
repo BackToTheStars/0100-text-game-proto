@@ -202,10 +202,24 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
 });
 
 function selectChanged() {
-    if (document.getElementById('turnType').value === 'picture') {
-        document.getElementById('image-url-wrapper').style.display = 'block';
-    } else {
-        document.getElementById('image-url-wrapper').style.display = 'none';
+    const pw = document.getElementById('params-wrapper');
+    switch (document.getElementById('turnType').value) {
+        case 'picture': {
+            pw.innerHTML = 'Image URL: <input id="input-image-url" type="text" />'
+            pw.style.display = 'block';
+            break;
+        }
+        case 'video': {
+            pw.innerHTML = 'Video URL: <input id="input-video-url" type="text" />' /* +
+                            '<br>Begin time: <input id="input-video-begin-time" type="text" placeholder="0:00:00" onchange="inputTimeOnChange" />' +
+                            '<br>End time: <input id="input-video-end-time" type="text" placeholder="0:00:00" onchange="inputTimeOnChange" />'
+                            */
+            pw.style.display = 'block';
+            break;
+        }
+        default: {
+            pw.style.display = 'none';
+        }
     }
 }
 

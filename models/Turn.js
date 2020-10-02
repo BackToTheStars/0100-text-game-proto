@@ -34,6 +34,10 @@ const schema = new Schema({
     imageUrl: {
         type: String,
         required: false,
+    },
+    videoUrl: {
+        type: String,
+        required: false
     }
 });
 
