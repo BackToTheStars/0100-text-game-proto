@@ -11,7 +11,10 @@ function addNewBoxToGame() {
     const header = getInputValue("headerText");
     const par = getInputValue("paragraphText"); // вводит текст параграфа
     const type = getInputValue("turnType");
-    const imageUrl = getInputValue("image-url");
+    console.log(`turnType: ${type}`);
+    const imageUrl = type === 'picture' ? getInputValue("input-image-url") : undefined;
+    const videoUrl = type === 'video' ? getInputValue('input-video-url') : undefined;
+    console.log(`videoUrl: ${videoUrl}`);
 
     let newTurn = {
         header,
@@ -19,7 +22,8 @@ function addNewBoxToGame() {
         contentType: type,
         height: 300,
         width: 400,
-        imageUrl
+        imageUrl,
+        videoUrl
     };
     saveTurn(newTurn, (data) => {
         let newDiv = makeNewBoxMessage({ turn: newTurn, data }/*header, par, data._id, data.x, data.y, data.height, data.width*/);
@@ -87,7 +91,7 @@ function makeDeleteButton(turn) {                                // refactor wit
 
 function makeNewBoxMessage(obj) {
     //console.log(`${JSON.stringify(obj)}`);
-    const { header, paragraph, height, width, contentType, imageUrl } = obj.turn;   // деструктуризатор для хода
+    const { header, paragraph, height, width, contentType, imageUrl, videoUrl } = obj.turn;   // деструктуризатор для хода
     const { _id, x, y } = obj.data;
     let param = {
         head: header,
@@ -112,39 +116,51 @@ function makeNewBoxMessage(obj) {
     elmnt.appendChild(h);
     elmnt.dataset.contentType = contentType; // data attribute для div-a
 
-    if (contentType && contentType === 'picture') {
-        const wrapper = document.createElement('div');
-        wrapper.style.display = 'flex';
-        wrapper.style.flexDirection = 'column';   // соглашение, что camelCase = camel-case
-        wrapper.style.alignItems = 'center';
-        wrapper.style.justifyContent = 'space-between';
-        wrapper.style.height = '100%';
-        wrapper.style.width = '100%';
-        const img = document.createElement('img');
-        img.dataset.imgUrl = imageUrl;
-        img.style.background = `center / contain no-repeat url("${imageUrl}")`;
-        img.style.maxHeight = '100%';
-        img.style.maxWidth = '100%';
-        img.src = imageUrl;
-        wrapper.appendChild(img);
-        wrapper.appendChild(p);
-        //console.log(getComputedStyle(p).height);
-        elmnt.appendChild(wrapper);
-
-        // const img = document.createElement('img');
-        // img.src = imageUrl;
-        // console.log(imageUrl);
-        // img.style.height = '80%';
-        // img.style.width = '100%';
-        // elmnt.appendChild(img);
-
-    } else {
-        elmnt.appendChild(p);
+    switch (contentType) { 
+        case 'picture': {
+            const wrapper = document.createElement('div');
+            wrapper.style.display = 'flex';
+            wrapper.style.flexDirection = 'column';   // соглашение, что camelCase = camel-case
+            wrapper.style.alignItems = 'center';
+            wrapper.style.justifyContent = 'space-between';
+            wrapper.style.height = '100%';
+            wrapper.style.width = '100%';
+            const img = document.createElement('img');
+            img.dataset.imgUrl = imageUrl;
+            img.style.background = `center / contain no-repeat url("${imageUrl}")`;
+            img.style.maxHeight = '100%';
+            img.style.maxWidth = '100%';
+            img.src = imageUrl;
+            wrapper.appendChild(img);
+            wrapper.appendChild(p);
+            elmnt.appendChild(wrapper);
+            break;
+        }
+        case 'video': {
+            const wrapper = document.createElement('div');
+            wrapper.style.display = 'flex';
+            wrapper.style.flexDirection = 'column';   // соглашение, что camelCase = camel-case
+            wrapper.style.alignItems = 'center';
+            wrapper.style.justifyContent = 'space-between';
+            wrapper.style.height = '100%';
+            wrapper.style.width = '100%';
+            const frame = document.createElement('frame');
+            frame.src = videoUrl
+            frame.style.maxHeight = '100%';
+            frame.style.maxWidth = '100%';
+            wrapper.appendChild(frame);
+            wrapper.appendChild(p);
+            elmnt.appendChild(wrapper);
+            break;
+        }
+        default: {
+            elmnt.appendChild(p);
+        }
     }
 
-    /* здесь был "Фрагмент 1", сохранён в файле "фрагменты.js" */
+/* здесь был "Фрагмент 1", сохранён в файле "фрагменты.js" */
 
-    return elmnt;
+return elmnt;
 }
 
 function addNewClass() {
@@ -189,8 +205,6 @@ function insertNewClassElement(input, ul) {
     li.innerHTML = value;
     ul.appendChild(li);
 }
-
-
 
 const saveFieldSettings = (settings) => {
     // left, top,

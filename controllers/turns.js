@@ -30,9 +30,7 @@ const updateCoordinates = async (req, res) => {
     const items = [];
     for (let turn of turns) {
         const { id, x, y, height, width, contentType } = turn;
-        //console.log(`============================================== id: ${id}`);
         const turnModel = await Turn.findById(id);
-        //console.log('====================================================');
         turnModel.x = x;
         turnModel.y = y;
         turnModel.height = height;
