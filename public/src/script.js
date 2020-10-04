@@ -105,6 +105,7 @@ function makeNewBoxMessage(obj) {
     elmnt.style.height = `${height}px`;
     elmnt.style.width = `${width}px`;
     elmnt.className = 'textBox ui-widget-content';
+    console.log(paragraph);
     const p = makeParagraph(paragraph);
     //p.style.bottom = '100%';
     //p.style.position = 'absolute';
@@ -144,10 +145,16 @@ function makeNewBoxMessage(obj) {
             wrapper.style.justifyContent = 'space-between';
             wrapper.style.height = '100%';
             wrapper.style.width = '100%';
-            const frame = document.createElement('frame');
-            frame.src = videoUrl
+
+            //<iframe width="1280" height="720" src="https://www.youtube.com/embed/inBKFMB-yPg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+            const frame = document.createElement('iframe');
+            frame.src = videoUrl;
             frame.style.maxHeight = '100%';
             frame.style.maxWidth = '100%';
+            frame.frameborder= '0'
+            frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+            frame.allowfullscreen = true;
             wrapper.appendChild(frame);
             wrapper.appendChild(p);
             elmnt.appendChild(wrapper);
