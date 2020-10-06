@@ -29,13 +29,15 @@ const updateCoordinates = async (req, res) => {
     const { turns = [] } = req.body;
     const items = [];
     for (let turn of turns) {
-        const { id, x, y, height, width, contentType } = turn;
+        const { id, x, y, height, width, contentType, scrollPosition } = turn;
         const turnModel = await Turn.findById(id);
         turnModel.x = x;
         turnModel.y = y;
         turnModel.height = height;
         turnModel.width = width;
         turnModel.contentType = contentType;
+        turnModel.scrollPosition = scrollPosition;
+
         await turnModel.save();
         items.push(turnModel)
     }
