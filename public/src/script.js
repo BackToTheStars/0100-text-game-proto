@@ -55,20 +55,20 @@ function addTextToParagraph(par, text) {
     return par;
 }
 
-function makeParagraph(text) {
+function makeParagraph(text) {  // создать <p> класса "paragraphText" и записать в него параграф
     let par = document.createElement("p");
     par.className = "paragraphText";
     return addTextToParagraph(par, text);
 }
 
-function makeHead(text) {
+function makeHead(text) {       // создать <h5> класса "headerText" и записать в него заголовок 
     let h = document.createElement("h5");
     h.className = "headerText";
     h.innerHTML = text;
     return h;
 }
 
-function makeEditButton(turn) {
+function makeEditButton(turn) {                      // создать кнопку "Edit turn"
     let button = document.createElement("button");
     button.innerHTML = "Edit";
     button.addEventListener("click", () => {
@@ -77,7 +77,7 @@ function makeEditButton(turn) {
     return button;
 }
 
-function makeDeleteButton(turn) {                                // refactor with makeEditButton()
+function makeDeleteButton(turn) {   // создать кнопку "Delete turn"    // refactor with makeEditButton()
     let button = document.createElement('button');
     button.innerHTML = 'Delete';
     button.addEventListener('click', () => {
@@ -104,8 +104,8 @@ function makeNewBoxMessage(obj) {
     elmnt.style.top = `${y}px`;
     elmnt.style.height = `${height}px`;
     elmnt.style.width = `${width}px`;
-    elmnt.className = 'textBox ui-widget-content';
-    console.log(paragraph);
+    elmnt.className = 'textBox ui-widget-content'; 
+    // console.log(paragraph);
     const p = makeParagraph(paragraph);
     //p.style.bottom = '100%';
     //p.style.position = 'absolute';
@@ -117,7 +117,7 @@ function makeNewBoxMessage(obj) {
     elmnt.appendChild(h);
     elmnt.dataset.contentType = contentType; // data attribute для div-a
 
-    switch (contentType) { 
+    switch (contentType) {
         case 'picture': {
             const wrapper = document.createElement('div');
             wrapper.style.display = 'flex';
@@ -152,7 +152,7 @@ function makeNewBoxMessage(obj) {
             frame.src = videoUrl;
             frame.style.maxHeight = '100%';
             frame.style.maxWidth = '100%';
-            frame.frameborder= '0'
+            frame.frameborder = '0'
             frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
             frame.allowfullscreen = true;
             wrapper.appendChild(frame);
@@ -165,9 +165,9 @@ function makeNewBoxMessage(obj) {
         }
     }
 
-/* здесь был "Фрагмент 1", сохранён в файле "фрагменты.js" */
+    /* здесь был "Фрагмент 1", сохранён в файле "фрагменты.js" */
 
-return elmnt;
+    return elmnt;
 }
 
 function addNewClass() {
@@ -237,7 +237,7 @@ const getPanelSettings = () => {
     return panelSettings;
 }
 
-const saveLinesSettings = (lineInfoEls) => {
+const saveLinesSettings = (lineInfoEls) => { // сохраняет lineInfoEls в память браузера
     localStorage.setItem('linkLines', JSON.stringify(lineInfoEls));
 }
 

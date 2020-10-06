@@ -27,6 +27,10 @@ const schema = new Schema({
         type: Number,
         required: true,
     },
+    scrollPosition: {
+        type: Number,
+        required: true
+    },
     contentType: {
         type: String,
         required: true,

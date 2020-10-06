@@ -129,10 +129,13 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
                         elem.x,
                         elem.y,
                         elem.height,
-                        elem.width
+                        elem.width,
+                        elem.scrollPosition
                         */
         );
         gameBox.appendChild(newDiv); // само добавление div-ов ходов
+
+        newDiv.querySelector(".paragraphText").scrollTop = elem.scrollPosition;
 
         getYellowElements(elem._id).forEach((el, index) => {
 
@@ -264,7 +267,9 @@ function buttonSavePositions(e) {  // функция сохранения пол
         const height = parseInt(textBox.style.height);
         const width = parseInt(textBox.style.width);
         const { id, contentType } = textBox.dataset;
-        payload.push({ x, y, height, width, id, contentType });
+        const scrollPosition = textBox.querySelector(".paragraphText").scrollTop;
+        // console.log(scrollPosition); 
+        payload.push({ x, y, height, width, id, contentType, scrollPosition });
     }
     turnsUpdateCoordinates(payload, function () {
         console.log("Positions of all turns re-saved.");
