@@ -238,12 +238,16 @@ const getPanelSettings = () => {
 }
 
 const saveLinesSettings = (lineInfoEls) => { // сохраняет lineInfoEls в память браузера
-    localStorage.setItem('linkLines', JSON.stringify(lineInfoEls));
+    // localStorage.setItem('linkLines', JSON.stringify(lineInfoEls));
+    updateRedLogicLines(lineInfoEls, function() {
+        console.log("updateRedLogicLines")
+    }) 
 }
 
-const getLinesSettings = () => {
-    const lineInfoEls = JSON.parse(localStorage.getItem('linkLines')) || [];
-    return lineInfoEls;
+const getLinesSettings = (callback) => {
+    getRedLogicLines(callback)
+    // const lineInfoEls = JSON.parse(localStorage.getItem('linkLines')) || [];
+    // return lineInfoEls;
 }
 
 

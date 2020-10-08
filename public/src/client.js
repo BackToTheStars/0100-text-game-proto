@@ -3,7 +3,10 @@
 
 let gameBox = document.getElementById("gameBox"); // выбирает элемент по id
 let gameTurns = [];
-let lineInfoEls = getLinesSettings();
+let lineInfoEls = [];
+getLinesSettings(function(data) {
+    lineInfoEls = data
+});
 let classesPanelSettings = getPanelSettings();
 let linkLineWidth = 2;
 let newLineInfoEl = {
@@ -200,8 +203,26 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
     // }
     // ]
 
+    // @todo: Проверить, что массив lineInfoEls загружен
     drawLinesByEls(lineInfoEls, frontLinesFlag);
     markYellowElementsWithRed(lineInfoEls);
+
+    // Проверка, все ли картинки загрузились, чтобы корректно отрисовать линии связей - №30
+    const images = $("img");
+    let counter = images.length;
+    images.toArray().forEach((el) => {
+        if ($(el).get(0).complete) {
+            counter = counter - 1;
+        } else {
+            $(el).one("load", () => {
+                counter = counter - 1;
+                console.log(counter); // можно сделать Progress Bar
+                if (counter === 0) {
+                    drawLinesByEls(lineInfoEls, frontLinesFlag);
+                }
+            })
+        }
+    });
 });
 
 function selectChanged() {

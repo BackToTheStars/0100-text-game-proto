@@ -1,3 +1,4 @@
+
 function getTurns(callback) {
     $.ajax({
         type: "GET",
@@ -68,3 +69,42 @@ function deleteTurn(turnObj, callback) {
         success: callback,
     });
 }
+
+function getRedLogicLines(callback) {
+    $.ajax({
+        type: "GET",
+        url: "/game",
+        success: function(data) {
+            // const { item = {redLogicLines} } = data;
+            const redLogicLines = data.item.redLogicLines
+            callback(redLogicLines)
+        },
+    });
+}
+
+function updateRedLogicLines(redLogicLines, callback) {   
+    $.ajax({
+        type: "PUT",
+        url: "/game/red-logic-lines",
+        data: JSON.stringify({
+            redLogicLines,
+        }),
+        dataType: "json",
+        contentType: "application/json",
+        success: callback,
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
