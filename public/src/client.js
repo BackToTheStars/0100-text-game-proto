@@ -216,7 +216,7 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
         } else {
             $(el).one("load", () => {
                 counter = counter - 1;
-                console.log(counter); // можно сделать Progress Bar
+          //      console.log(counter); // можно сделать Progress Bar
                 if (counter === 0) {
                     drawLinesByEls(lineInfoEls, frontLinesFlag);
                 }
@@ -288,7 +288,7 @@ function buttonSavePositions(e) {  // функция сохранения пол
         const height = parseInt(textBox.style.height);
         const width = parseInt(textBox.style.width);
         const { id, contentType } = textBox.dataset;
-        const scrollPosition = textBox.querySelector(".paragraphText").scrollTop;
+        const scrollPosition = textBox.querySelector(".paragraphText").scrollTop;     // bug 
         // console.log(scrollPosition); 
         payload.push({ x, y, height, width, id, contentType, scrollPosition });
     }

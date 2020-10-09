@@ -28,7 +28,15 @@ function addNewBoxToGame() {
     saveTurn(newTurn, (data) => {
         let newDiv = makeNewBoxMessage({ turn: newTurn, data }/*header, par, data._id, data.x, data.y, data.height, data.width*/);
         gameBox.appendChild(newDiv); // добавляет новый div к заданному div
-        $(newDiv).resizable();
+        $(newDiv).resizable({
+            create: function ( ev, ui ) {
+                console.log('create')
+            },
+            resize: function ( ev, ui ) {
+                console.log(ui.element)
+                console.log(ui.originalElement)
+            }
+        });
         $(newDiv).draggable(); //{containment: "#gameBox"});
     });
 }
@@ -149,10 +157,21 @@ function makeNewBoxMessage(obj) {
             //<iframe width="1280" height="720" src="https://www.youtube.com/embed/inBKFMB-yPg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
             const frame = document.createElement('iframe');
-            frame.src = videoUrl;
-            frame.style.maxHeight = '100%';
-            frame.style.maxWidth = '100%';
-            frame.frameborder = '0'
+            const m = videoUrl.match(/watch\?v=/)
+            if (m) {
+                console.log('match')
+                frame.src = `${videoUrl.substring(0,m.index)}embed/${videoUrl.substring(m.index+8)}`
+            } else {
+                console.log('not match')
+                frame.src = videoUrl;
+            }
+            //frame.style.maxHeight = '100%';
+            //frame.style.maxWidth = '100%';
+            frame.style.width = '100%';
+            frame.style.height = '90%';
+            frame.style.top = '0';
+            frame.style.left = '0';
+            frame.frameborder = '0';
             frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
             frame.allowfullscreen = true;
             wrapper.appendChild(frame);

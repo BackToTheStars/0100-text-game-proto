@@ -29,7 +29,7 @@ const schema = new Schema({
     },
     scrollPosition: {
         type: Number,
-        required: true
+        required: false    // temp bug
     },
     contentType: {
         type: String,
