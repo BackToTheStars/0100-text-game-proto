@@ -349,3 +349,18 @@ $('#gameBox').draggable({
         drawLinesByEls(lineInfoEls, frontLinesFlag);
     }
 });
+
+function isMarkerVisible(jqElement) {
+    const top = jqElement.position()['top'];
+    const height = jqElement.height();
+    const paragraphHeight = jqElement.parents(".paragraphText").height();
+    if (top + height < 0) {
+        return false;
+    }
+    if (top > paragraphHeight) {
+        return false;
+    }
+    return true;    
+}
+
+

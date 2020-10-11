@@ -128,3 +128,10 @@ button{
 .p0 {
     padding:0;
 }
+
+.textBox .picture-content {
+    width: 100%;
+    object-fit: contain;
+    max-height: 100%;
+    max-width: 100%;
+}    
