@@ -29,10 +29,10 @@ function addNewBoxToGame() {
         let newDiv = makeNewBoxMessage({ turn: newTurn, data }/*header, par, data._id, data.x, data.y, data.height, data.width*/);
         gameBox.appendChild(newDiv); // добавляет новый div к заданному div
         $(newDiv).resizable({
-            create: function ( ev, ui ) {
+            create: function (ev, ui) {
                 console.log('create')
             },
-            resize: function ( ev, ui ) {
+            resize: function (ev, ui) {
                 console.log(ui.element)
                 console.log(ui.originalElement)
             }
@@ -112,7 +112,7 @@ function makeNewBoxMessage(obj) {
     elmnt.style.top = `${y}px`;
     elmnt.style.height = `${height}px`;
     elmnt.style.width = `${width}px`;
-    elmnt.className = 'textBox ui-widget-content'; 
+    elmnt.className = 'textBox ui-widget-content';
     // console.log(paragraph);
     const p = makeParagraph(paragraph);
     //p.style.bottom = '100%';
@@ -135,14 +135,32 @@ function makeNewBoxMessage(obj) {
             wrapper.style.height = '100%';
             wrapper.style.width = '100%';
             const img = document.createElement('img');
+            img.classList.add('picture-content');
             img.dataset.imgUrl = imageUrl;
             img.style.background = `center / contain no-repeat url("${imageUrl}")`;
-            img.style.maxHeight = '100%';
-            img.style.maxWidth = '100%';
             img.src = imageUrl;
             wrapper.appendChild(img);
             wrapper.appendChild(p);
             elmnt.appendChild(wrapper);
+            // elmnt.onresize = function(ev) {             // глючит
+            //     const cs = window.getComputedStyle(ev.target);
+            //     const h = cs.height.slice(0, -2);
+            //     const w = cs.width.slice(0, -2);
+            //     const img = ev.target.children[1].children[0];
+            //     const nh = img.naturalHeight;
+            //     const nw = img.naturalWidth;
+            //     console.log(nh, nw);
+            //     const ratio = nh/nw;
+            //     if (h/w > ratio) {
+            //         console.log(1, nh, nw);
+            //         img.style.height = w*nh/nw;
+            //         img.style.width = w;
+            //     } else {
+            //         console.log(2, h/w, ratio, h, w, nh, nw);
+            //         img.style.height = h;
+            //         img.style.width = h*nw/nh;
+            //     }
+            // }
             break;
         }
         case 'video': {
@@ -160,7 +178,7 @@ function makeNewBoxMessage(obj) {
             const m = videoUrl.match(/watch\?v=/)
             if (m) {
                 console.log('match')
-                frame.src = `${videoUrl.substring(0,m.index)}embed/${videoUrl.substring(m.index+8)}`
+                frame.src = `${videoUrl.substring(0, m.index)}embed/${videoUrl.substring(m.index + 8)}`
             } else {
                 console.log('not match')
                 frame.src = videoUrl;
@@ -177,6 +195,15 @@ function makeNewBoxMessage(obj) {
             wrapper.appendChild(frame);
             wrapper.appendChild(p);
             elmnt.appendChild(wrapper);
+            elmnt.onresize = function (ev) {  // отвечает за корректный масштаб видео от ширины блока
+                // console.log(window.getComputedStyle(ev.target).height);
+                // console.log(ev.target.children);
+                const cs = window.getComputedStyle(ev.target);
+                const h = cs.height.slice(0, -2);
+                const w = cs.width.slice(0, -2);
+                //console.log(h, w);
+                ev.target.children[1].children[0].style.height = `${Math.min(h * 0.9, w * 9 / 16)}px`;
+            }
             break;
         }
         default: {
@@ -258,9 +285,9 @@ const getPanelSettings = () => {
 
 const saveLinesSettings = (lineInfoEls) => { // сохраняет lineInfoEls в память браузера
     // localStorage.setItem('linkLines', JSON.stringify(lineInfoEls));
-    updateRedLogicLines(lineInfoEls, function() {
+    updateRedLogicLines(lineInfoEls, function () {
         console.log("updateRedLogicLines")
-    }) 
+    })
 }
 
 const getLinesSettings = (callback) => {
