@@ -122,7 +122,10 @@ function makeNewBoxMessage(obj) {
     const deleteButton = makeDeleteButton({ _id, paragraph: paragraph, header: header });
     h.appendChild(editButton);
     h.appendChild(deleteButton);
-    elmnt.appendChild(h);
+    if (contentType != "comment") {   // если комментарий, то не добавляем header
+        elmnt.appendChild(h);
+    }
+    
     elmnt.dataset.contentType = contentType; // data attribute для div-a
 
     switch (contentType) {
@@ -175,6 +178,7 @@ function makeNewBoxMessage(obj) {
             //<iframe width="1280" height="720" src="https://www.youtube.com/embed/inBKFMB-yPg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
             const frame = document.createElement('iframe');
+            frame.classList.add("video");
             const m = videoUrl.match(/watch\?v=/)
             if (m) {
                 console.log('match')
@@ -206,6 +210,10 @@ function makeNewBoxMessage(obj) {
             }
             break;
         }
+        case 'comment': {
+            elmnt.classList.add('comment');
+        }
+
         default: {
             elmnt.appendChild(p);
         }

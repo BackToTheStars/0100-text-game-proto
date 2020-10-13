@@ -16,6 +16,9 @@ const saveTurn = async (req, res) => {
     const { turn } = req.body; // деструктуризатор
     console.log(JSON.stringify(turn));
     const turnModel = new Turn(turn);
+    if(turn.contentType === 'comment') {
+        turnModel.header = 'comment';
+    }
     await turnModel.save();
     res.json(turnModel);
 };
