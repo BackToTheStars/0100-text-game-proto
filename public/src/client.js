@@ -4,7 +4,7 @@
 let gameBox = document.getElementById("gameBox"); // выбирает элемент по id
 let gameTurns = [];
 let lineInfoEls = [];
-getLinesSettings(function(data) {
+getLinesSettings(function (data) {
     lineInfoEls = data
 });
 let classesPanelSettings = getPanelSettings();
@@ -216,7 +216,7 @@ getTurns((data) => {    // Запрашиваем ходы с сервера и 
         } else {
             $(el).one("load", () => {
                 counter = counter - 1;
-          //      console.log(counter); // можно сделать Progress Bar
+                //      console.log(counter); // можно сделать Progress Bar
                 if (counter === 0) {
                     drawLinesByEls(lineInfoEls, frontLinesFlag);
                 }
@@ -251,9 +251,37 @@ function drawLinesByEls(lineInfoEls, frontFlag = false) {
     // функция рисования красной линии логической связи из точки "А" в точку "Б" 
     let linesStr = '';
     for (let lineInfo of lineInfoEls) {
+        const sourceMarkerEl = getYellowElement(lineInfo.sourceTurnId, lineInfo.sourceMarker);
+        if (!isMarkerVisible($(sourceMarkerEl))) {
+          continue;
+        }
+        const targetMarkerEl = getYellowElement(lineInfo.targetTurnId, lineInfo.targetMarker);
+        if (!isMarkerVisible($(targetMarkerEl))) {
+          continue;
+        }
+        
         const sourceCoords = getMarkerCoords(lineInfo.sourceTurnId, lineInfo.sourceMarker);
         const targetCoords = getMarkerCoords(lineInfo.targetTurnId, lineInfo.targetMarker);
         const sideBarWidth = $("#classMenu").width(); // + 45;
+
+        // if (
+        //     $("#gameBox").width() < sourceCoords.left &&
+        //     $("#gameBox").width() < targetCoords.left
+        // ) {
+        //     continue;
+        // }
+        // if (sourceCoords.left < 0 && targetCoords.left < 0) {
+        //     continue;
+        // }
+        // if (
+        //     $("#gameBox").height() < sourceCoords.top &&
+        //     $("#gameBox").height() < targetCoords.top
+        // ) {
+        //     continue;
+        // }
+        // if (sourceCoords.top < 0 && targetCoords.left < top) {
+        //     continue;
+        // }
 
         const sourceFirst = sourceCoords.left < targetCoords.left;
         const line = {
@@ -350,17 +378,33 @@ $('#gameBox').draggable({
     }
 });
 
-function isMarkerVisible(jqElement) {
+function isMarkerVisible(jqElement) {   // элементы отбрасывают "тень", иметь ввиду для дальнейших видов контента! 
+    // if(jqElement.parents('[data-content-type="picture"]').length) {
+    //     debugger;
+    // }
     const top = jqElement.position()['top'];
     const height = jqElement.height();
     const paragraphHeight = jqElement.parents(".paragraphText").height();
-    if (top + height < 0) {
+    const headerHeight = jqElement
+        .parents(".textBox")
+        .find(".headerText")
+        .height() || 0;
+    const pictureHeight = jqElement
+        .parents(".textBox")
+        .find(".picture-content")
+        .height() || 0;
+    const iFrameHeight = jqElement
+        .parents(".textBox")
+        .find(".video")
+        .height() || 0;
+
+    if (top + height < headerHeight + pictureHeight + iFrameHeight) {
         return false;
     }
-    if (top > paragraphHeight) {
+    if (top > headerHeight+ paragraphHeight + pictureHeight + iFrameHeight) {
         return false;
     }
-    return true;    
+    return true;
 }
 
 
