@@ -20,4 +20,10 @@ For example, a professor of Stanford Hoover Institution discussing the "Cold War
 
 Organizing the arguments into the logic graphs, as their natural thinking progresses along with the talks. We call these trees "Natural Thinking Graphs" (as opposed to Artificial Intelligence). 
 
-We as humans have a lot of tools of analysis, disassembly, partitioning of knowledge (Newton & Descartes methods), the problem is that we don't have systems, aimed to reverse the process: to merge, to integrate, to blend, to combine, to understand the knowledge as a whole. This system allows us to do exactly that.
+We as humans have a lot of tools of analysis, disassembly, partitioning of knowledge (Newton & Descartes methods), the problem is that we don't have systems, aimed to reverse the process: to merge, to integrate, to blend, to combine, to understand the knowledge as a whole. 
+
+This system allows us to do exactly that.
+
+Launch:
+npm i
+npm run dev

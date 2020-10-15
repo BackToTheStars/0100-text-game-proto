@@ -1,4 +1,3 @@
-
 /** Client code */
 
 let gameBox = document.getElementById("gameBox"); // выбирает элемент по id
@@ -17,6 +16,7 @@ let newLineInfoEl = {
 }
 let frontLinesFlag = true;
 let quotesDictionary = {};
+let authorDictionary = {};
 
 const setSizes = (jQueryElement) => {
     $(jQueryElement).css('height', $(jQueryElement).height() + 'px');
@@ -115,6 +115,15 @@ $('.link-lines-info').on('click', '.del-btn', function () {
     linkLineDetailsEl.remove();
 })
 
+// получение справочника авторов
+setTimeout(() => {
+    authorDictionary = {
+        '123': {
+            _id: '123',
+            name: 'John Doe'
+        }
+    }
+}, 500)
 
 getTurns((data) => {    // Запрашиваем ходы с сервера и размещаем их на доске игры
     gameTurns = data;
@@ -253,13 +262,13 @@ function drawLinesByEls(lineInfoEls, frontFlag = false) {
     for (let lineInfo of lineInfoEls) {
         const sourceMarkerEl = getYellowElement(lineInfo.sourceTurnId, lineInfo.sourceMarker);
         if (!isMarkerVisible($(sourceMarkerEl))) {
-          continue;
+            continue;
         }
         const targetMarkerEl = getYellowElement(lineInfo.targetTurnId, lineInfo.targetMarker);
         if (!isMarkerVisible($(targetMarkerEl))) {
-          continue;
+            continue;
         }
-        
+
         const sourceCoords = getMarkerCoords(lineInfo.sourceTurnId, lineInfo.sourceMarker);
         const targetCoords = getMarkerCoords(lineInfo.targetTurnId, lineInfo.targetMarker);
         const sideBarWidth = $("#classMenu").width(); // + 45;
@@ -401,7 +410,7 @@ function isMarkerVisible(jqElement) {   // элементы отбрасываю
     if (top + height < headerHeight + pictureHeight + iFrameHeight) {
         return false;
     }
-    if (top > headerHeight+ paragraphHeight + pictureHeight + iFrameHeight) {
+    if (top > headerHeight + paragraphHeight + pictureHeight + iFrameHeight) {
         return false;
     }
     return true;
