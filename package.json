@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/BackToTheStars/0100-text-game-proto#readme",
   "dependencies": {
+    "bunyan": "^1.8.14",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "mongoose": "^5.9.29",

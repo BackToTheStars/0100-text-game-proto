@@ -53,7 +53,7 @@ html, body {
     max-height: 100%;
     overflow-x: auto;
     overflow-y: scroll;
-    padding: 15px;
+    padding: 0px 15px 15px 15px;
     font-size: 1.15rem;
 }
 
@@ -97,6 +97,9 @@ button{
     margin-left: 6px !important;
     font-size: 1.1rem !important;
 }
+.headerText button {
+    float: right;
+}
 
 .red-link-line {
     outline: 2px solid red;
@@ -135,3 +138,16 @@ button{
     max-height: 100%;
     max-width: 100%;
 }    
+
+
+.textBox.comment .paragraphText {
+    height: 100%;
+    overflow-y: hidden;
+}
+
+.textBox.comment .paragraphText,
+.textBox.comment .headerText {
+    background: rgb(236, 237, 154);
+}
+
+/* два вместе, это два класса вместе, а пробел, это вложенность */

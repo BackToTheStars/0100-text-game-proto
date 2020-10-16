@@ -99,12 +99,14 @@ function makeDeleteButton(turn) {   // создать кнопку "Delete turn"
 
 function makeNewBoxMessage(obj) {
     //console.log(`${JSON.stringify(obj)}`);
-    const { header, paragraph, height, width, contentType, imageUrl, videoUrl } = obj.turn;   // деструктуризатор для хода
+    const { paragraph, height, width, contentType, imageUrl, videoUrl, author_id } = obj.turn;   // деструктуризатор для хода
+    let { header } = obj.turn;
     const { _id, x, y } = obj.data;
-    let param = {
-        head: header,
-        par: paragraph,
-    };
+    // let param = {
+    //     head: header,
+    //     par: paragraph,
+    // };
+    const authorObj = authorDictionary[author_id];
     // создаёт div блока по заданным параметрам
     const elmnt = document.createElement('div');
     elmnt.dataset.id = _id;          // data attribute для div-a
@@ -117,15 +119,19 @@ function makeNewBoxMessage(obj) {
     const p = makeParagraph(paragraph);
     //p.style.bottom = '100%';
     //p.style.position = 'absolute';
+
+    if (contentType === "comment") { // если комментарий, то добавляем автора в header
+        header = authorObj.name + ":";
+    }
     const h = makeHead(header);
     const editButton = makeEditButton({ _id, paragraph: paragraph, header: header });
     const deleteButton = makeDeleteButton({ _id, paragraph: paragraph, header: header });
     h.appendChild(editButton);
     h.appendChild(deleteButton);
-    if (contentType != "comment") {   // если комментарий, то не добавляем header
-        elmnt.appendChild(h);
-    }
-    
+
+    elmnt.appendChild(h);
+
+
     elmnt.dataset.contentType = contentType; // data attribute для div-a
 
     switch (contentType) {
@@ -184,7 +190,7 @@ function makeNewBoxMessage(obj) {
                 console.log('match')
                 frame.src = `${videoUrl.substring(0, m.index)}embed/${videoUrl.substring(m.index + 8)}`
             } else {
-                console.log('not match')
+                // console.log('not match')
                 frame.src = videoUrl;
             }
             //frame.style.maxHeight = '100%';
@@ -212,6 +218,8 @@ function makeNewBoxMessage(obj) {
         }
         case 'comment': {
             elmnt.classList.add('comment');
+            elmnt.appendChild(p);
+            break;
         }
 
         default: {

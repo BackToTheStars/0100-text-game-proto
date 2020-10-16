@@ -4,7 +4,12 @@ function getTurns(callback) {
         type: "GET",
         url: "/getTurns",
         data: "",
-        success: callback,
+        success: data => {
+            callback(data.map(item => ({
+                author_id: "123", // @fixme
+                ...item,
+            })))
+        },
     });
 }
 
