@@ -13,7 +13,9 @@ function writeParagraph(id, text) {
     let editor = document.getElementById(id);
     let elem = editor.getElementsByClassName("ql-editor")[0];
     //elem.innerText = text[0];
-    addTextToParagraph(elem, text);
+    //addTextToParagraph(elem, text);
+    console.log(`${arguments.callee.name}: text: ${JSON.stringify(text)}`);
+    quill.setContents(text);
 }
 
 function writeToHeader(id, text) {

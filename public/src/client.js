@@ -120,7 +120,11 @@ setTimeout(() => {
     authorDictionary = {
         '123': {
             _id: '123',
-            name: 'John Doe'
+            name: 'Teacher'
+        },
+        '2': {
+            _id: '2',
+            name: 'Student'
         }
     }
 }, 500)

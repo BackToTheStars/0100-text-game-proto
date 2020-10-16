@@ -119,7 +119,7 @@ function makeNewBoxMessage(obj) {
     const p = makeParagraph(paragraph);
     //p.style.bottom = '100%';
     //p.style.position = 'absolute';
-    
+
     if (contentType === "comment") { // если комментарий, то добавляем автора в header
         header = authorObj.name + ":";
     }
@@ -131,7 +131,7 @@ function makeNewBoxMessage(obj) {
 
     elmnt.appendChild(h);
 
-    
+
     elmnt.dataset.contentType = contentType; // data attribute для div-a
 
     switch (contentType) {
@@ -190,7 +190,7 @@ function makeNewBoxMessage(obj) {
                 console.log('match')
                 frame.src = `${videoUrl.substring(0, m.index)}embed/${videoUrl.substring(m.index + 8)}`
             } else {
-                console.log('not match')
+                // console.log('not match')
                 frame.src = videoUrl;
             }
             //frame.style.maxHeight = '100%';

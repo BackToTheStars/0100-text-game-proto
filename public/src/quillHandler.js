@@ -10,5 +10,7 @@ let quill = new Quill('#editor-container', {
 });
 
 function getQuillTextArr() {
-  return quill.editor.delta.ops;
+  const ops = quill.editor.delta.ops
+  console.log(`getQuillTextArr: ${JSON.stringify(ops)}`);
+  return ops;
 }
