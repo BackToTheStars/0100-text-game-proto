@@ -7,6 +7,12 @@ const schema = new Schema({
         type: String,
         required: true,
     },
+    date: {
+        type: Date
+    },
+    sourceUrl: {
+        type: String
+    },
     paragraph: {
         type: [mongoose.Schema.Types.Mixed],
         required: true

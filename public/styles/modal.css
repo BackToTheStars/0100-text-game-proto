@@ -24,6 +24,22 @@
 }
 
 #editor-container {
-    max-height: 75vh;
+    max-height: 60vh;
     background-color: white;
+}
+
+.left-bottom-label, .right-bottom-label {
+    position: absolute;
+    bottom: -5px;
+    /* transform: translateY(-100%); */
+    padding: 5px;
+    border: 1px solid #eee;
+    background-color: #fff;
+}
+
+.left-bottom-label {
+    left: 0;
+}
+.right-bottom-label {
+    right: 0;
 }

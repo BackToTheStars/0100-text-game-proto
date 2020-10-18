@@ -133,12 +133,10 @@ button{
 }
 
 .textBox .picture-content {
-    width: 100%;
     object-fit: contain;
     max-height: 100%;
     max-width: 100%;
 }    
-
 
 .textBox.comment .paragraphText {
     height: 100%;
@@ -151,3 +149,7 @@ button{
 }
 
 /* два вместе, это два класса вместе, а пробел, это вложенность */
+
+.ql-container {
+    font-size: 1.35rem;
+}

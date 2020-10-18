@@ -48,8 +48,12 @@ function saveTurnModal(id) {
     hideElement("modal");
     let textArr = getQuillTextArr();
     let header = getInputValue("headerInput");
+    let date = getInputValue("dateInput");
+    let sourceUrl = getInputValue("sourceUrlInput");
     let turnObj = {
-        header: header,
+        header,
+        date,
+        sourceUrl,
         paragraph: textArr,
         _id: id,
     };
