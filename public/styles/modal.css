@@ -5,19 +5,41 @@
     left: 0;
     top: 0;
     z-index: 1500;
-    background-color: rgba(128, 128, 128, 0.38);
+    background-color: rgba(89, 89, 89, 0.90);
     display: none;
 }
 
 #modal{
     position: fixed;
-    min-height: 20%;
+    min-height: 20vh;
+    max-height: 95vh;
     min-width: 20%;
     max-width: 50%;
-    top: 5%;
+    top: 5vh;
     left: 25%;
     z-index: 2000;
     display: none;
     background-color: whitesmoke;
-    border-radius: 5px;
+    border-radius: 3px;
+}
+
+#editor-container {
+    max-height: 60vh;
+    background-color: white;
+}
+
+.left-bottom-label, .right-bottom-label {
+    position: absolute;
+    bottom: -5px;
+    /* transform: translateY(-100%); */
+    padding: 5px;
+    border: 1px solid #eee;
+    background-color: #fff;
+}
+
+.left-bottom-label {
+    left: 0;
+}
+.right-bottom-label {
+    right: 0;
 }

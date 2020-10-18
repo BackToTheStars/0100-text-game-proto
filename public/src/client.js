@@ -395,6 +395,10 @@ function isMarkerVisible(jqElement) {   // элементы отбрасываю
     // if(jqElement.parents('[data-content-type="picture"]').length) {
     //     debugger;
     // }
+    if(!jqElement.length) {
+        console.log("Попытка обратиться к несуществующему jquery элементу");
+        return false;
+    }
     const top = jqElement.position()['top'];
     const height = jqElement.height();
     const paragraphHeight = jqElement.parents(".paragraphText").height();

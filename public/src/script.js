@@ -89,9 +89,11 @@ function makeDeleteButton(turn) {   // создать кнопку "Delete turn"
     let button = document.createElement('button');
     button.innerHTML = 'Delete';
     button.addEventListener('click', () => {
-        deleteTurn(turn);
-        const element = document.querySelector(`[data-id = "${turn._id}"]`);
-        element.remove();
+        if(confirm("Точно удалить?")) {
+            deleteTurn(turn);
+            const element = document.querySelector(`[data-id = "${turn._id}"]`);
+            element.remove();
+        }
     });
     return button;
 }
@@ -100,7 +102,17 @@ function makeDeleteButton(turn) {   // создать кнопку "Delete turn"
 function makeNewBoxMessage(obj) {
 
     //console.log(`${JSON.stringify(obj)}`);
-    const { paragraph, height, width, contentType, imageUrl, videoUrl, author_id } = obj.turn;   // деструктуризатор для хода
+    const {
+        paragraph,
+        height,
+        width,
+        contentType,
+        imageUrl,
+        videoUrl,
+        author_id,
+        sourceUrl,
+        date
+    } = obj.turn;   // деструктуризатор для хода
     let { header } = obj.turn;
     const { _id, x, y } = obj.data;
     // let param = {
@@ -134,6 +146,19 @@ function makeNewBoxMessage(obj) {
 
 
     elmnt.dataset.contentType = contentType; // data attribute для div-a
+    if(sourceUrl) {
+        const leftBottomEl = document.createElement('div');
+        leftBottomEl.classList.add('left-bottom-label');
+        leftBottomEl.innerText = sourceUrl;
+        elmnt.appendChild(leftBottomEl);
+    }
+
+    if(date) {
+        const rightBottomEl = document.createElement('div');
+        rightBottomEl.classList.add('right-bottom-label');
+        rightBottomEl.innerText = new Date(date).toLocaleDateString();
+        elmnt.appendChild(rightBottomEl);
+    }
 
     switch (contentType) {
         case 'picture': {

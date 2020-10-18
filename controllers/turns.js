@@ -1,6 +1,6 @@
 const Turn = require("../models/Turn");
 const bunyan = require('bunyan');
-const log = bunyan.createLogger({name: 'turns', level: 'debug'});
+const log = bunyan.createLogger({name: 'turns', level: 'info'});
 
 async function updateTurn (req, res) {
     log.debug(`Entering ... ${arguments.callee.name}`);
