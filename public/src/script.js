@@ -98,6 +98,7 @@ function makeDeleteButton(turn) {   // создать кнопку "Delete turn"
 
 
 function makeNewBoxMessage(obj) {
+
     //console.log(`${JSON.stringify(obj)}`);
     const { paragraph, height, width, contentType, imageUrl, videoUrl, author_id } = obj.turn;   // деструктуризатор для хода
     let { header } = obj.turn;
