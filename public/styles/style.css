@@ -13,7 +13,7 @@ html, body {
     border: 1px black;
     position: absolute !important;
     background-color: #f5f5f5 !important;
-    overflow: hidden;
+    /* overflow: hidden; */
     z-index: 1;
 }
 
@@ -152,4 +152,21 @@ button{
 
 .ql-container {
     font-size: 1.35rem;
+}
+
+/* подписи для ссылки и для даты */
+.left-bottom-label, .right-bottom-label { 
+    position: absolute;
+    bottom: -22px;
+    transform: translateY(100%);
+    padding: 5px;
+    color: #fff;
+    font-size: 1.3rem;
+}
+
+.left-bottom-label {
+    left: 0;
+}
+.right-bottom-label {
+    right: 0;
 }

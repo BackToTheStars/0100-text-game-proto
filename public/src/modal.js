@@ -18,23 +18,47 @@ function writeParagraph(id, text) {
     quill.setContents(text);
 }
 
-function writeToHeader(id, text) {
-    let header = document.getElementById(id);
-    header.value = text;
-}
-
 function cancelTurnModal() {
     hideElement("modalBackground");
     hideElement("modal");
 }
 
 function openTurnModal(turn) {
-    console.log(turn);
     showElement("modalBackground");
     showElement("modal");
     // debugger;
     writeParagraph("editor-container", turn.paragraph);
-    writeToHeader("headerInput", turn.header);
+    // writeToHeader("headerInput", turn.header);
+
+    document.getElementById("headerInput").value = turn.header;
+    if(turn.date) {
+        const date = new Date(turn.date);
+        document.getElementById("dateInput").value = `${date.getFullYear()}-${('0' + (date.getMonth()+1)).slice(-2) }-${('0' + date.getDate()).slice(-2) }`;
+    } else {
+        document.getElementById("dateInput").value = '';
+    }
+    if(turn.sourceUrl) {
+        document.getElementById("sourceUrlInput").value = turn.sourceUrl;
+    } else {
+        document.getElementById("sourceUrlInput").value = '';
+    }
+
+    if(turn.imageUrl) {
+        document.getElementById("imageUrlInput").style.display = 'block';
+        document.getElementById("imageUrlInput").value = turn.imageUrl;
+    } else {
+        document.getElementById("imageUrlInput").style.display = 'none';
+        document.getElementById("imageUrlInput").value = '';
+    }
+
+    if(turn.videoUrl) {
+        document.getElementById("videoUrlInput").style.display = 'block';
+        document.getElementById("videoUrlInput").value = turn.videoUrl;
+    } else {
+        document.getElementById("videoUrlInput").style.display = 'none';
+        document.getElementById("videoUrlInput").value = '';
+    }
+
     recreateOnclickModalSave(turn._id);
 }
 
@@ -50,10 +74,14 @@ function saveTurnModal(id) {
     let header = getInputValue("headerInput");
     let date = getInputValue("dateInput");
     let sourceUrl = getInputValue("sourceUrlInput");
+    let imageUrl = getInputValue("imageUrlInput");
+    let videoUrl = getInputValue("videoUrlInput");
     let turnObj = {
         header,
         date,
         sourceUrl,
+        imageUrl: imageUrl || null,
+        videoUrl: videoUrl || null,
         paragraph: textArr,
         _id: id,
     };
