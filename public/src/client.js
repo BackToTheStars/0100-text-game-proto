@@ -62,7 +62,6 @@ const markYellowElementsWithRed = (lineInfoEls) => {
     }
 }
 
-
 function deleteLink() {  // удаляет линию связи между жёлтами цитатами
     console.log();
 }
@@ -277,24 +276,7 @@ function drawLinesByEls(lineInfoEls, frontFlag = false) {
         const targetCoords = getMarkerCoords(lineInfo.targetTurnId, lineInfo.targetMarker);
         const sideBarWidth = $("#classMenu").width(); // + 45;
 
-        // if (
-        //     $("#gameBox").width() < sourceCoords.left &&
-        //     $("#gameBox").width() < targetCoords.left
-        // ) {
-        //     continue;
-        // }
-        // if (sourceCoords.left < 0 && targetCoords.left < 0) {
-        //     continue;
-        // }
-        // if (
-        //     $("#gameBox").height() < sourceCoords.top &&
-        //     $("#gameBox").height() < targetCoords.top
-        // ) {
-        //     continue;
-        // }
-        // if (sourceCoords.top < 0 && targetCoords.left < top) {
-        //     continue;
-        // }
+        // фрагмент 3
 
         const sourceFirst = sourceCoords.left < targetCoords.left;
         const line = {

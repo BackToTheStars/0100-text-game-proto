@@ -133,11 +133,12 @@ function makeNewBoxMessage(obj) {
     //p.style.bottom = '100%';
     //p.style.position = 'absolute';
 
-    if (contentType === "comment") { // если комментарий, то добавляем автора в header
+    if (contentType === "comment" && authorObj) { // если комментарий, то добавляем автора в header
         header = authorObj.name + ":";
     }
     const h = makeHead(header);
-    const editButton = makeEditButton({ _id, paragraph: paragraph, header: header });
+    // const editButton = makeEditButton({ _id, paragraph: paragraph, header: header });
+    const editButton = makeEditButton(obj.turn);
     const deleteButton = makeDeleteButton({ _id, paragraph: paragraph, header: header });
     h.appendChild(editButton);
     h.appendChild(deleteButton);
@@ -146,6 +147,7 @@ function makeNewBoxMessage(obj) {
 
 
     elmnt.dataset.contentType = contentType; // data attribute для div-a
+    // const bottom
     if(sourceUrl) {
         const leftBottomEl = document.createElement('div');
         leftBottomEl.classList.add('left-bottom-label');
@@ -160,15 +162,17 @@ function makeNewBoxMessage(obj) {
         elmnt.appendChild(rightBottomEl);
     }
 
+    const wrapper = document.createElement('div');
+    wrapper.style.display = 'flex';
+    wrapper.style.flexDirection = 'column';   // соглашение, что camelCase = camel-case
+    wrapper.style.alignItems = 'center';
+    wrapper.style.justifyContent = 'space-between';
+    wrapper.style.height = '100%';
+    wrapper.style.width = '100%';
+
     switch (contentType) {
         case 'picture': {
-            const wrapper = document.createElement('div');
-            wrapper.style.display = 'flex';
-            wrapper.style.flexDirection = 'column';   // соглашение, что camelCase = camel-case
-            wrapper.style.alignItems = 'center';
-            wrapper.style.justifyContent = 'space-between';
-            wrapper.style.height = '100%';
-            wrapper.style.width = '100%';
+            
             const img = document.createElement('img');
             img.classList.add('picture-content');
             img.dataset.imgUrl = imageUrl;
@@ -177,36 +181,10 @@ function makeNewBoxMessage(obj) {
             wrapper.appendChild(img);
             wrapper.appendChild(p);
             elmnt.appendChild(wrapper);
-            // elmnt.onresize = function(ev) {             // глючит
-            //     const cs = window.getComputedStyle(ev.target);
-            //     const h = cs.height.slice(0, -2);
-            //     const w = cs.width.slice(0, -2);
-            //     const img = ev.target.children[1].children[0];
-            //     const nh = img.naturalHeight;
-            //     const nw = img.naturalWidth;
-            //     console.log(nh, nw);
-            //     const ratio = nh/nw;
-            //     if (h/w > ratio) {
-            //         console.log(1, nh, nw);
-            //         img.style.height = w*nh/nw;
-            //         img.style.width = w;
-            //     } else {
-            //         console.log(2, h/w, ratio, h, w, nh, nw);
-            //         img.style.height = h;
-            //         img.style.width = h*nw/nh;
-            //     }
-            // }
+            // removed fragment 2 to fragments.js
             break;
         }
         case 'video': {
-            const wrapper = document.createElement('div');
-            wrapper.style.display = 'flex';
-            wrapper.style.flexDirection = 'column';   // соглашение, что camelCase = camel-case
-            wrapper.style.alignItems = 'center';
-            wrapper.style.justifyContent = 'space-between';
-            wrapper.style.height = '100%';
-            wrapper.style.width = '100%';
-
             //<iframe width="1280" height="720" src="https://www.youtube.com/embed/inBKFMB-yPg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
             const frame = document.createElement('iframe');
@@ -244,12 +222,14 @@ function makeNewBoxMessage(obj) {
         }
         case 'comment': {
             elmnt.classList.add('comment');
-            elmnt.appendChild(p);
+            wrapper.appendChild(p);
+            elmnt.appendChild(wrapper);
             break;
         }
 
         default: {
-            elmnt.appendChild(p);
+            wrapper.appendChild(p);
+            elmnt.appendChild(wrapper);
         }
     }
 

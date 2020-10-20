@@ -29,13 +29,13 @@
                 
                 <div class="actions">
                     <select id="turnType" onchange="selectChanged()">
-                        <option value="article">News</option>
-                        <option value="picture">Picture</option>
-                        <option value="book">Book</option>
+                        <option value="article">Text</option>
+                        <option value="picture">Text with picture</option>
+                        <!-- <option value="book">Book</option>
                         <option value="lyrics">Poetry</option>
-                        <option value="pdf">PDF Document</option>
-                        <option value="video">Video</option>
-                        <option value="audio">Audio</option>
+                        <option value="pdf">PDF Document</option> -->
+                        <option value="video">Text with video</option>
+                        <!-- <option value="audio">Audio</option> -->
                         <option value="comment">Comment</option>
                     </select>
                     <br>
@@ -75,6 +75,14 @@
                     </div>
                     <div class="my-4">
                         <input type="text" class="form-control" id="sourceUrlInput" />
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="my-4">
+                        <input type="text" class="form-control" id="imageUrlInput" style="display:none;" />
+                    </div>
+                    <div class="my-4">
+                        <input type="date" class="form-control" id="videoUrlInput" style="display:none;" />
                     </div>
                 </div>
             </div>
