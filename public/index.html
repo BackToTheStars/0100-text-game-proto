@@ -19,7 +19,7 @@
             <div class="col-2 p0 hidden" id="classMenu">
                 <div class="row">
                     Add new class, like "Person": <input id="newClassName" />
-                    <button onclick="addNewClass()"> add</button>
+                    <button id="add-new-class"> add</button>
                 </div>
             </div>
             <div class="col p0">
@@ -28,7 +28,7 @@
                 </div>
 
                 <div class="actions">
-                    <select id="turnType" onchange="selectChanged()">
+                    <select id="turn-type">
                         <option value="article">Text</option>
                         <option value="picture">Text with picture</option>
                         <!-- <option value="book">Book</option>
@@ -46,13 +46,13 @@
                     <div id="params-wrapper">
                     </div>
                     <!--                    <div id="image-params-wrapper">Image URL: <input id="image-url" type="text" /></div>-->
-                    <button onclick="addNewBoxToGame()">Add Turn</button>
-                    <button onclick="buttonSavePositions()">Save Field</button>
-                    <button onclick="zoomInOut(1)"> + </button>
-                    <button onclick="zoomInOut(-1)"> - </button>
-                    <button onclick="toggleLinesVisibility()">Toggle Links</button>
+                    <button id="add-new-box-to-game-btn">Add Turn</button>
+                    <button id="save-positions-btn">Save Field</button>
+                    <button id="zoom-plus-btn"> + </button>
+                    <button id="zoom-minus-btn"> - </button>
+                    <button id="toggle-links-btn">Toggle Links</button>
                     <button id="move-scroll-btn">Move/Scroll</button>
-                    <button onClick="toggleLeftClassPanel()">Left Panel</button>
+                    <button id="toggle-left-panel">Left Panel</button>
                 </div>
 
                 <div class="link-lines-info">
@@ -103,7 +103,7 @@
             <div class="row mb-4">
                 <div class="col">
                     <button id="modalSaveButton">Save</button>
-                    <button onclick="cancelTurnModal()">Close</button>
+                    <button id="cancel-turn-modal">Close</button>
                 </div>
             </div>
         </div>
@@ -120,15 +120,6 @@
     integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
 <script src="/node_modules/quill/dist/quill.min.js"></script>
 
-<script>src="src/youtubeHandler.js"</script>
-<script src="src/toRefactor.js"></script>
-<script src="src/service.js"></script>
-<!-- <script src="src/script.js"></script> -->
-<script src="src/modal.js"></script>
-<script src="src/quillHandler.js"></script>
-<script src="src/Converter.js"></script>
-<script src="src/zoom.js"></script>
-<!-- <script src="src/client.js"></script> -->
 <script src="/build.js"></script>
 
 
