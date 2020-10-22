@@ -9,7 +9,7 @@ function hideElement(id) {
 }
 
 function writeParagraph(id, text) {
-    console.log(text[0]);
+    //console.log(text[0]);
     let editor = document.getElementById(id);
     let elem = editor.getElementsByClassName("ql-editor")[0];
     //elem.innerText = text[0];
@@ -31,19 +31,19 @@ function openTurnModal(turn) {
     // writeToHeader("headerInput", turn.header);
 
     document.getElementById("headerInput").value = turn.header;
-    if(turn.date) {
+    if (turn.date) {
         const date = new Date(turn.date);
-        document.getElementById("dateInput").value = `${date.getFullYear()}-${('0' + (date.getMonth()+1)).slice(-2) }-${('0' + date.getDate()).slice(-2) }`;
+        document.getElementById("dateInput").value = `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)}`;
     } else {
         document.getElementById("dateInput").value = '';
     }
-    if(turn.sourceUrl) {
+    if (turn.sourceUrl) {
         document.getElementById("sourceUrlInput").value = turn.sourceUrl;
     } else {
         document.getElementById("sourceUrlInput").value = '';
     }
 
-    if(turn.imageUrl) {
+    if (turn.imageUrl) {
         document.getElementById("imageUrlInput").style.display = 'block';
         document.getElementById("imageUrlInput").value = turn.imageUrl;
     } else {
@@ -51,7 +51,7 @@ function openTurnModal(turn) {
         document.getElementById("imageUrlInput").value = '';
     }
 
-    if(turn.videoUrl) {
+    if (turn.videoUrl) {
         document.getElementById("videoUrlInput").style.display = 'block';
         document.getElementById("videoUrlInput").value = turn.videoUrl;
     } else {
@@ -96,12 +96,12 @@ function saveTurnModal(id) {
             turn: turnObj,
             data
         }
-/*          data.header,
-          data.paragraph,
-          data._id,
-          data.x,
-          data.y
-          */
+            /*          data.header,
+                      data.paragraph,
+                      data._id,
+                      data.x,
+                      data.y
+                      */
         );
         gameBox.appendChild(newElement);
     });

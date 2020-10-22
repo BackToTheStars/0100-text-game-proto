@@ -11,10 +11,10 @@ function addNewBoxToGame() {
     const header = getInputValue("headerText");
     const par = getInputValue("paragraphText"); // вводит текст параграфа
     const type = getInputValue("turnType");
-    console.log(`turnType: ${type}`);
+    //console.log(`turnType: ${type}`);
     const imageUrl = type === 'picture' ? getInputValue("input-image-url") : undefined;
     const videoUrl = type === 'video' ? getInputValue('input-video-url') : undefined;
-    console.log(`videoUrl: ${videoUrl}`);
+    //console.log(`videoUrl: ${videoUrl}`);
 
     let newTurn = {
         header,
@@ -30,11 +30,11 @@ function addNewBoxToGame() {
         gameBox.appendChild(newDiv); // добавляет новый div к заданному div
         $(newDiv).resizable({
             create: function (ev, ui) {
-                console.log('create')
+                //console.log('create')
             },
             resize: function (ev, ui) {
-                console.log(ui.element)
-                console.log(ui.originalElement)
+                //console.log(ui.element)
+                //console.log(ui.originalElement)
             }
         });
         $(newDiv).draggable(); //{containment: "#gameBox"});
@@ -99,7 +99,7 @@ function makeDeleteButton(turn) {   // создать кнопку "Delete turn"
 }
 
 
-function makeNewBoxMessage(obj) {
+function makeNewBoxMessage(obj, authorDictionary) {
 
     //console.log(`${JSON.stringify(obj)}`);
     const {
@@ -191,7 +191,7 @@ function makeNewBoxMessage(obj) {
             frame.classList.add("video");
             const m = videoUrl.match(/watch\?v=/)
             if (m) {
-                console.log('match')
+                //console.log('match')
                 frame.src = `${videoUrl.substring(0, m.index)}embed/${videoUrl.substring(m.index + 8)}`
             } else {
                 // console.log('not match')
@@ -308,7 +308,7 @@ const getPanelSettings = () => {
 const saveLinesSettings = (lineInfoEls) => { // сохраняет lineInfoEls в память браузера
     // localStorage.setItem('linkLines', JSON.stringify(lineInfoEls));
     updateRedLogicLines(lineInfoEls, function () {
-        console.log("updateRedLogicLines")
+        //console.log("updateRedLogicLines")
     })
 }
 
@@ -318,5 +318,24 @@ const getLinesSettings = (callback) => {
     // return lineInfoEls;
 }
 
-
+export {
+    getInputValue,
+    addNewBoxToGame,
+    addTextToParagraph,
+    makeParagraph,
+    makeHead,
+    makeEditButton,
+    makeDeleteButton,
+    makeNewBoxMessage,
+    addNewClass,
+    createClassField,
+    insertNewClass,
+    insertNewClassElement,
+    saveFieldSettings,
+    getFieldSettings,
+    savePanelSettings,
+    getPanelSettings,
+    saveLinesSettings,
+    getLinesSettings
+};
 
