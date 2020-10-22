@@ -6,11 +6,11 @@
     <title>Title</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <link rel="stylesheet" href="/node_modules/quill/dist/quill.snow.css" />    
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="/node_modules/quill/dist/quill.snow.css" />
     <link rel="stylesheet" href="styles/modal.css">
     <link rel="stylesheet" href="styles/style.css">
-    
+
 </head>
 
 <body>
@@ -26,7 +26,7 @@
                 <div class="gameFieldWrapper">
                     <div id="gameBox" class="ui-widget-content"></div>
                 </div>
-                
+
                 <div class="actions">
                     <select id="turnType" onchange="selectChanged()">
                         <option value="article">Text</option>
@@ -51,18 +51,18 @@
                     <button onclick="zoomInOut(1)"> + </button>
                     <button onclick="zoomInOut(-1)"> - </button>
                     <button onclick="toggleLinesVisibility()">Toggle Links</button>
-                    <button onClick="toggleLinesZIndex()">Move/Scroll</button>
+                    <button id="move-scroll-btn">Move/Scroll</button>
                     <button onClick="toggleLeftClassPanel()">Left Panel</button>
                 </div>
-                
+
                 <div class="link-lines-info">
                 </div>
-                
+
             </div>
         </div>
-        
+
         <div id="modalBackground">
-            
+
         </div>
         <div id="modal" class="container">
             <div class="row my-4">
@@ -107,10 +107,10 @@
                 </div>
             </div>
         </div>
-        
-        
+
+
     </div>
-    
+
 
 
 </body>
@@ -120,14 +120,16 @@
     integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
 <script src="/node_modules/quill/dist/quill.min.js"></script>
 
-<script>src = "src/youtubeHandler.js"</script>
+<script>src="src/youtubeHandler.js"</script>
 <script src="src/toRefactor.js"></script>
 <script src="src/service.js"></script>
-<script src="src/script.js"></script>
+<!-- <script src="src/script.js"></script> -->
 <script src="src/modal.js"></script>
 <script src="src/quillHandler.js"></script>
 <script src="src/Converter.js"></script>
 <script src="src/zoom.js"></script>
-<script src="src/client.js"></script>
+<!-- <script src="src/client.js"></script> -->
+<script src="/build.js"></script>
+
 
 </html>

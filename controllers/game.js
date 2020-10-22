@@ -10,7 +10,7 @@ const getItem = async (req, res) => {
 
 const updateRedLogicLines = async (req, res) => {
     const { redLogicLines } = req.body;
-    console.log(redLogicLines);
+    // console.log(redLogicLines);
     let game = await Game.findOne();
     if (!game) {
         game = new Game({

@@ -30,7 +30,7 @@ html, body {
     height: 100vh;
     overflow-x: auto;
     overflow-y: auto;
-    border: 1px solid blue;
+    /* border: 1px solid blue; */
 }
 
 #gameBox {
@@ -157,11 +157,11 @@ button{
 /* подписи для ссылки и для даты */
 .left-bottom-label, .right-bottom-label { 
     position: absolute;
-    bottom: -22px;
+    bottom: -21px;
     transform: translateY(100%);
     padding: 5px;
     color: #fff;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
 }
 
 .left-bottom-label {

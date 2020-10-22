@@ -3,10 +3,10 @@
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-        console.log('Script loaded.');
+        //console.log('Script loaded.');
 
         function onYouTubeIframeAPIReady() {
-            console.log('Youtube iFrameAPI ready.');
+            //console.log('Youtube iFrameAPI ready.');
             var player = new YT.Player('youtube_vid', {
                 events: {
                     'onReady': onPlayerReady,
@@ -21,11 +21,11 @@
 
         function onPlayerStateChange(event) {
             if (event.data == YT.PlayerState.PAUSED) {
-                console.log("Paused");
+                //console.log("Paused");
             }
 
             if (event.data == YT.PlayerState.PLAYING) {
-                console.log("Playing");
+                //console.log("Playing");
             }
 
             if (event.data == YT.PlayerState.ENDED) {

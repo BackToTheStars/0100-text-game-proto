@@ -21,7 +21,7 @@ async function deleteTurn (req, res) {
 async function saveTurn (req, res) {
     log.debug(`Entering ... ${arguments.callee.name}`);
     const { turn } = req.body; // деструктуризатор
-    console.log(JSON.stringify(turn));
+    // console.log(JSON.stringify(turn));
     const turnModel = new Turn(turn);
     if(turn.contentType === 'comment') {
         turnModel.header = 'comment';
