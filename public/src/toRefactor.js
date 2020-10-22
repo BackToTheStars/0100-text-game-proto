@@ -1,9 +1,9 @@
 function toggleLinesVisibility() {
-  // document.querySelector("#lines").style.display = "none";
-  // document.querySelector("#lines").classList.toggle();
-  // $("#lines").css('display', 'none'); // Jquery  
-  // $("#lines").hide();
-  $("#lines").toggle();    // Jquery
+    // document.querySelector("#lines").style.display = "none";
+    // document.querySelector("#lines").classList.toggle();
+    // $("#lines").css('display', 'none'); // Jquery
+    // $("#lines").hide();
+    $('#lines').toggle(); // Jquery
 }
 
 // const toggleLinesZIndex = () => {
@@ -12,8 +12,8 @@ function toggleLinesVisibility() {
 // }
 
 function toggleLeftClassPanel() {
-  $("#classMenu").toggleClass("hidden");
-  classesPanelSettings.visible = !classesPanelSettings.visible;
-  savePanelSettings(classesPanelSettings);
-  drawLinesByEls(lineInfoEls, frontLinesFlag);
+    $('#classMenu').toggleClass('hidden');
+    classesPanelSettings.visible = !classesPanelSettings.visible;
+    savePanelSettings(classesPanelSettings);
+    drawLinesByEls(lineInfoEls, frontLinesFlag);
 }
