@@ -3,9 +3,23 @@ import {
     getPanelSettings,
     makeNewBoxMessage,
     getFieldSettings,
+    saveFieldSettings,
+    savePanelSettings,
+    addNewClass,
+    addNewBoxToGame,
 } from './script.js';
 
-import { toggleLinesZIndex } from './toRefactor.js';
+import { getTurns, turnsUpdateCoordinates } from './service';
+
+import {
+    toggleLinesZIndex,
+    toggleLinesVisibility,
+    toggleLeftClassPanel,
+} from './toRefactor.js';
+
+import { zoomInOut } from './zoom';
+
+import { cancelTurnModal } from './modal';
 
 /** Client code */
 
@@ -274,9 +288,9 @@ getTurns((data) => {
     });
 });
 
-function selectChanged() {
+const selectChanged = () => {
     const pw = document.getElementById('params-wrapper');
-    switch (document.getElementById('turnType').value) {
+    switch (document.getElementById('turn-type').value) {
         case 'picture': {
             pw.innerHTML =
                 'Image URL: <input id="input-image-url" type="text" />';
@@ -296,7 +310,7 @@ function selectChanged() {
             pw.style.display = 'none';
         }
     }
-}
+};
 
 function drawLinesByEls(lineInfoEls, frontFlag = false) {
     // функция рисования красной линии логической связи из точки "А" в точку "Б"
@@ -470,3 +484,18 @@ $('#move-scroll-btn').click((e) => {
         frontLinesFlag = !frontLinesFlag;
     });
 });
+$('#toggle-left-panel').click((e) => {
+    toggleLeftClassPanel(() => {
+        classesPanelSettings.visible = !classesPanelSettings.visible;
+        savePanelSettings(classesPanelSettings);
+        drawLinesByEls(lineInfoEls, frontLinesFlag);
+    });
+});
+$('#toggle-links-btn').click(toggleLinesVisibility);
+$('#zoom-plus-btn').click(() => zoomInOut(1));
+$('#zoom-minus-btn').click(() => zoomInOut(-1));
+$('#add-new-class').click(addNewClass);
+$('#save-positions-btn').click(buttonSavePositions);
+$('#turn-type').change(selectChanged);
+$('#add-new-box-to-game-btn').click(addNewBoxToGame);
+$('#cancel-turn-modal').click(cancelTurnModal);

@@ -1,3 +1,7 @@
+import { quill, getQuillTextArr } from './quillHandler';
+import { getInputValue, makeNewBoxMessage } from './script';
+import { updateTurn } from './service';
+
 function showElement(id) {
     let elem = document.getElementById(id);
     elem.style.display = 'block';
@@ -14,16 +18,16 @@ function writeParagraph(id, text) {
     let elem = editor.getElementsByClassName('ql-editor')[0];
     //elem.innerText = text[0];
     //addTextToParagraph(elem, text);
-    console.log(`${arguments.callee.name}: text: ${JSON.stringify(text)}`);
+    // console.log(`${arguments.callee.name}: text: ${JSON.stringify(text)}`);
     quill.setContents(text);
 }
 
-function cancelTurnModal() {
+const cancelTurnModal = () => {
     hideElement('modalBackground');
     hideElement('modal');
-}
+};
 
-function openTurnModal(turn) {
+const openTurnModal = (turn) => {
     showElement('modalBackground');
     showElement('modal');
     // debugger;
@@ -63,11 +67,11 @@ function openTurnModal(turn) {
     }
 
     recreateOnclickModalSave(turn._id);
-}
+};
 
 function recreateOnclickModalSave(id) {
     let button = document.getElementById('modalSaveButton');
-    button.setAttribute('onclick', "saveTurnModal('" + id + "')");
+    button.addEventListener('click', (e) => saveTurnModal(id));
 }
 
 function saveTurnModal(id) {
@@ -110,3 +114,5 @@ function saveTurnModal(id) {
         gameBox.appendChild(newElement);
     });
 }
+
+export { openTurnModal, cancelTurnModal };

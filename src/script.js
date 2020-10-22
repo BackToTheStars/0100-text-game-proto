@@ -1,16 +1,19 @@
-function getInputValue(id) {
+import { getRedLogicLines, saveTurn, deleteTurn } from './service';
+import { openTurnModal } from './modal';
+
+const getInputValue = (id) => {
     // обработчик поля Input
     let input = document.getElementById(id);
     let text = input.value;
     input.value = '';
     return text;
-}
+};
 
 function addNewBoxToGame() {
     // вставляет новый блок источника на поле
     const header = getInputValue('headerText');
     const par = getInputValue('paragraphText'); // вводит текст параграфа
-    const type = getInputValue('turnType');
+    const type = getInputValue('turn-type');
     //console.log(`turnType: ${type}`);
     const imageUrl =
         type === 'picture' ? getInputValue('input-image-url') : undefined;
@@ -109,7 +112,7 @@ function makeDeleteButton(turn) {
     return button;
 }
 
-function makeNewBoxMessage(obj, authorDictionary) {
+const makeNewBoxMessage = (obj, authorDictionary = {}) => {
     //console.log(`${JSON.stringify(obj)}`);
     const {
         paragraph,
@@ -256,35 +259,30 @@ function makeNewBoxMessage(obj, authorDictionary) {
     /* здесь был "Фрагмент 1", сохранён в файле "фрагменты.js" */
 
     return elmnt;
-}
+};
 
-function addNewClass() {
+const addNewClass = () => {
     // создаёт поле нового класса, напр. "PERSON"
     let newClassName = getInputValue('newClassName');
     let newClassDiv = createClassField(newClassName);
     insertNewClass(newClassDiv);
-}
+};
 
 function createClassField(name) {
     let uniqueInputId = 'classInput' + name;
     let uniqueUlId = 'classUl' + name;
     let div = document.createElement('div');
     div.className = 'row';
-    div.innerHTML =
-        '<h5>' +
-        name +
-        '</h5>' +
-        "<ul id='" +
-        uniqueUlId +
-        "'></ul>" +
-        "<input id='" +
-        uniqueInputId +
-        "'> " +
-        "<button onclick='insertNewClassElement(" +
-        uniqueInputId +
-        ',' +
-        uniqueUlId +
-        ")'>Add Element</button>";
+    div.innerHTML = `<h5>${name}</h5>
+    <ul id="${uniqueUlId}"></ul>
+    <input id="${uniqueInputId}">
+    <button class="add-element">Add Element</button>`;
+    div.querySelector('.add-element').addEventListener('click', (e) => {
+        insertNewClassElement(
+            div.querySelector(`#${uniqueInputId}`),
+            div.querySelector(`#${uniqueUlId}`)
+        );
+    });
     return div;
 }
 

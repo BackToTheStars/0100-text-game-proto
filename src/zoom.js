@@ -1,6 +1,6 @@
 let zoom = 1;
 
-function zoomInOut(num) {
+const zoomInOut = (num) => {
     zoom = Math.round((zoom + 0.1 * num) * 100) / 100;
 
     if (zoom < 0) {
@@ -24,4 +24,6 @@ function zoomInOut(num) {
     //console.log(boxes[0].style.top);
     //console.log(boxes[2].style.top);
     //console.log(zoom);
-}
+};
+
+export { zoomInOut };

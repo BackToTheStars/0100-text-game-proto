@@ -1,4 +1,4 @@
-function getTurns(callback) {
+const getTurns = (callback) => {
     $.ajax({
         type: 'GET',
         url: '/getTurns',
@@ -12,9 +12,9 @@ function getTurns(callback) {
             );
         },
     });
-}
+};
 
-function saveTurn(turnObj, callback) {
+const saveTurn = (turnObj, callback) => {
     fetch('/saveTurn', {
         method: 'POST',
         headers: {
@@ -39,9 +39,9 @@ function saveTurn(turnObj, callback) {
     //     contentType: "application/json",
     //     success: callback,
     // });
-}
+};
 
-function turnsUpdateCoordinates(turnObjects, callback) {
+const turnsUpdateCoordinates = (turnObjects, callback) => {
     $.ajax({
         type: 'PUT',
         url: '/turns/coordinates',
@@ -52,9 +52,9 @@ function turnsUpdateCoordinates(turnObjects, callback) {
         contentType: 'application/json',
         success: callback,
     });
-}
+};
 
-function updateTurn(turnObj, callback) {
+const updateTurn = (turnObj, callback) => {
     $.ajax({
         type: 'POST',
         url: '/updateTurn',
@@ -65,9 +65,9 @@ function updateTurn(turnObj, callback) {
         contentType: 'application/json',
         success: callback,
     });
-}
+};
 
-function deleteTurn(turnObj, callback) {
+const deleteTurn = (turnObj, callback) => {
     $.ajax({
         type: 'DELETE',
         url: '/deleteTurn',
@@ -78,9 +78,9 @@ function deleteTurn(turnObj, callback) {
         contentType: 'application/json',
         success: callback,
     });
-}
+};
 
-function getRedLogicLines(callback) {
+const getRedLogicLines = (callback) => {
     $.ajax({
         type: 'GET',
         url: '/game',
@@ -90,9 +90,9 @@ function getRedLogicLines(callback) {
             callback(redLogicLines);
         },
     });
-}
+};
 
-function updateRedLogicLines(redLogicLines, callback) {
+const updateRedLogicLines = (redLogicLines, callback) => {
     $.ajax({
         type: 'PUT',
         url: '/game/red-logic-lines',
@@ -103,4 +103,14 @@ function updateRedLogicLines(redLogicLines, callback) {
         contentType: 'application/json',
         success: callback,
     });
-}
+};
+
+export {
+    getTurns,
+    saveTurn,
+    turnsUpdateCoordinates,
+    updateTurn,
+    deleteTurn,
+    getRedLogicLines,
+    updateRedLogicLines,
+};

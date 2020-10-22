@@ -1,8 +1,9 @@
-let colorModule = Quill.import('attributors/class/color');
+import Quill from 'quill';
+const colorModule = Quill.import('attributors/class/color');
 
 Quill.register(colorModule, true);
 
-let quill = new Quill('#editor-container', {
+const quill = new Quill('#editor-container', {
     modules: {
         toolbar: {
             container: '#toolbar-container',
@@ -18,8 +19,10 @@ let quill = new Quill('#editor-container', {
     theme: 'snow',
 });
 
-function getQuillTextArr() {
+const getQuillTextArr = () => {
     const ops = quill.editor.delta.ops;
     //console.log(`getQuillTextArr: ${JSON.stringify(ops)}`);
     return ops;
-}
+};
+
+export { quill, getQuillTextArr };
