@@ -4,6 +4,7 @@ import {
     makeNewBoxMessage,
     getFieldSettings,
     saveFieldSettings,
+    saveLinesSettings,
     savePanelSettings,
     addNewClass,
     addNewBoxToGame,
@@ -20,6 +21,8 @@ import {
 import { zoomInOut } from './zoom';
 
 import { cancelTurnModal } from './modal';
+
+import { getPopup } from './popup';
 
 /** Client code */
 
@@ -497,5 +500,7 @@ $('#zoom-minus-btn').click(() => zoomInOut(-1));
 $('#add-new-class').click(addNewClass);
 $('#save-positions-btn').click(buttonSavePositions);
 $('#turn-type').change(selectChanged);
-$('#add-new-box-to-game-btn').click(addNewBoxToGame);
 $('#cancel-turn-modal').click(cancelTurnModal);
+
+const popup = getPopup();
+$('#add-new-box-to-game-btn').click(popup.openModal); // addNewBoxToGame

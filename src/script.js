@@ -1,5 +1,6 @@
-import { getRedLogicLines, saveTurn, deleteTurn } from './service';
+import { getRedLogicLines, saveTurn, deleteTurn, updateRedLogicLines  } from './service';
 import { openTurnModal } from './modal';
+
 
 const getInputValue = (id) => {
     // обработчик поля Input
@@ -204,6 +205,8 @@ const makeNewBoxMessage = (obj, authorDictionary = {}) => {
 
             const frame = document.createElement('iframe');
             frame.classList.add('video');
+            // debugger
+
             const m = videoUrl.match(/watch\?v=/);
             if (m) {
                 //console.log('match')
