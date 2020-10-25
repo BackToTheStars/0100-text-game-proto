@@ -115,8 +115,8 @@ function showLinesInfoPanel(quote, quoteLines) {
         </thead>
         <tbody>
             ${quoteLines
-                .map((el) => {
-                    return `<tr
+            .map((el) => {
+                return `<tr
             class="link-line-details"
             data-sourceTurnId="${el.sourceTurnId}"
             data-sourceMarker="${el.sourceMarker}"
@@ -129,8 +129,8 @@ function showLinesInfoPanel(quote, quoteLines) {
                 <button class="del-btn">Delete</button>
             </td>
         </tr>`;
-                })
-                .join('')}
+            })
+            .join('')}
         </tbody>
     </table>`);
 }
@@ -352,13 +352,13 @@ function drawLinesByEls(lineInfoEls, frontFlag = false) {
                 sourceCoords.left +
                 (sourceFirst ? sourceCoords.width : 0) -
                 sideBarWidth +
-                (sourceFirst ? 4 : -4), // + 3,
+                (sourceFirst ? -4 : 4), // + 3,
             y1: sourceCoords.top + Math.floor(sourceCoords.height / 2),
             x2:
                 targetCoords.left +
                 (sourceFirst ? 0 : targetCoords.width) -
                 sideBarWidth +
-                (sourceFirst ? -4 : 4), // - 5,
+                (sourceFirst ? 4 : -4), // - 5,
             y2: targetCoords.top + Math.floor(targetCoords.height / 2),
         };
         // отрисовка координат

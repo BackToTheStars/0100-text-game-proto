@@ -1,4 +1,4 @@
-import { getRedLogicLines, saveTurn, deleteTurn, updateRedLogicLines  } from './service';
+import { getRedLogicLines, saveTurn, deleteTurn, updateRedLogicLines } from './service';
 import { openTurnModal } from './modal';
 
 
@@ -264,7 +264,7 @@ const makeNewBoxMessage = (obj, authorDictionary = {}) => {
     return elmnt;
 };
 
-const addNewClass = () => {
+function addNewClass() {
     // создаёт поле нового класса, напр. "PERSON"
     let newClassName = getInputValue('newClassName');
     let newClassDiv = createClassField(newClassName);
@@ -275,11 +275,11 @@ function createClassField(name) {
     let uniqueInputId = 'classInput' + name;
     let uniqueUlId = 'classUl' + name;
     let div = document.createElement('div');
-    div.className = 'row';
-    div.innerHTML = `<h5>${name}</h5>
-    <ul id="${uniqueUlId}"></ul>
-    <input id="${uniqueInputId}">
-    <button class="add-element">Add Element</button>`;
+    div.className = 'class-list col-12';
+    div.innerHTML = `<div class="title">${name}</div>
+    <div id="${uniqueUlId}"></div><!--ul-->
+    <input id="${uniqueInputId}" class="col-12">
+    <button class="add-element">Add</button>`;
     div.querySelector('.add-element').addEventListener('click', (e) => {
         insertNewClassElement(
             div.querySelector(`#${uniqueInputId}`),
@@ -297,7 +297,8 @@ function insertNewClass(childClass) {
 function insertNewClassElement(input, ul) {
     let value = input.value;
     input.value = '';
-    let li = document.createElement('li');
+    let li = document.createElement('div'); //li
+    li.className = 'el';
     li.innerHTML = value;
     ul.appendChild(li);
 }
