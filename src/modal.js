@@ -13,12 +13,8 @@ function hideElement(id) {
 }
 
 function writeParagraph(id, text) {
-    //console.log(text[0]);
     let editor = document.getElementById(id);
     let elem = editor.getElementsByClassName('ql-editor')[0];
-    //elem.innerText = text[0];
-    //addTextToParagraph(elem, text);
-    // console.log(`${arguments.callee.name}: text: ${JSON.stringify(text)}`);
     quill.setContents(text);
 }
 
@@ -30,9 +26,7 @@ const cancelTurnModal = () => {
 const openTurnModal = (turn) => {
     showElement('modalBackground');
     showElement('modal');
-    // debugger;
     writeParagraph('editor-container', turn.paragraph);
-    // writeToHeader("headerInput", turn.header);
 
     document.getElementById('headerInput').value = turn.header;
     if (turn.date) {
@@ -115,4 +109,4 @@ function saveTurnModal(id) {
     });
 }
 
-export { openTurnModal, cancelTurnModal };
+export { openTurnModal };

@@ -14,101 +14,54 @@
 </head>
 
 <body>
-    <div style="width: 100%">
-    <!--<div class="container-fluid">-->
-        <div class="row">
-            <div class="col-2 p0 hidden" id="classMenu">
-                <div class="col-12">
-                    <span class="prompt">Add new class:</span>
-                    <input id="newClassName" />
-                    <button id="add-new-class">Add</button>
-                </div>
-            </div>
-            <div class="col p0">
-                <div class="gameFieldWrapper">
-                    <div id="gameBox" class="ui-widget-content"></div>
-                </div>
-
-                <div class="actions">
-                    <select id="turn-type">
-                        <option value="article">Text</option>
-                        <option value="picture">Text with picture</option>
-                        <!-- <option value="book">Book</option>
-                        <option value="lyrics">Poetry</option>
-                        <option value="pdf">PDF Document</option> -->
-                        <option value="video">Text with video</option>
-                        <!-- <option value="audio">Audio</option> -->
-                        <option value="comment">Comment</option>
-                    </select>
-                    <br>
-                    Header: <input id="headerText" />
-                    <br>
-                    Text: <textarea id="paragraphText"></textarea>
-                    <br>
-                    <div id="params-wrapper">
-                    </div>
-                    <!--                    <div id="image-params-wrapper">Image URL: <input id="image-url" type="text" /></div>-->
-                    <button id="add-new-box-to-game-btn">Add Turn</button>
-                    <button id="save-positions-btn">Save Field</button>
-                    <button id="zoom-plus-btn"> + </button>
-                    <button id="zoom-minus-btn"> - </button>
-                    <button id="toggle-links-btn">Toggle Links</button>
-                    <button id="move-scroll-btn">Move/Scroll</button>
-                    <button id="toggle-left-panel">Left Panel</button>
-                </div>
-
-                <div class="link-lines-info">
-                </div>
-
+    <div style="width: 100%; display: flex;">
+        <!--<div class="container-fluid">-->
+        <div class="col-2 p0 hidden" id="classMenu">
+            <div class="col-12">
+                <span class="prompt">Add new class:</span>
+                <input id="newClassName" />
+                <button id="add-new-class">Add</button>
             </div>
         </div>
+        <div class="col p0">
+            <div class="gameFieldWrapper">
+                <div id="gameBox" class="ui-widget-content"></div>
+            </div>
 
-        <div id="modalBackground">
+            <div class="actions">
+                <select id="turn-type">
+                    <option value="article">Text</option>
+                    <option value="picture">Text with picture</option>
+                    <!-- <option value="book">Book</option>
+                    <option value="lyrics">Poetry</option>
+                    <option value="pdf">PDF Document</option> -->
+                    <option value="video">Text with video</option>
+                    <!-- <option value="audio">Audio</option> -->
+                    <option value="comment">Comment</option>
+                </select>
+                <br>
+                Header: <input id="headerText" />
+                <br>
+                Text: <textarea id="paragraphText"></textarea>
+                <br>
+                <div id="params-wrapper">
+                </div>
+                <!--                    <div id="image-params-wrapper">Image URL: <input id="image-url" type="text" /></div>-->
+                <button id="add-new-box-to-game-btn">Add Turn</button>
+                <button id="save-positions-btn">Save Field</button>
+                <button id="zoom-plus-btn"> + </button>
+                <button id="zoom-minus-btn"> - </button>
+                <button id="toggle-links-btn">Toggle Links</button>
+                <button id="move-scroll-btn">Move/Scroll</button>
+                <button id="toggle-left-panel">Left Panel</button>
+            </div>
+
+            <div class="link-lines-info">
+            </div>
 
         </div>
-        <div id="modal" class="container">
-            <div class="row my-4">
-                <div class="col-4">
-                    <div class="my-4">
-                        <input type="text" class="form-control" id="headerInput" />
-                    </div>
-                    <div class="my-4">
-                        <input type="date" class="form-control" id="dateInput" />
-                    </div>
-                    <div class="my-4">
-                        <input type="text" class="form-control" id="sourceUrlInput" />
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="my-4">
-                        <input type="text" class="form-control" id="imageUrlInput" style="display:none;" />
-                    </div>
-                    <div class="my-4">
-                        <input type="text" class="form-control" id="videoUrlInput" style="display:none;" />
-                    </div>
-                </div>
-            </div>
-            <div class="row my-4">
-                <div class="col">
-                    <div id="toolbar-container">
-                        <span class="ql-formats">
-                            <select class="ql-background">
-                                <option selected></option>
-                                <option value="yellow"></option>
-                            </select>
-                        </span>
-                    </div>
-                    <div id="editor-container"></div>
-                    <!-- class="h-85"> -->
-                </div>
-            </div>
-            <div class="row mb-4">
-                <div class="col">
-                    <button id="modalSaveButton">Save</button>
-                    <button id="cancel-turn-modal">Close</button>
-                </div>
-            </div>
-        </div>
+
+        <!-- Фрагмент 4 -->
 
 
     </div>
