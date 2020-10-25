@@ -1,6 +1,7 @@
 import { getRedLogicLines, saveTurn, deleteTurn, updateRedLogicLines } from './service';
-import { openTurnModal } from './modal';
-
+// import { openTurnModal } from './modal';
+import { getPopup } from './popup';
+const popup = getPopup(document.body);
 
 const getInputValue = (id) => {
     // обработчик поля Input
@@ -94,7 +95,10 @@ function makeEditButton(turn) {
     let button = document.createElement('button');
     button.innerHTML = 'Edit';
     button.addEventListener('click', () => {
-        openTurnModal(turn);
+        // popup
+        popup.setTurn(turn);
+        popup.openModal();
+        // openTurnModal(turn);
     });
     return button;
 }

@@ -500,7 +500,7 @@ $('#zoom-minus-btn').click(() => zoomInOut(-1));
 $('#add-new-class').click(addNewClass);
 $('#save-positions-btn').click(buttonSavePositions);
 $('#turn-type').change(selectChanged);
-$('#cancel-turn-modal').click(cancelTurnModal);
 
-const popup = getPopup();
+const popup = getPopup(); // @fixme передача body
 $('#add-new-box-to-game-btn').click(popup.openModal); // addNewBoxToGame
+// $('#cancel-turn-modal').click(cancelTurnModal);
