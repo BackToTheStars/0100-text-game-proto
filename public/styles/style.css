@@ -83,7 +83,7 @@ html, body {
 }
 
 .col-2 {
-    border: 1px solid red;
+    /* border: 1px solid red; */
     background-color: lightgrey;
 }
 
@@ -169,4 +169,36 @@ button{
 }
 .right-bottom-label {
     right: 0;
+}
+
+.class-list {
+    padding-left: 0;
+    outline: 1px solid #000;
+    padding-right: 0;
+}
+
+.class-list .title {
+    padding-left: 10%;
+    outline: 1px solid #000;
+}
+
+.class-list .el {
+    background: #fff;
+    padding-left: 15%;
+}
+
+.class-list input {
+    margin-left: 10%;
+    width: 65%;
+    display: inline-block;
+}
+
+#newClassName {
+    margin-left: 5%;
+    width: 70%;
+    display: inline-block;
+}
+
+#classMenu .prompt {
+    padding-left: 5%;
 }
