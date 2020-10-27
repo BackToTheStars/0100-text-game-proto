@@ -14,33 +14,6 @@ const getTurns = (callback) => {
     });
 };
 
-const saveTurn = (turnObj, callback) => {
-    fetch('/saveTurn', {
-        method: 'POST',
-        headers: {
-            'content-type': 'application/json',
-        },
-        body: JSON.stringify({ turn: turnObj }),
-    })
-        .then((it) => {
-            callback(it);
-        })
-        .catch((err) => {
-            console.log(err.stack);
-        });
-
-    // $.ajax({
-    //     type: "POST",
-    //     url: "/saveTurn",
-    //     data: JSON.stringify({
-    //         turn: turnObj,
-    //     }),
-    //     dataType: "json",
-    //     contentType: "application/json",
-    //     success: callback,
-    // });
-};
-
 const turnsUpdateCoordinates = (turnObjects, callback) => {
     $.ajax({
         type: 'PUT',
@@ -54,16 +27,54 @@ const turnsUpdateCoordinates = (turnObjects, callback) => {
     });
 };
 
-const updateTurn = (turnObj, callback) => {
-    $.ajax({
-        type: 'POST',
-        url: '/updateTurn',
-        data: JSON.stringify({
-            turn: turnObj,
-        }),
-        dataType: 'json',
-        contentType: 'application/json',
-        success: callback,
+const createTurn = async (turnObj) => {
+    return new Promise(async (resolve, reject) => {
+
+        // const data = await fetch('/saveTurn', {
+        //     method: 'POST',
+        //     headers: {
+        //         'content-type': 'application/json',
+        //     },
+        //     body: JSON.stringify({ turn: turnObj }),
+        // });
+        // const res = data.json();
+        // resolve(res);
+
+        fetch('/saveTurn', {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json',
+            },
+            body: JSON.stringify({ turn: turnObj }),
+        }).then((data) => {
+            // @todo: Проверить, не нужен ли data.json()
+            resolve(data);
+        }).catch((err) => {
+            console.log(err);
+            reject('Request error');
+        });
+
+    })
+};
+
+const updateTurn = async (turnObj) => {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'POST',
+            url: '/updateTurn',
+            data: JSON.stringify({
+                turn: turnObj,
+            }),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: (data) => {
+                resolve(data);
+            },
+            error: (errObj) => {
+                console.log(errObj);
+                reject('Request error');
+            }
+        });
     });
 };
 
@@ -107,8 +118,8 @@ const updateRedLogicLines = (redLogicLines, callback) => {
 
 export {
     getTurns,
-    saveTurn,
     turnsUpdateCoordinates,
+    createTurn,
     updateTurn,
     deleteTurn,
     getRedLogicLines,
