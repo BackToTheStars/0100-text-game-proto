@@ -64,49 +64,9 @@ const openTurnModal = (turn) => {
 };
 
 function recreateOnclickModalSave(id) {
-    let button = document.getElementById('modalSaveButton');
+    let button = document.getElementById('modal-save-button');
     button.addEventListener('click', (e) => saveTurnModal(id));
 }
 
-function saveTurnModal(id) {
-    hideElement('modalBackground');
-    hideElement('modal');
-    let textArr = getQuillTextArr();
-    let header = getInputValue('headerInput');
-    let date = getInputValue('dateInput');
-    let sourceUrl = getInputValue('sourceUrlInput');
-    let imageUrl = getInputValue('imageUrlInput');
-    let videoUrl = getInputValue('videoUrlInput');
-    let turnObj = {
-        header,
-        date,
-        sourceUrl,
-        imageUrl: imageUrl || null,
-        videoUrl: videoUrl || null,
-        paragraph: textArr,
-        _id: id,
-    };
-
-    updateTurn(turnObj, (data) => {
-        // openTurnModal(data);
-
-        const element = document.querySelector(`[data-id = "${data._id}"]`);
-        element.remove();
-
-        const newElement = makeNewBoxMessage(
-            {
-                turn: turnObj,
-                data,
-            }
-            /*          data.header,
-                      data.paragraph,
-                      data._id,
-                      data.x,
-                      data.y
-                      */
-        );
-        gameBox.appendChild(newElement);
-    });
-}
 
 export { openTurnModal };
