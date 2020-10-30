@@ -184,7 +184,7 @@ const makeNewBoxMessage = (obj, authorDictionary = {}) => {
     }
 
     const wrapper = document.createElement('div');
-    wrapper.style.display = 'flex';
+    wrapper.style.display = '#flex';
     wrapper.style.flexDirection = 'column'; // соглашение, что camelCase = camel-case
     wrapper.style.alignItems = 'center';
     wrapper.style.justifyContent = 'space-between';
@@ -195,12 +195,30 @@ const makeNewBoxMessage = (obj, authorDictionary = {}) => {
         case 'picture': {
             const img = document.createElement('img');
             img.classList.add('picture-content');
-            img.dataset.imgUrl = imageUrl;
-            img.style.background = `center / contain no-repeat url("${imageUrl}")`;
+            //img.dataset.imgUrl = imageUrl;
+            //img.style.background = `center / contain no-repeat url("${imageUrl}")`;
+            img.style.background = '#000';
+            img.style.width = "100%";
             img.src = imageUrl;
+            //img.scale = '1';
             wrapper.appendChild(img);
             wrapper.appendChild(p);
             elmnt.appendChild(wrapper);
+            elmnt.onresize = function (ev) {
+                //console.log(ev.target);
+                const cs = window.getComputedStyle(ev.target);
+                const h = cs.height.slice(0, -2);
+                const w = cs.width.slice(0, -2);
+                //console.log(h, w);
+                const img = ev.target.children[3].children[0];
+                console.log(img.naturalWidth, img.naturalHeight);
+                const ih = img.naturalHeight;
+                const iw = img.naturalWidth;
+                img.style.height = `${Math.min(
+                    h * 0.9,
+                    (w * ih) / iw
+                )}px`;
+            };
             // removed fragment 2 to fragments.js
             break;
         }
@@ -243,7 +261,7 @@ const makeNewBoxMessage = (obj, authorDictionary = {}) => {
                 const h = cs.height.slice(0, -2);
                 const w = cs.width.slice(0, -2);
                 //console.log(h, w);
-                ev.target.children[1].children[0].style.height = `${Math.min(
+                ev.target.children[3].children[0].style.height = `${Math.min(
                     h * 0.9,
                     (w * 9) / 16
                 )}px`;

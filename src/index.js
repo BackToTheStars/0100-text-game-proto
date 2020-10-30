@@ -438,7 +438,7 @@ function isMarkerVisible(jqElement) {
     //     debugger;
     // }
     if (!jqElement.length) {
-        console.log('Попытка обратиться к несуществующему jquery элементу');
+        // console.log('Попытка обратиться к несуществующему jquery элементу'); @todo
         return false;
     }
     const top = jqElement.position()['top'];
