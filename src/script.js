@@ -117,7 +117,7 @@ function makeDeleteButton(turn) {
     return button;
 }
 
-const makeNewBoxMessage = (obj, authorDictionary = {}) => {
+function makeNewBoxMessage(obj, authorDictionary = {}) {
     //console.log(`${JSON.stringify(obj)}`);
     const {
         paragraph,
@@ -193,6 +193,7 @@ const makeNewBoxMessage = (obj, authorDictionary = {}) => {
 
     switch (contentType) {
         case 'picture': {
+            if (imageUrl && imageUrl.trim()) {
             const img = document.createElement('img');
             img.classList.add('picture-content');
             //img.dataset.imgUrl = imageUrl;
@@ -201,10 +202,19 @@ const makeNewBoxMessage = (obj, authorDictionary = {}) => {
             img.style.width = "100%";
             img.src = imageUrl;
             //img.scale = '1';
+            let max_height_factor = 0.9;
             wrapper.appendChild(img);
-            wrapper.appendChild(p);
+            if (paragraph && !(paragraph.length == 1 && paragraph[0].insert.trim() == '')) {
+                wrapper.appendChild(p);
+                console.log(`${header}: set max_height_factor = ${max_height_factor}`);
+            } else {
+                max_height_factor = 1;
+                console.log(`${header}: set max_height_factor = ${max_height_factor}`);
+            }
+            console.log(paragraph);
             elmnt.appendChild(wrapper);
             elmnt.onresize = function (ev) {
+                console.log(`${header}: max_height_factor = ${max_height_factor}`);
                 //console.log(ev.target);
                 const cs = window.getComputedStyle(ev.target);
                 const h = cs.height.slice(0, -2);
@@ -214,11 +224,14 @@ const makeNewBoxMessage = (obj, authorDictionary = {}) => {
                 console.log(img.naturalWidth, img.naturalHeight);
                 const ih = img.naturalHeight;
                 const iw = img.naturalWidth;
-                img.style.height = `${Math.min(
-                    h * 0.9,
-                    (w * ih) / iw
-                )}px`;
+                const th = Math.min(h * max_height_factor, (w * ih) / iw);
+                const tw = Math.min(w, th * iw / ih);
+                ev.target.style.height = `${th}px`;
+                ev.target.style.width = `${tw}px`;
             };
+            } else {
+                elmnt.appendChild(p);
+            }
             // removed fragment 2 to fragments.js
             break;
         }
@@ -227,8 +240,7 @@ const makeNewBoxMessage = (obj, authorDictionary = {}) => {
 
             const frame = document.createElement('iframe');
             frame.classList.add('video');
-            // debugger
-
+            
             const m = videoUrl.match(/watch\?v=/);
             if (m) {
                 //console.log('match')

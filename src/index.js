@@ -197,7 +197,10 @@ getTurns((data) => {
         );
         gameBox.appendChild(newDiv); // само добавление div-ов ходов
 
-        newDiv.querySelector('.paragraphText').scrollTop = elem.scrollPosition;
+        const qs = newDiv.querySelector('.paragraphText');
+        if (qs) {
+            qs.scrollTop = elem.scrollPosition;
+        };
 
         getYellowElements(elem._id).forEach((el, index) => {
             quotesDictionary[elem._id].push($(el).text().trim());
@@ -390,9 +393,10 @@ function buttonSavePositions(e) {
         const height = parseInt(textBox.style.height);
         const width = parseInt(textBox.style.width);
         const { id, contentType } = textBox.dataset;
-        const scrollPosition = textBox.querySelector('.paragraphText')
-            .scrollTop; // bug
-        // console.log(scrollPosition);
+        const scrollPosition = (() => {
+            const qs = textBox.querySelector('.paragraphText');
+            return qs ? qs.scrollTop : null;
+        })();
         payload.push({ x, y, height, width, id, contentType, scrollPosition });
     }
     turnsUpdateCoordinates(payload, function () {
