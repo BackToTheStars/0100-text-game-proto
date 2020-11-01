@@ -14,15 +14,30 @@ const createPopup = (inputDiv) => {
     const closeBtn = el.querySelector('#cancel-turn-modal');
     const saveBtn = el.querySelector('#save-turn-modal')
 
-    const headerInput = el.querySelector('#headerInput')
-    const dateInput = el.querySelector('#dateInput')
-    const sourceUrlInput = el.querySelector('#sourceUrlInput')
-    const imageUrlInput = el.querySelector('#imageUrlInput')
-    const videoUrlInput = el.querySelector('#videoUrlInput')
+    const headerRow = el.querySelector('.header-row')
+    const headerInput = headerRow.querySelector('input')
+
+    const dateRow = el.querySelector('.date-row')
+    const dateInput = dateRow.querySelector('input')
+
+    const sourceUrlRow = el.querySelector('.source-url-row')
+    const sourceUrlInput = sourceUrlRow.querySelector('input')
+
+    const imageUrlRow = el.querySelector('.image-url-row')
+    const imageUrlInput = imageUrlRow.querySelector('input')
+
+    const videoUrlRow = el.querySelector('.video-url-row')
+    const videoUrlInput = videoUrlRow.querySelector('input')
+
     const idInput = el.querySelector('#idInput')
     const { quill, getQuillTextArr } = getQuill('#editor-container', '#toolbar-container');
     // применение Quill к divs
+    const radioButtonsGroup = el.querySelector('.radio-group');
+    const radioButtonTypes = radioButtonsGroup.querySelectorAll('input');
 
+    setTurnType('picture');
+
+    /* ФУНКЦИИ И МЕТОДЫ */
     // draw modal window
     function drawModalWindow() {
         el.setAttribute('id', 'modalBackground');
@@ -41,35 +56,46 @@ const createPopup = (inputDiv) => {
             <!-- class="h-85"> -->
         </div>
         <div class="col-4">
+            <div class="radio-group">
+                <div class="form-group row">
+                    <input type="radio" name="type" value="picture" checked><span>Text with picture</span>
+                </div>
+                <div class="form-group row">
+                    <input type="radio" name="type" value="video"><span>Text with video</span>
+                </div>
+                <div class="form-group row">
+                    <input type="radio" name="type" value="comment"><span>Comment</span>
+                </div>
+            </div>
             <input type="hidden" id="idInput" />
-            <div class="form-group row">
+            <div class="form-group row header-row">
                 <label class="col-sm-4 col-form-label">Header</label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control" id="headerInput">
+                    <input type="text" class="form-control">
                 </div>
             </div>
-            <div class="form-group row">
+            <div class="form-group row date-row">
                 <label class="col-sm-4 col-form-label">Date</label>
                 <div class="col-sm-8">
-                    <input type="date" class="form-control" id="dateInput">
+                    <input type="date" class="form-control">
                 </div>
             </div>
-            <div class="form-group row">
+            <div class="form-group row source-url-row">
                 <label class="col-sm-4 col-form-label">Source Url</label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control" id="sourceUrlInput">
+                    <input type="text" class="form-control">
                 </div>
             </div>
-            <div class="form-group row">
+            <div class="form-group row image-url-row">
                 <label class="col-sm-4 col-form-label">Image Url</label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control" id="imageUrlInput" style="display:none;">
+                    <input type="text" class="form-control">
                 </div>
             </div>
-            <div class="form-group row">
+            <div class="form-group row video-url-row">
                 <label class="col-sm-4 col-form-label">Video Url</label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control" id="videoUrlInput" style="display:none;">
+                    <input type="text" class="form-control">
                 </div>
             </div>
         </div>
@@ -86,7 +112,28 @@ const createPopup = (inputDiv) => {
         inputDiv.appendChild(el);
     }
 
-    /* ФУНКЦИИ И МЕТОДЫ */
+    function setTurnType (type) {
+        imageUrlRow.style.display = 'none';
+        videoUrlRow.style.display = 'none';
+        headerRow.style.display = 'flex';
+        sourceUrlRow.style.display = 'flex';
+        switch (type) {
+            case 'picture': {
+                imageUrlRow.style.display = 'flex';
+                break;
+            };
+            case 'video': {
+                videoUrlRow.style.display = 'flex';
+                break;
+            };
+            case 'comment': {
+                headerRow.style.display = 'none';
+                sourceUrlRow.style.display = 'none';
+                break;
+            };
+        };
+    };
+
     // change type
     const showError = msg => {
         console.log(msg);
@@ -94,12 +141,12 @@ const createPopup = (inputDiv) => {
 
     const saveModal = async () => {
         let textArr = getQuillTextArr();
-        let id = el.querySelector('#idInput').value;
-        let header = el.querySelector('#headerInput').value;
-        let date = el.querySelector('#dateInput').value;
-        let sourceUrl = el.querySelector('#sourceUrlInput').value;
-        let imageUrl = el.querySelector('#imageUrlInput').value;
-        let videoUrl = el.querySelector('#videoUrlInput').value;
+        let id = idInput.value;
+        let header = headerInput.value;
+        let date =dateInput.value;
+        let sourceUrl = sourceUrlInput.value;
+        let imageUrl = imageUrlInput.value;
+        let videoUrl = videoUrlInput.value;
         let turnObj = {
             header,
             date,
@@ -112,7 +159,7 @@ const createPopup = (inputDiv) => {
 
         let data = null;
         try {
-            if(id) {
+            if (id) {
                 data = await updateTurn(turnObj);
                 // @todo: передать data существующему turn для обновления
             } else {
@@ -124,14 +171,14 @@ const createPopup = (inputDiv) => {
                     y: 50,
                     ...turnObj
                 }
-                
+
                 data = await createTurn(turnObj);
                 // @todo: передать data для создания нового turn на странице
             }
         } catch (error) {
             return showError(error);
         }
-        
+
         // const element = document.querySelector(`[data-id = "${data._id}"]`);
         // element.remove();
         // const newElement = makeNewBoxMessage(
@@ -146,6 +193,12 @@ const createPopup = (inputDiv) => {
 
     const openModal = () => {
         el.style.display = 'block';
+        radioButtonsGroup.style.display = 'flex';
+        setTurnType('picture');
+        dateInput.value = '';
+        sourceUrlInput.value = '';
+        imageUrlInput.value = '';
+        videoUrlInput.value = '';
     }
 
     const closeModal = () => {
@@ -156,41 +209,38 @@ const createPopup = (inputDiv) => {
         quill.setContents(turn.paragraph);
         headerInput.value = turn.header;
         idInput.value = turn._id;
+        radioButtonsGroup.style.display = 'none';
+        // setTurnType((turn.contentType === 'article') ? 'picture' : turn.contentType); // @fixme
+        setTurnType(turn.contentType);
+
         if (turn.date) {
             const date = new Date(turn.date);
             dateInput.value = `${date.getFullYear()}-${(
                 '0' +
                 (date.getMonth() + 1)
             ).slice(-2)}-${('0' + date.getDate()).slice(-2)}`;
-        } else {
-            dateInput.value = '';
         }
+
         if (turn.sourceUrl) {
             sourceUrlInput.value = turn.sourceUrl;
-        } else {
-            sourceUrlInput.value = '';
         }
 
         if (turn.imageUrl) {
-            imageUrlInput.style.display = 'block';
             imageUrlInput.value = turn.imageUrl;
-        } else {
-            imageUrlInput.style.display = 'none';
-            imageUrlInput.value = '';
         }
 
         if (turn.videoUrl) {
-            videoUrlInput.style.display = 'block';
             videoUrlInput.value = turn.videoUrl;
-        } else {
-            videoUrlInput.style.display = 'none';
-            videoUrlInput.value = '';
         }
     }
 
     /* ПРИВЯЗКА СОБЫТИЙ */
+
     closeBtn.addEventListener('click', closeModal);
     saveBtn.addEventListener('click', saveModal);
+    radioButtonTypes.forEach((button) => {
+        button.addEventListener('click', () => setTurnType(button.value));
+    });
 
     return {
         openModal,

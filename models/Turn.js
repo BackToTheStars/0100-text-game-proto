@@ -4,6 +4,7 @@ const config = require('../config.json');
 
 const schema = new Schema({
     header: {
+        trim: true,
         type: String,
         required: true,
     },
