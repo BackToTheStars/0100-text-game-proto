@@ -21,8 +21,8 @@ html, body {
     position: absolute;
     bottom: 30px;
     left: 30px;
-    padding: 10px;
-    border: 1px solid #eee;
+    padding: 5px;
+    border: 0px solid #eee;
     z-index: 4;
 }
 

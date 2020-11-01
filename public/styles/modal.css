@@ -26,3 +26,17 @@
     max-height: 60vh;
     background-color: white;
 }
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.radio-group .form-group {
+    display: flex;
+    align-items: center;
+}
+
+.radio-group input {
+    margin-right: 10px;
+}

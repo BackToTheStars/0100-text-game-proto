@@ -96,8 +96,8 @@ function makeEditButton(turn) {
     button.innerHTML = 'Edit';
     button.addEventListener('click', () => {
         // popup
-        popup.setTurn(turn);
         popup.openModal();
+        popup.setTurn(turn);
         // openTurnModal(turn);
     });
     return button;

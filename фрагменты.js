@@ -137,3 +137,30 @@
                 </div>
             </div>
         </div>
+
+
+
+Фрагмент 5
+
+                <select id="turn-type">
+                        <option value="article">Text</option>
+                    <option value="picture">Text with picture</option>
+                        <!-- <option value="book">Book</option>
+                        <option value="lyrics">Poetry</option>
+                        <option value="pdf">PDF Document</option> -->
+                    <option value="video">Text with video</option>
+                        <!-- <option value="audio">Audio</option> -->
+                    <option value="comment">Comment</option>
+                </select>
+                <br>
+                Header: <input id="headerText" />
+                <br>
+                Text: <textarea id="paragraphText"></textarea>
+                <br>
+
+Фрагмент 6
+                <div id="params-wrapper">
+                </div>
+                <!--                    
+                <div id="image-params-wrapper">Image URL: <input id="image-url" type="text" /></div>
+                -->
