@@ -14,6 +14,9 @@ const createPopup = (inputDiv) => {
     const closeBtn = el.querySelector('#cancel-turn-modal');
     const saveBtn = el.querySelector('#save-turn-modal')
 
+    const defaultContentType = 'picture'
+    let contentType = defaultContentType;
+
     const headerRow = el.querySelector('.header-row')
     const headerInput = headerRow.querySelector('input')
 
@@ -35,15 +38,15 @@ const createPopup = (inputDiv) => {
     const radioButtonsGroup = el.querySelector('.radio-group');
     const radioButtonTypes = radioButtonsGroup.querySelectorAll('input');
 
-    setTurnType('picture');
+    setTurnType(defaultContentType);
 
     /* ФУНКЦИИ И МЕТОДЫ */
     // draw modal window
     function drawModalWindow() {
         el.setAttribute('id', 'modalBackground');
         el.innerHTML = `<div id="modal" class="container">
-        <div class="row my-4">
-            <div class="col-8">
+        <div class="row my-4 flex-1">
+            <div class="col-8 quill-wrapper">
             <div id="toolbar-container">
                 <span class="ql-formats">
                     <select class="ql-background">
@@ -58,10 +61,10 @@ const createPopup = (inputDiv) => {
         <div class="col-4">
             <div class="radio-group">
                 <div class="form-group row">
-                    <input type="radio" name="type" value="picture" checked><span>Text with picture</span>
+                    <input type="radio" name="type" value="picture" checked><span>Text / picture</span>
                 </div>
                 <div class="form-group row">
-                    <input type="radio" name="type" value="video"><span>Text with video</span>
+                    <input type="radio" name="type" value="video"><span>Text / video</span>
                 </div>
                 <div class="form-group row">
                     <input type="radio" name="type" value="comment"><span>Comment</span>
@@ -69,32 +72,32 @@ const createPopup = (inputDiv) => {
             </div>
             <input type="hidden" id="idInput" />
             <div class="form-group row header-row">
-                <label class="col-sm-4 col-form-label">Header</label>
-                <div class="col-sm-8">
+                <label class="col-sm-3 col-form-label">Header</label>
+                <div class="col-sm-9">
                     <input type="text" class="form-control">
                 </div>
             </div>
             <div class="form-group row date-row">
-                <label class="col-sm-4 col-form-label">Date</label>
-                <div class="col-sm-8">
+                <label class="col-sm-3 col-form-label">Date</label>
+                <div class="col-sm-9">
                     <input type="date" class="form-control">
                 </div>
             </div>
             <div class="form-group row source-url-row">
-                <label class="col-sm-4 col-form-label">Source Url</label>
-                <div class="col-sm-8">
+                <label class="col-sm-3 col-form-label">Source Url</label>
+                <div class="col-sm-9">
                     <input type="text" class="form-control">
                 </div>
             </div>
             <div class="form-group row image-url-row">
-                <label class="col-sm-4 col-form-label">Image Url</label>
-                <div class="col-sm-8">
+                <label class="col-sm-3 col-form-label">Image Url</label>
+                <div class="col-sm-9">
                     <input type="text" class="form-control">
                 </div>
             </div>
             <div class="form-group row video-url-row">
-                <label class="col-sm-4 col-form-label">Video Url</label>
-                <div class="col-sm-8">
+                <label class="col-sm-3 col-form-label">Video Url</label>
+                <div class="col-sm-9">
                     <input type="text" class="form-control">
                 </div>
             </div>
@@ -104,7 +107,7 @@ const createPopup = (inputDiv) => {
     <div class="row mb-4">
         <div class="col">
             <button id="save-turn-modal">Save</button>
-            <button id="cancel-turn-modal">Close</button>
+            <button id="cancel-turn-modal">Cancel</button>
         </div>
     </div>
     </div>`
@@ -112,7 +115,8 @@ const createPopup = (inputDiv) => {
         inputDiv.appendChild(el);
     }
 
-    function setTurnType (type) {
+    function setTurnType(type) {
+        contentType = type;
         imageUrlRow.style.display = 'none';
         videoUrlRow.style.display = 'none';
         headerRow.style.display = 'flex';
@@ -143,7 +147,7 @@ const createPopup = (inputDiv) => {
         let textArr = getQuillTextArr();
         let id = idInput.value;
         let header = headerInput.value;
-        let date =dateInput.value;
+        let date = dateInput.value;
         let sourceUrl = sourceUrlInput.value;
         let imageUrl = imageUrlInput.value;
         let videoUrl = videoUrlInput.value;
@@ -162,9 +166,10 @@ const createPopup = (inputDiv) => {
             if (id) {
                 data = await updateTurn(turnObj);
                 // @todo: передать data существующему turn для обновления
+
             } else {
                 turnObj = {
-                    contentType: 'article', // @todo: получить из выпадающего списка
+                    contentType: contentType,
                     height: 500,
                     width: 500,
                     x: 50,
@@ -174,6 +179,7 @@ const createPopup = (inputDiv) => {
 
                 data = await createTurn(turnObj);
                 // @todo: передать data для создания нового turn на странице
+
             }
         } catch (error) {
             return showError(error);
@@ -191,10 +197,13 @@ const createPopup = (inputDiv) => {
         closeModal();
     }
 
-    const openModal = () => {
+    const openModal = () => { // сброс всех переменных для modal window
+        idInput.value = '';
         el.style.display = 'block';
         radioButtonsGroup.style.display = 'flex';
-        setTurnType('picture');
+        setTurnType(defaultContentType);
+        headerInput.value = '';
+        quill.setContents([]);
         dateInput.value = '';
         sourceUrlInput.value = '';
         imageUrlInput.value = '';
@@ -210,7 +219,6 @@ const createPopup = (inputDiv) => {
         headerInput.value = turn.header;
         idInput.value = turn._id;
         radioButtonsGroup.style.display = 'none';
-        // setTurnType((turn.contentType === 'article') ? 'picture' : turn.contentType); // @fixme
         setTurnType(turn.contentType);
 
         if (turn.date) {

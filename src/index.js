@@ -355,13 +355,13 @@ function drawLinesByEls(lineInfoEls, frontFlag = false) {
                 sourceCoords.left +
                 (sourceFirst ? sourceCoords.width : 0) -
                 sideBarWidth +
-                (sourceFirst ? -4 : 4), // + 3,
+                (sourceFirst ? 6 : -6), // + 3,
             y1: sourceCoords.top + Math.floor(sourceCoords.height / 2),
             x2:
                 targetCoords.left +
                 (sourceFirst ? 0 : targetCoords.width) -
                 sideBarWidth +
-                (sourceFirst ? 4 : -4), // - 5,
+               (sourceFirst ? -2 : 2), // - 5,
             y2: targetCoords.top + Math.floor(targetCoords.height / 2),
         };
         // отрисовка координат

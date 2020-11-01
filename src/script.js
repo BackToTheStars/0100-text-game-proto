@@ -206,22 +206,17 @@ function makeNewBoxMessage(obj, authorDictionary = {}) {
             wrapper.appendChild(img);
             if (paragraph && !(paragraph.length == 1 && paragraph[0].insert.trim() == '')) {
                 wrapper.appendChild(p);
-                console.log(`${header}: set max_height_factor = ${max_height_factor}`);
+                // console.log(`${header}: set max_height_factor = ${max_height_factor}`);
             } else {
                 max_height_factor = 1;
-                console.log(`${header}: set max_height_factor = ${max_height_factor}`);
+                // console.log(`${header}: set max_height_factor = ${max_height_factor}`);
             }
-            console.log(paragraph);
             elmnt.appendChild(wrapper);
             elmnt.onresize = function (ev) {
-                console.log(`${header}: max_height_factor = ${max_height_factor}`);
-                //console.log(ev.target);
                 const cs = window.getComputedStyle(ev.target);
                 const h = cs.height.slice(0, -2);
                 const w = cs.width.slice(0, -2);
-                //console.log(h, w);
                 const img = ev.target.children[3].children[0];
-                console.log(img.naturalWidth, img.naturalHeight);
                 const ih = img.naturalHeight;
                 const iw = img.naturalWidth;
                 const th = Math.min(h * max_height_factor, (w * ih) / iw);
@@ -236,24 +231,18 @@ function makeNewBoxMessage(obj, authorDictionary = {}) {
             break;
         }
         case 'video': {
-            //<iframe width="1280" height="720" src="https://www.youtube.com/embed/inBKFMB-yPg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
             const frame = document.createElement('iframe');
             frame.classList.add('video');
             
             const m = videoUrl.match(/watch\?v=/);
             if (m) {
-                //console.log('match')
                 frame.src = `${videoUrl.substring(
                     0,
                     m.index
                 )}embed/${videoUrl.substring(m.index + 8)}`;
             } else {
-                // console.log('not match')
                 frame.src = videoUrl;
             }
-            //frame.style.maxHeight = '100%';
-            //frame.style.maxWidth = '100%';
             frame.style.width = '100%';
             frame.style.height = '90%';
             frame.style.top = '0';
