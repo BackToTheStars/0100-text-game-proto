@@ -2,11 +2,12 @@
 // УНИВЕРСАЛЬНОЕ ОКНО СОЗДАНИЯ И РЕДАКТИРОВАНИЯ ХОДА
 
 import { getQuill } from './quillHandler';
-import { getInputValue, makeNewBoxMessage } from './script';
+import { getInputValue } from './script';
 import { createTurn, updateTurn } from './service';
+import { getTurn } from './turn';
 
 let popup = null;
-const createPopup = (inputDiv) => {
+const createPopup = (inputDiv, game) => {
 
     // переменные и инициализация (constructor)
     let el = document.createElement('div');
@@ -179,7 +180,7 @@ const createPopup = (inputDiv) => {
 
                 data = await createTurn(turnObj);
                 // @todo: передать data для создания нового turn на странице
-
+                getTurn(data, game.params)
             }
         } catch (error) {
             return showError(error);
@@ -256,9 +257,9 @@ const createPopup = (inputDiv) => {
     }
 }
 
-const getPopup = (inputDiv) => {
+const getPopup = (inputDiv, game) => {
     if (!popup) {
-        popup = createPopup(inputDiv);
+        popup = createPopup(inputDiv, game);
     }
     return popup;
 }

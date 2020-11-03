@@ -48,8 +48,11 @@ const createTurn = async (turnObj) => {
             body: JSON.stringify({ turn: turnObj }),
         }).then((data) => {
             // @todo: Проверить, не нужен ли data.json()
-            resolve(data);
-        }).catch((err) => {
+            return data.json();
+        }).then(res => {
+            resolve(res);
+        })
+        .catch((err) => {
             console.log(err);
             reject('Request error');
         });

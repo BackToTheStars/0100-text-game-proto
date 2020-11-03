@@ -1,7 +1,5 @@
 import { getRedLogicLines, saveTurn, deleteTurn, updateRedLogicLines } from './service';
 // import { openTurnModal } from './modal';
-import { getPopup } from './popup';
-const popup = getPopup(document.body);
 
 const getInputValue = (id) => {
     // обработчик поля Input
@@ -11,47 +9,47 @@ const getInputValue = (id) => {
     return text;
 };
 
-function addNewBoxToGame() {
-    // вставляет новый блок источника на поле
-    const header = getInputValue('headerText');
-    const par = getInputValue('paragraphText'); // вводит текст параграфа
-    const type = getInputValue('turn-type');
-    //console.log(`turnType: ${type}`);
-    const imageUrl =
-        type === 'picture' ? getInputValue('input-image-url') : undefined;
-    const videoUrl =
-        type === 'video' ? getInputValue('input-video-url') : undefined;
-    //console.log(`videoUrl: ${videoUrl}`);
+// function addNewBoxToGame() {
+//     // вставляет новый блок источника на поле
+//     const header = getInputValue('headerText');
+//     const par = getInputValue('paragraphText'); // вводит текст параграфа
+//     const type = getInputValue('turn-type');
+//     //console.log(`turnType: ${type}`);
+//     const imageUrl =
+//         type === 'picture' ? getInputValue('input-image-url') : undefined;
+//     const videoUrl =
+//         type === 'video' ? getInputValue('input-video-url') : undefined;
+//     //console.log(`videoUrl: ${videoUrl}`);
 
-    let newTurn = {
-        header,
-        paragraph: [{ insert: par }],
-        contentType: type,
-        height: 300,
-        width: 400,
-        imageUrl,
-        videoUrl,
-    };
-    saveTurn(newTurn, (data) => {
-        let newDiv = makeNewBoxMessage(
-            {
-                turn: newTurn,
-                data,
-            } /*header, par, data._id, data.x, data.y, data.height, data.width*/
-        );
-        gameBox.appendChild(newDiv); // добавляет новый div к заданному div
-        $(newDiv).resizable({
-            create: function (ev, ui) {
-                //console.log('create')
-            },
-            resize: function (ev, ui) {
-                //console.log(ui.element)
-                //console.log(ui.originalElement)
-            },
-        });
-        $(newDiv).draggable(); //{containment: "#gameBox"});
-    });
-}
+//     let newTurn = {
+//         header,
+//         paragraph: [{ insert: par }],
+//         contentType: type,
+//         height: 300,
+//         width: 400,
+//         imageUrl,
+//         videoUrl,
+//     };
+//     saveTurn(newTurn, (data) => {
+//         let newDiv = makeNewBoxMessage(
+//             {
+//                 turn: newTurn,
+//                 data,
+//             } /*header, par, data._id, data.x, data.y, data.height, data.width*/
+//         );
+//         gameBox.appendChild(newDiv); // добавляет новый div к заданному div
+//         $(newDiv).resizable({
+//             create: function (ev, ui) {
+//                 //console.log('create')
+//             },
+//             resize: function (ev, ui) {
+//                 //console.log(ui.element)
+//                 //console.log(ui.originalElement)
+//             },
+//         });
+//         $(newDiv).draggable(); //{containment: "#gameBox"});
+//     });
+// }
 
 function addTextToParagraph(par, text) {
     if (Array.isArray(text)) {
@@ -90,19 +88,6 @@ function makeHead(text) {
     return h;
 }
 
-function makeEditButton(turn) {
-    // создать кнопку "Edit turn"
-    let button = document.createElement('button');
-    button.innerHTML = 'Edit';
-    button.addEventListener('click', () => {
-        // popup
-        popup.openModal();
-        popup.setTurn(turn);
-        // openTurnModal(turn);
-    });
-    return button;
-}
-
 function makeDeleteButton(turn) {
     // создать кнопку "Delete turn"    // refactor with makeEditButton()
     let button = document.createElement('button');
@@ -117,175 +102,175 @@ function makeDeleteButton(turn) {
     return button;
 }
 
-function makeNewBoxMessage(obj, authorDictionary = {}) {
-    //console.log(`${JSON.stringify(obj)}`);
-    const {
-        paragraph,
-        height,
-        width,
-        contentType,
-        imageUrl,
-        videoUrl,
-        author_id,
-        sourceUrl,
-        date,
-    } = obj.turn; // деструктуризатор для хода
-    let { header } = obj.turn;
-    const { _id, x, y } = obj.data;
-    // let param = {
-    //     head: header,
-    //     par: paragraph,
-    // };
-    const authorObj = authorDictionary[author_id];
-    // создаёт div блока по заданным параметрам
-    const elmnt = document.createElement('div');
-    elmnt.dataset.id = _id; // data attribute для div-a
-    elmnt.style.left = `${x}px`;
-    elmnt.style.top = `${y}px`;
-    elmnt.style.height = `${height}px`;
-    elmnt.style.width = `${width}px`;
-    elmnt.className = 'textBox ui-widget-content';
-    // console.log(paragraph);
-    const p = makeParagraph(paragraph);
-    //p.style.bottom = '100%';
-    //p.style.position = 'absolute';
+// function makeNewBoxMessage(obj, authorDictionary = {}) {
+//     //console.log(`${JSON.stringify(obj)}`);
+//     const {
+//         paragraph,
+//         height,
+//         width,
+//         contentType,
+//         imageUrl,
+//         videoUrl,
+//         author_id,
+//         sourceUrl,
+//         date,
+//     } = obj.turn; // деструктуризатор для хода
+//     let { header } = obj.turn;
+//     const { _id, x, y } = obj.data;
+//     // let param = {
+//     //     head: header,
+//     //     par: paragraph,
+//     // };
+//     const authorObj = authorDictionary[author_id];
+//     // создаёт div блока по заданным параметрам
+//     const elmnt = document.createElement('div');
+//     elmnt.dataset.id = _id; // data attribute для div-a
+//     elmnt.style.left = `${x}px`;
+//     elmnt.style.top = `${y}px`;
+//     elmnt.style.height = `${height}px`;
+//     elmnt.style.width = `${width}px`;
+//     elmnt.className = 'textBox ui-widget-content';
+//     // console.log(paragraph);
+//     const p = makeParagraph(paragraph);
+//     //p.style.bottom = '100%';
+//     //p.style.position = 'absolute';
 
-    if (contentType === 'comment' && authorObj) {
-        // если комментарий, то добавляем автора в header
-        header = authorObj.name + ':';
-    }
-    const h = makeHead(header);
-    // const editButton = makeEditButton({ _id, paragraph: paragraph, header: header });
-    const editButton = makeEditButton(obj.turn);
-    const deleteButton = makeDeleteButton({
-        _id,
-        paragraph: paragraph,
-        header: header,
-    });
-    h.appendChild(editButton);
-    h.appendChild(deleteButton);
+//     if (contentType === 'comment' && authorObj) {
+//         // если комментарий, то добавляем автора в header
+//         header = authorObj.name + ':';
+//     }
+//     const h = makeHead(header);
+//     // const editButton = makeEditButton({ _id, paragraph: paragraph, header: header });
+//     const editButton = makeEditButton(obj.turn);
+//     const deleteButton = makeDeleteButton({
+//         _id,
+//         paragraph: paragraph,
+//         header: header,
+//     });
+//     h.appendChild(editButton);
+//     h.appendChild(deleteButton);
 
-    elmnt.appendChild(h);
+//     elmnt.appendChild(h);
 
-    elmnt.dataset.contentType = contentType; // data attribute для div-a
-    // const bottom
-    if (sourceUrl) {
-        const leftBottomEl = document.createElement('div');
-        leftBottomEl.classList.add('left-bottom-label');
-        leftBottomEl.innerText = sourceUrl;
-        elmnt.appendChild(leftBottomEl);
-    }
+//     elmnt.dataset.contentType = contentType; // data attribute для div-a
+//     // const bottom
+//     if (sourceUrl) {
+//         const leftBottomEl = document.createElement('div');
+//         leftBottomEl.classList.add('left-bottom-label');
+//         leftBottomEl.innerText = sourceUrl;
+//         elmnt.appendChild(leftBottomEl);
+//     }
 
-    if (date) {
-        const rightBottomEl = document.createElement('div');
-        rightBottomEl.classList.add('right-bottom-label');
-        rightBottomEl.innerText = new Date(date).toLocaleDateString();
-        elmnt.appendChild(rightBottomEl);
-    }
+//     if (date) {
+//         const rightBottomEl = document.createElement('div');
+//         rightBottomEl.classList.add('right-bottom-label');
+//         rightBottomEl.innerText = new Date(date).toLocaleDateString();
+//         elmnt.appendChild(rightBottomEl);
+//     }
 
-    const wrapper = document.createElement('div');
-    wrapper.style.display = '#flex';
-    wrapper.style.flexDirection = 'column'; // соглашение, что camelCase = camel-case
-    wrapper.style.alignItems = 'center';
-    wrapper.style.justifyContent = 'space-between';
-    wrapper.style.height = '100%';
-    wrapper.style.width = '100%';
+//     const wrapper = document.createElement('div');
+//     wrapper.style.display = '#flex';
+//     wrapper.style.flexDirection = 'column'; // соглашение, что camelCase = camel-case
+//     wrapper.style.alignItems = 'center';
+//     wrapper.style.justifyContent = 'space-between';
+//     wrapper.style.height = '100%';
+//     wrapper.style.width = '100%';
 
-    switch (contentType) {
-        case 'picture': {
-            if (imageUrl && imageUrl.trim()) {
-            const img = document.createElement('img');
-            img.classList.add('picture-content');
-            //img.dataset.imgUrl = imageUrl;
-            //img.style.background = `center / contain no-repeat url("${imageUrl}")`;
-            img.style.background = '#000';
-            img.style.width = "100%";
-            img.src = imageUrl;
-            //img.scale = '1';
-            let max_height_factor = 0.9;
-            wrapper.appendChild(img);
-            if (paragraph && !(paragraph.length == 1 && paragraph[0].insert.trim() == '')) {
-                wrapper.appendChild(p);
-                // console.log(`${header}: set max_height_factor = ${max_height_factor}`);
-            } else {
-                max_height_factor = 1;
-                // console.log(`${header}: set max_height_factor = ${max_height_factor}`);
-            }
-            elmnt.appendChild(wrapper);
-            elmnt.onresize = function (ev) {
-                const cs = window.getComputedStyle(ev.target);
-                const h = cs.height.slice(0, -2);
-                const w = cs.width.slice(0, -2);
-                const img = ev.target.children[3].children[0];
-                const ih = img.naturalHeight;
-                const iw = img.naturalWidth;
-                const th = Math.min(h * max_height_factor, (w * ih) / iw);
-                const tw = Math.min(w, th * iw / ih);
-                ev.target.style.height = `${th}px`;
-                ev.target.style.width = `${tw}px`;
-            };
-            } else {
-                elmnt.appendChild(p);
-            }
-            // removed fragment 2 to fragments.js
-            break;
-        }
-        case 'video': {
-            const frame = document.createElement('iframe');
-            frame.classList.add('video');
-            
-            const m = videoUrl.match(/watch\?v=/);
-            if (m) {
-                frame.src = `${videoUrl.substring(
-                    0,
-                    m.index
-                )}embed/${videoUrl.substring(m.index + 8)}`;
-            } else {
-                frame.src = videoUrl;
-            }
-            frame.style.width = '100%';
-            frame.style.height = '90%';
-            frame.style.top = '0';
-            frame.style.left = '0';
-            frame.frameborder = '0';
-            frame.allow =
-                'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-            frame.allowfullscreen = true;
-            wrapper.appendChild(frame);
-            wrapper.appendChild(p);
-            elmnt.appendChild(wrapper);
-            elmnt.onresize = function (ev) {
-                // отвечает за корректный масштаб видео от ширины блока
-                // console.log(window.getComputedStyle(ev.target).height);
-                // console.log(ev.target.children);
-                const cs = window.getComputedStyle(ev.target);
-                const h = cs.height.slice(0, -2);
-                const w = cs.width.slice(0, -2);
-                //console.log(h, w);
-                ev.target.children[3].children[0].style.height = `${Math.min(
-                    h * 0.9,
-                    (w * 9) / 16
-                )}px`;
-            };
-            break;
-        }
-        case 'comment': {
-            elmnt.classList.add('comment');
-            wrapper.appendChild(p);
-            elmnt.appendChild(wrapper);
-            break;
-        }
+//     switch (contentType) {
+//         case 'picture': {
+//             if (imageUrl && imageUrl.trim()) {
+//             const img = document.createElement('img');
+//             img.classList.add('picture-content');
+//             //img.dataset.imgUrl = imageUrl;
+//             //img.style.background = `center / contain no-repeat url("${imageUrl}")`;
+//             img.style.background = '#000';
+//             img.style.width = "100%";
+//             img.src = imageUrl;
+//             //img.scale = '1';
+//             let max_height_factor = 0.9;
+//             wrapper.appendChild(img);
+//             if (paragraph && !(paragraph.length == 1 && paragraph[0].insert.trim() == '')) {
+//                 wrapper.appendChild(p);
+//                 // console.log(`${header}: set max_height_factor = ${max_height_factor}`);
+//             } else {
+//                 max_height_factor = 1;
+//                 // console.log(`${header}: set max_height_factor = ${max_height_factor}`);
+//             }
+//             elmnt.appendChild(wrapper);
+//             elmnt.onresize = function (ev) {
+//                 const cs = window.getComputedStyle(ev.target);
+//                 const h = cs.height.slice(0, -2);
+//                 const w = cs.width.slice(0, -2);
+//                 const img = ev.target.children[3].children[0];
+//                 const ih = img.naturalHeight;
+//                 const iw = img.naturalWidth;
+//                 const th = Math.min(h * max_height_factor, (w * ih) / iw);
+//                 const tw = Math.min(w, th * iw / ih);
+//                 ev.target.style.height = `${th}px`;
+//                 ev.target.style.width = `${tw}px`;
+//             };
+//             } else {
+//                 elmnt.appendChild(p);
+//             }
+//             // removed fragment 2 to fragments.js
+//             break;
+//         }
+//         case 'video': {
+//             const frame = document.createElement('iframe');
+//             frame.classList.add('video');
 
-        default: {
-            wrapper.appendChild(p);
-            elmnt.appendChild(wrapper);
-        }
-    }
+//             const m = videoUrl.match(/watch\?v=/);
+//             if (m) {
+//                 frame.src = `${videoUrl.substring(
+//                     0,
+//                     m.index
+//                 )}embed/${videoUrl.substring(m.index + 8)}`;
+//             } else {
+//                 frame.src = videoUrl;
+//             }
+//             frame.style.width = '100%';
+//             frame.style.height = '90%';
+//             frame.style.top = '0';
+//             frame.style.left = '0';
+//             frame.frameborder = '0';
+//             frame.allow =
+//                 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+//             frame.allowfullscreen = true;
+//             wrapper.appendChild(frame);
+//             wrapper.appendChild(p);
+//             elmnt.appendChild(wrapper);
+//             elmnt.onresize = function (ev) {
+//                 // отвечает за корректный масштаб видео от ширины блока
+//                 // console.log(window.getComputedStyle(ev.target).height);
+//                 // console.log(ev.target.children);
+//                 const cs = window.getComputedStyle(ev.target);
+//                 const h = cs.height.slice(0, -2);
+//                 const w = cs.width.slice(0, -2);
+//                 //console.log(h, w);
+//                 ev.target.children[3].children[0].style.height = `${Math.min(
+//                     h * 0.9,
+//                     (w * 9) / 16
+//                 )}px`;
+//             };
+//             break;
+//         }
+//         case 'comment': {
+//             elmnt.classList.add('comment');
+//             wrapper.appendChild(p);
+//             elmnt.appendChild(wrapper);
+//             break;
+//         }
 
-    /* здесь был "Фрагмент 1", сохранён в файле "фрагменты.js" */
+//         default: {
+//             wrapper.appendChild(p);
+//             elmnt.appendChild(wrapper);
+//         }
+//     }
 
-    return elmnt;
-};
+//     /* здесь был "Фрагмент 1", сохранён в файле "фрагменты.js" */
+
+//     return elmnt;
+// };
 
 function addNewClass() {
     // создаёт поле нового класса, напр. "PERSON"
@@ -368,13 +353,11 @@ const getLinesSettings = (callback) => {
 
 export {
     getInputValue,
-    addNewBoxToGame,
+    // addNewBoxToGame,
     addTextToParagraph,
     makeParagraph,
     makeHead,
-    makeEditButton,
     makeDeleteButton,
-    makeNewBoxMessage,
     addNewClass,
     createClassField,
     insertNewClass,

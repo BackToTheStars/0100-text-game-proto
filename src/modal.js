@@ -1,5 +1,5 @@
 import { quill, getQuillTextArr } from './quillHandler';
-import { getInputValue, makeNewBoxMessage } from './script';
+import { getInputValue } from './script';
 import { updateTurn } from './service';
 
 function showElement(id) {

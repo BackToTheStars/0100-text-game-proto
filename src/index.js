@@ -1,13 +1,11 @@
 import {
     getLinesSettings,
     getPanelSettings,
-    makeNewBoxMessage,
     getFieldSettings,
     saveFieldSettings,
     saveLinesSettings,
     savePanelSettings,
     addNewClass,
-    addNewBoxToGame,
 } from './script.js';
 
 import { getTurns, turnsUpdateCoordinates } from './service';
@@ -24,10 +22,31 @@ import { cancelTurnModal } from './modal';
 
 import { getPopup } from './popup';
 
+import { getTurn } from './turn';
+
+/*
+quotesDictionary,     // лежат здесь
+authorDictionary,
+lineInfoEls,
+getYellowElements,
+markYellowElementsWithRed,
+drawLinesByEls,
+showLinesInfoPanel
+
+// лежат в script.js
+saveLinesSettings,
+*/
+
+
+
+
+// import { Turn } from './turn';
+// const turn = new Turn();
+
 /** Client code */
 
 let gameBox = document.getElementById('gameBox'); // выбирает элемент по id
-let gameTurns = [];
+// let gameTurns = [];
 let lineInfoEls = [];
 getLinesSettings(function (data) {
     lineInfoEls = data;
@@ -174,75 +193,13 @@ setTimeout(() => {
 
 getTurns((data) => {
     // Запрашиваем ходы с сервера и размещаем их на доске игры
-    gameTurns = data;
+    // gameTurns = data;
     quotesDictionary = {};
 
     for (let elem of data) {
-        quotesDictionary[elem._id] = [];
-        let newDiv = makeNewBoxMessage(
-            {
-                turn: elem,
-                data: elem,
-            },
-            authorDictionary
-            /*          elem.header,
-                        elem.paragraph,
-                        elem._id,
-                        elem.x,
-                        elem.y,
-                        elem.height,
-                        elem.width,
-                        elem.scrollPosition
-                        */
-        );
-        gameBox.appendChild(newDiv); // само добавление div-ов ходов
-
-        const qs = newDiv.querySelector('.paragraphText');
-        if (qs) {
-            qs.scrollTop = elem.scrollPosition;
-        };
-
-        getYellowElements(elem._id).forEach((el, index) => {
-            quotesDictionary[elem._id].push($(el).text().trim());
-
-            $(el).click((event) => {
-                $(el).addClass('red-link-line');
-                if (!newLineInfoEl.sourceTurnId) {
-                    newLineInfoEl.sourceTurnId = elem._id;
-                    newLineInfoEl.sourceMarker = index;
-                } else {
-                    newLineInfoEl.targetTurnId = elem._id;
-                    newLineInfoEl.targetMarker = index;
-                    lineInfoEls.push(newLineInfoEl);
-                    saveLinesSettings(lineInfoEls);
-                    markYellowElementsWithRed(lineInfoEls);
-
-                    newLineInfoEl = {
-                        // reset
-                        sourceTurnId: null,
-                        sourceMarker: null,
-                        targetTurnId: null,
-                        targetMarker: null,
-                    };
-                    drawLinesByEls(lineInfoEls, frontLinesFlag);
-                }
-
-                const selectedQuote = lineInfoEls.filter((element) => {
-                    return (
-                        (element.sourceTurnId === elem._id &&
-                            element.sourceMarker === index) ||
-                        (element.targetTurnId === elem._id &&
-                            element.targetMarker === index)
-                    );
-                });
-
-                showLinesInfoPanel(
-                    { turnId: elem._id, markerId: index },
-                    selectedQuote
-                );
-            });
-        });
+        getTurn(elem, game.params);
     }
+
     $('.textBox').resizable();
     $('.textBox').draggable({
         stop: function (event, ui) {
@@ -361,7 +318,7 @@ function drawLinesByEls(lineInfoEls, frontFlag = false) {
                 targetCoords.left +
                 (sourceFirst ? 0 : targetCoords.width) -
                 sideBarWidth +
-               (sourceFirst ? -2 : 2), // - 5,
+                (sourceFirst ? -2 : 2), // - 5,
             y2: targetCoords.top + Math.floor(targetCoords.height / 2),
         };
         // отрисовка координат
@@ -383,11 +340,9 @@ function drawLinesByEls(lineInfoEls, frontFlag = false) {
 
 function buttonSavePositions(e) {
     // функция сохранения поля
-    // e.preventDefault();
     const textBoxes = document.querySelectorAll('.textBox');
     const payload = [];
     for (let textBox of textBoxes) {
-        //console.log(textBox.children[0].innerText);
         const x = parseInt(textBox.style.left) || 0;
         const y = parseInt(textBox.style.top) || 0;
         const height = parseInt(textBox.style.height);
@@ -404,7 +359,19 @@ function buttonSavePositions(e) {
     });
 }
 
-const getGame = (gameBox, fieldSettings) => {
+const getGame = (gameBox, fieldSettings, params) => {
+    const {
+        quotesDictionary,
+        authorDictionary,
+        lineInfoEls,
+        saveLinesSettings,
+        getYellowElements,
+        markYellowElementsWithRed,
+        drawLinesByEls,
+        showLinesInfoPanel
+    } = params;
+    let popup;
+
     const render = () => {
         // инкапсуляция переменных
         gameBox.style.left = fieldSettings.left + 'px';
@@ -430,9 +397,17 @@ const getGame = (gameBox, fieldSettings) => {
             top: 0,
         });
     };
+    const setPopup = (popupObj) => {
+        popup = popupObj
+    }
     return {
         recalculate: recalculate, // возвращаем две верёвки методов, можем за них дёргать
         render: render,
+        params: {
+            ...params,
+            gameBox
+        },
+        setPopup
     };
 };
 
@@ -470,7 +445,16 @@ if (classesPanelSettings.visible) {
     $('#classMenu').removeClass('hidden');
 }
 const fieldSettings = getFieldSettings();
-const game = getGame(gameBox, fieldSettings);
+const game = getGame(gameBox, fieldSettings, {
+    quotesDictionary,
+    authorDictionary,
+    lineInfoEls,
+    saveLinesSettings,
+    getYellowElements,
+    markYellowElementsWithRed,
+    drawLinesByEls,
+    showLinesInfoPanel
+});
 game.render();
 
 $('#gameBox').draggable({
@@ -505,6 +489,7 @@ $('#add-new-class').click(addNewClass);
 $('#save-positions-btn').click(buttonSavePositions);
 $('#turn-type').change(selectChanged);
 
-const popup = getPopup(); // @fixme передача body
-$('#add-new-box-to-game-btn').click(popup.openModal); // addNewBoxToGame
+const popup = getPopup(document.body, game);
+game.setPopup(popup)
+$('#add-new-box-to-game-btn').click(popup.openModal);
 // $('#cancel-turn-modal').click(cancelTurnModal);
