@@ -55,7 +55,6 @@ function addTextToParagraph(par, text) {
     if (Array.isArray(text)) {
         par.innerHTML = '';
         const innerPar = document.createElement('p');
-        // par.innerHTML = text.map((el) => `<span>${el.insert}</span>`).join("");
         for (let textItem of text) {
             const spanEl = document.createElement('span');
             if (textItem.attributes) {
@@ -88,19 +87,19 @@ function makeHead(text) {
     return h;
 }
 
-function makeDeleteButton(turn) {
-    // создать кнопку "Delete turn"    // refactor with makeEditButton()
-    let button = document.createElement('button');
-    button.innerHTML = 'Delete';
-    button.addEventListener('click', () => {
-        if (confirm('Точно удалить?')) {
-            deleteTurn(turn);
-            const element = document.querySelector(`[data-id = "${turn._id}"]`);
-            element.remove();
-        }
-    });
-    return button;
-}
+// function makeDeleteButton(turn) {
+//     // создать кнопку "Delete turn"    // refactor with makeEditButton()
+//     let button = document.createElement('button');
+//     button.innerHTML = 'Delete';
+//     button.addEventListener('click', () => {
+//         if (confirm('Точно удалить?')) {
+//             deleteTurn(turn);
+//             const element = document.querySelector(`[data-id = "${turn._id}"]`);
+//             element.remove();
+//         }
+//     });
+//     return button;
+// }
 
 // function makeNewBoxMessage(obj, authorDictionary = {}) {
 //     //console.log(`${JSON.stringify(obj)}`);
@@ -357,7 +356,7 @@ export {
     addTextToParagraph,
     makeParagraph,
     makeHead,
-    makeDeleteButton,
+    // makeDeleteButton,
     addNewClass,
     createClassField,
     insertNewClass,

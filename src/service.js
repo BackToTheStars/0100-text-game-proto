@@ -81,6 +81,7 @@ const updateTurn = async (turnObj) => {
     });
 };
 
+// @todo: refactor
 const deleteTurn = (turnObj, callback) => {
     $.ajax({
         type: 'DELETE',

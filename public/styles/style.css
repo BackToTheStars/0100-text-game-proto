@@ -138,13 +138,13 @@ button{
     max-width: 100%;
 }    
 
-.textBox.comment .paragraphText {
+.textBox.comment-type .paragraphText {
     height: 100%;
     overflow-y: hidden;
 }
 
-.textBox.comment .paragraphText,
-.textBox.comment .headerText {
+.textBox.comment-type .paragraphText,
+.textBox.comment-type .headerText {
     background: rgb(236, 237, 154);
 }
 
