@@ -21,9 +21,10 @@ app.use(jsonParser);
 //app.get("/getTurns", turnsController.getTurns);
 app.put("/turns/coordinates", turnsController.updateCoordinates);
 
-app.post("/saveGameClass", gameClassesController.saveGameClass);
-app.get("/getGameClasses", gameClassesController.getGameClasses)
-
+app.get("/gameClasses", gameClassesController.getGameClasses)
+app.post("/gameClass", gameClassesController.saveGameClass);
+// app.delete("/gameClass", gameClassesController.deleteGameClass);
+app.post("/gameClass/addSubclass", gameClassesController.gameClassAddSubclass);
 
 app.post("/updateTurn", jsonParser, turnsController.updateTurn);
 app.post("/saveTurn", jsonParser, turnsController.saveTurn);

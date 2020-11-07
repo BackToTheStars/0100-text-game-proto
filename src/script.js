@@ -291,6 +291,20 @@ function addNewClass() {
     // создаёт поле нового класса, напр. "PERSON"
     let newClassName = getInputValue('newClassName');
     let newClassDiv = createClassField(newClassName);
+    const bodyObj = {
+        gameClass: newClassName,
+    };
+    const bodyJSON = JSON.stringify(bodyObj);
+    fetch('/gameClass', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': bodyJSON.length
+        },
+        body: bodyJSON
+    })
+    .then(() => {}, (err) => {console.log(JSON.stringify(err))});
+
     insertNewClass(newClassDiv);
 };
 
@@ -304,10 +318,25 @@ function createClassField(name) {
     <input id="${uniqueInputId}" class="col-12">
     <button class="add-element">Add</button>`;
     div.querySelector('.add-element').addEventListener('click', (e) => {
-        insertNewClassElement(
-            div.querySelector(`#${uniqueInputId}`),
-            div.querySelector(`#${uniqueUlId}`)
-        );
+        const bodyObj = {
+            className: name,
+            subClass: div.querySelector(`#${uniqueInputId}`).value,
+        };
+        const bodyJSON = JSON.stringify(bodyObj);
+        fetch('/gameClass/addSubclass', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': bodyJSON.length,
+            },
+            body: bodyJSON
+        })
+        .then(() => {
+            insertNewClassElement(
+                div.querySelector(`#${uniqueInputId}`),
+                div.querySelector(`#${uniqueUlId}`)
+            );
+        }, (err) => {console.log(JSON.stringify(err))});
     });
     return div;
 }
