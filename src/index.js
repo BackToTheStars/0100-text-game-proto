@@ -61,7 +61,7 @@ let newLineInfoEl = {
 };
 let frontLinesFlag = true;
 let quotesDictionary = {};
-let authorDictionary = {};
+const authorDictionary = {};
 
 const setSizes = (jQueryElement) => {
     $(jQueryElement).css('height', $(jQueryElement).height() + 'px');
@@ -179,7 +179,7 @@ $('.link-lines-info').on('click', '.del-btn', function () {
 
 // получение справочника авторов
 setTimeout(() => {
-    authorDictionary = {
+    const newAuthorDictionary = {
         123: {
             _id: '123',
             name: 'Teacher',
@@ -189,27 +189,23 @@ setTimeout(() => {
             name: 'Student',
         },
     };
+    for(let k in newAuthorDictionary) {
+        authorDictionary[k] = newAuthorDictionary[k]
+    }
+
 }, 500);
 
 getTurns((data) => {
     // Запрашиваем ходы с сервера и размещаем их на доске игры
-    // gameTurns = data;
     quotesDictionary = {};
 
     for (let elem of data) {
         getTurn(elem, game.params);
     }
 
-    $('.textBox').resizable();
+    setTimeout(() => $('.textBox').resizable(), 500)
     $('.textBox').draggable({
         stop: function (event, ui) {
-            // saveFieldSettings({
-            //     left: ui.position.left,
-            //     top: ui.position.top,
-            //     height: 1000,
-            //     width: 1000,
-            // })
-            // game.recalculate();
             drawLinesByEls(lineInfoEls, frontLinesFlag);
         },
     });
@@ -217,17 +213,6 @@ getTurns((data) => {
         // определить скрытые маркеры
         drawLinesByEls(lineInfoEls, frontLinesFlag);
     });
-
-    // отрисовка линий
-    // получение координат
-    // lineInfoEls = [
-    //     {
-    //     sourceTurnId: '5f602d2f84471e68ecccde35',
-    //     sourceMarker: 0,
-    //     targetTurnId: '5f602dd884471e68ecccde36',
-    //     targetMarker: 0,
-    // }
-    // ]
 
     // @todo: Проверить, что массив lineInfoEls загружен
     drawLinesByEls(lineInfoEls, frontLinesFlag);

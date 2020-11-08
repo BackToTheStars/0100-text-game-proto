@@ -71,6 +71,11 @@ const getTurn = (elem, gameParams) => {
     drawTurn();
     const editBtn = el.querySelector('.edit-btn');
     const deleteBtn = el.querySelector('.delete-btn')
+    // media-wrapper
+    const mediaWrapperEl = el.querySelector('.media-wrapper');
+    // headerText
+    const headerEl = el.querySelector('.headerText');
+    const videoEl = el.querySelector('.video')
     
     gameBox.appendChild(el); // само добавление div-ов ходов
     const qs = el.querySelector('.paragraphText');
@@ -87,35 +92,37 @@ const getTurn = (elem, gameParams) => {
         el.style.width = `${width}px`;
         el.className = `textBox ui-widget-content ${contentType}-type`;
         el.dataset.contentType = contentType;
+
+        let headerText = '';
+        if(contentType === 'comment' && authorObj && authorObj.name) {
+            headerText = authorObj.name + ': ';
+        }
         //data-content-type="picture"
         el.innerHTML = `<h5 class="headerText">
-            ${(contentType === 'comment' && authorObj) && authorObj.name + ':'}
-            ${header}
+            ${headerText}${header}
             <button class="edit-btn">Edit</button>
             <button class="delete-btn">Delete</button>
         </h5>
-        ${sourceUrl && `<div class="left-bottom-label">${sourceUrl}</div>`}
-        ${date && `<div class="right-bottom-label">${date}</div>`}
+        ${sourceUrl ? `<div class="left-bottom-label">${sourceUrl}</div>` : ''}
+        ${date ? `<div class="right-bottom-label">${date}</div>` : ''}
         <div
+            class="media-wrapper"
             style="display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100%; width: 100%;">
 
-            ${(videoUrl && videoUrl.trim()) && `<iframe
+            ${(videoUrl && videoUrl.trim()) ? `<iframe
                 class="video"
                 src="https://www.youtube.com/embed/${getYoutubeId(videoUrl)}"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 style="width: 100%; height: 90%; top: 0px; left: 0px;">
-            </iframe>`}
+            </iframe>` : ''}
             
-            ${(imageUrl && imageUrl.trim()) && `<img class="picture-content" src="${imageUrl}"
-                style="background: rgb(0, 0, 0); width: 100%;">`}
+            ${(imageUrl && imageUrl.trim()) ? `<img class="picture-content" src="${imageUrl}"
+                style="background: rgb(0, 0, 0); width: 100%;">`: ''}  
             
             <p class="paragraphText">
                 ${getParagraphText(paragraph || [])}
             </p>
-        </div>
-        <div class="ui-resizable-handle ui-resizable-e" style="z-index: 90;"></div>
-        <div class="ui-resizable-handle ui-resizable-s" style="z-index: 90;"></div>
-        <div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se" style="z-index: 90;"></div>`
+        </div>`
         gameBox.appendChild(el);
     }
 
@@ -309,31 +316,34 @@ const getTurn = (elem, gameParams) => {
     deleteBtn.addEventListener('click', deleteButtonHandler);
 
     el.onresize = function (ev) { // @todo: remove
-        const cs = window.getComputedStyle(ev.target);
-        const h = cs.height.slice(0, -2);
-        const w = cs.width.slice(0, -2);
-        const img = el.querySelector('.picture-content')
-        if(!img) {
-            return;
-        }
-        // ev.target.children[3].children[0];
-        const ih = img.naturalHeight;
-        const iw = img.naturalWidth;
-        const th = Math.min(h * max_height_factor, (w * ih) / iw);
-        const tw = Math.min(w, th * iw / ih);
-        ev.target.style.height = `${th}px`;
-        ev.target.style.width = `${tw}px`;
-    };
+        // const max_height_factor = 1;
 
-    el.onresize = function (ev) {
-        // отвечает за корректный масштаб видео от ширины блока
-        const cs = window.getComputedStyle(ev.target);
-        const h = cs.height.slice(0, -2);
-        const w = cs.width.slice(0, -2);
-        ev.target.children[3].children[0].style.height = `${Math.min(
-            h * 0.9,
-            (w * 9) / 16
-        )}px`;
+        // const cs = window.getComputedStyle(ev.target);
+        // const h = cs.height.slice(0, -2);
+        // const w = cs.width.slice(0, -2);
+        // const img = el.querySelector('.picture-content')
+        // if(img) {
+        //     // return;
+        //     const ih = img.naturalHeight;
+        //     const iw = img.naturalWidth;
+        //     const th = Math.min(h * max_height_factor, (w * ih) / iw);
+        //     const tw = Math.min(w, th * iw / ih);
+        //     ev.target.style.height = `${th}px`;
+        //     ev.target.style.width = `${tw}px`;
+        // }
+        // // ev.target.children[3].children[0];
+
+
+        // // отвечает за корректный масштаб видео от ширины блока
+        // if(videoEl) {
+        //     ev.target.children[3].children[0].style.height = `${Math.min(
+        //         h * 0.9,
+        //         (w * 9) / 16
+        //     )}px`;
+        // }
+
+        // получить высоту el, вычесть высоту header, сохранить в media wrapper
+        $(mediaWrapperEl).height($(el).height() - $(headerEl).height())
     };
 
     // @todo: move
