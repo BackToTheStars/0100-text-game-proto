@@ -1,6 +1,8 @@
 import { getRedLogicLines, saveTurn, deleteTurn, updateRedLogicLines } from './service';
 // import { openTurnModal } from './modal';
 import { getPopup } from './popup';
+
+
 const popup = getPopup(document.body);
 
 const getInputValue = (id) => {
@@ -194,36 +196,36 @@ function makeNewBoxMessage(obj, authorDictionary = {}) {
     switch (contentType) {
         case 'picture': {
             if (imageUrl && imageUrl.trim()) {
-            const img = document.createElement('img');
-            img.classList.add('picture-content');
-            //img.dataset.imgUrl = imageUrl;
-            //img.style.background = `center / contain no-repeat url("${imageUrl}")`;
-            img.style.background = '#000';
-            img.style.width = "100%";
-            img.src = imageUrl;
-            //img.scale = '1';
-            let max_height_factor = 0.9;
-            wrapper.appendChild(img);
-            if (paragraph && !(paragraph.length == 1 && paragraph[0].insert.trim() == '')) {
-                wrapper.appendChild(p);
-                // console.log(`${header}: set max_height_factor = ${max_height_factor}`);
-            } else {
-                max_height_factor = 1;
-                // console.log(`${header}: set max_height_factor = ${max_height_factor}`);
-            }
-            elmnt.appendChild(wrapper);
-            elmnt.onresize = function (ev) {
-                const cs = window.getComputedStyle(ev.target);
-                const h = cs.height.slice(0, -2);
-                const w = cs.width.slice(0, -2);
-                const img = ev.target.children[3].children[0];
-                const ih = img.naturalHeight;
-                const iw = img.naturalWidth;
-                const th = Math.min(h * max_height_factor, (w * ih) / iw);
-                const tw = Math.min(w, th * iw / ih);
-                ev.target.style.height = `${th}px`;
-                ev.target.style.width = `${tw}px`;
-            };
+                const img = document.createElement('img');
+                img.classList.add('picture-content');
+                //img.dataset.imgUrl = imageUrl;
+                //img.style.background = `center / contain no-repeat url("${imageUrl}")`;
+                img.style.background = '#000';
+                img.style.width = "100%";
+                img.src = imageUrl;
+                //img.scale = '1';
+                let max_height_factor = 0.9;
+                wrapper.appendChild(img);
+                if (paragraph && !(paragraph.length == 1 && paragraph[0].insert.trim() == '')) {
+                    wrapper.appendChild(p);
+                    // console.log(`${header}: set max_height_factor = ${max_height_factor}`);
+                } else {
+                    max_height_factor = 1;
+                    // console.log(`${header}: set max_height_factor = ${max_height_factor}`);
+                }
+                elmnt.appendChild(wrapper);
+                elmnt.onresize = function (ev) {
+                    const cs = window.getComputedStyle(ev.target);
+                    const h = cs.height.slice(0, -2);
+                    const w = cs.width.slice(0, -2);
+                    const img = ev.target.children[3].children[0];
+                    const ih = img.naturalHeight;
+                    const iw = img.naturalWidth;
+                    const th = Math.min(h * max_height_factor, (w * ih) / iw);
+                    const tw = Math.min(w, th * iw / ih);
+                    ev.target.style.height = `${th}px`;
+                    ev.target.style.width = `${tw}px`;
+                };
             } else {
                 elmnt.appendChild(p);
             }
@@ -233,7 +235,7 @@ function makeNewBoxMessage(obj, authorDictionary = {}) {
         case 'video': {
             const frame = document.createElement('iframe');
             frame.classList.add('video');
-            
+
             const m = videoUrl.match(/watch\?v=/);
             if (m) {
                 frame.src = `${videoUrl.substring(
@@ -287,6 +289,109 @@ function makeNewBoxMessage(obj, authorDictionary = {}) {
     return elmnt;
 };
 
+class GameClass {
+    constructor(obj) {
+        const { name, rootToAppend, subClasses, sync } = obj;
+        this.name = name;
+        this.rootToAppend = rootToAppend;
+        this.subClassNames = subClasses;
+        this.sync = sync;                   // говорит что этот класс нужно отправить на сервер
+        if (sync) {
+            const body = {
+                gameClass: name
+            };
+            const bodyJSON = JSON.stringify(body);
+            fetch('/gameClass', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': bodyJSON.length
+                },
+                body: bodyJSON
+            })
+            .then(() => {
+                //this,_id = _id
+            }, (err) => {
+                console.log(`ERROR: ${bodyJSON}: sending failed`);
+            })
+        }
+    }
+
+    async prerender() {
+        this.self = document.createElement('div');
+        this.self.className = 'class-list col-12';
+
+        this.subClasses = document.createElement('div');
+        this.subClasses.className= '';
+
+        this.title = document.createElement('div');
+        this.title.className = 'title';
+        
+        this.input = document.createElement('input');
+        this.input.className = 'col-12';
+
+        this.buttonAddSubclass = document.createElement('button');
+        this.buttonAddSubclass.className = 'add-element';
+        this.buttonAddSubclass.onClick = () => {this.this.onClickAddSubclass()};
+
+        this.self.appendChild(this.title);
+        this.self.appendChild(this.subClasses);
+        this.self.appendChild(this.input);
+        this.self.appendChild(this.buttonAddSubclass);
+    }
+
+    async render() {
+        
+    }
+
+    async delete() {
+
+    }
+
+    async edit() {
+
+    }
+
+    async onClickAddSubclass() {
+
+    }
+}
+
+class GameClassPanel {
+    constructor(divName) {
+        this.rootElement = document.getElementById(divName);
+        this.gameClasses = undefined;
+        this.fieldAddNewClass = undefined;
+    }
+
+    async load() {
+        const res = await fetch('gameClasses', {
+            method: 'GET'
+        });
+        this.gameClasses = res.json();
+    }
+
+    async prerender() {
+        this.fieldAddNewClass = document.createElement(div);
+        fieldAddNewClass.className = "col-12";
+        fieldAddNewClass.innerHTML = `
+            <span class="prompt">Add new class:</span>
+            <input id="newClassName" />
+            <button id="add-new-class">Add</button>`;
+        this.fieldAddNewClass.onClick = 
+    }
+
+    async render() {
+        await this.prerender();
+        this.rootElement.appendChild(this.fieldAddNewClass);
+    }
+
+    async onClickAddNewClass() {
+        const newClassName = getInputValue('newClassName');
+        this.gameClasses.push(new GameClass({ name: newClassName, rootToAppend: this.rootElement, sync: true }));
+    }
+}
+
 function addNewClass() {
     // создаёт поле нового класса, напр. "PERSON"
     let newClassName = getInputValue('newClassName');
@@ -303,8 +408,10 @@ function addNewClass() {
         },
         body: bodyJSON
     })
-    .then(() => {}, (err) => {console.log(JSON.stringify(err))});
-
+        .then(() => {
+        }, (err) => {
+            console.log(JSON.stringify(err))
+        });
     insertNewClass(newClassDiv);
 };
 
@@ -331,12 +438,12 @@ function createClassField(name) {
             },
             body: bodyJSON
         })
-        .then(() => {
-            insertNewClassElement(
-                div.querySelector(`#${uniqueInputId}`),
-                div.querySelector(`#${uniqueUlId}`)
-            );
-        }, (err) => {console.log(JSON.stringify(err))});
+            .then(() => {
+                insertNewClassElement(
+                    div.querySelector(`#${uniqueInputId}`),
+                    div.querySelector(`#${uniqueUlId}`)
+                );
+            }, (err) => { console.log(JSON.stringify(err)) });
     });
     return div;
 }
