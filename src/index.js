@@ -200,19 +200,20 @@ getTurns((data) => {
     quotesDictionary = {};
 
     for (let elem of data) {
-        getTurn(elem, game.params);
+        console.log(game.params.popup);
+        getTurn(elem, game.params, game);
     }
 
-    setTimeout(() => $('.textBox').resizable(), 500)
-    $('.textBox').draggable({
-        stop: function (event, ui) {
-            drawLinesByEls(lineInfoEls, frontLinesFlag);
-        },
-    });
-    $('.paragraphText').scroll(function (e) {
-        // определить скрытые маркеры
-        drawLinesByEls(lineInfoEls, frontLinesFlag);
-    });
+    // setTimeout(() => $('.textBox').resizable(), 500)
+    // $('.textBox').draggable({
+    //     stop: function (event, ui) {
+    //         drawLinesByEls(lineInfoEls, frontLinesFlag);
+    //     },
+    // });
+    // $('.paragraphText').scroll(function (e) {
+    //     // определить скрытые маркеры
+    //     drawLinesByEls(lineInfoEls, frontLinesFlag);
+    // });
 
     // @todo: Проверить, что массив lineInfoEls загружен
     drawLinesByEls(lineInfoEls, frontLinesFlag);
@@ -355,7 +356,9 @@ const getGame = (gameBox, fieldSettings, params) => {
         drawLinesByEls,
         showLinesInfoPanel
     } = params;
-    let popup;
+    const obj = {
+        popup: null,
+    }
 
     const render = () => {
         // инкапсуляция переменных
@@ -383,17 +386,16 @@ const getGame = (gameBox, fieldSettings, params) => {
         });
     };
     const setPopup = (popupObj) => {
-        popup = popupObj
+        obj.popup = popupObj;
     }
-    return {
-        recalculate: recalculate, // возвращаем две верёвки методов, можем за них дёргать
-        render: render,
-        params: {
-            ...params,
-            gameBox
-        },
-        setPopup
-    };
+    obj.recalculate = recalculate; // возвращаем две верёвки методов, можем за них дёргать
+    obj.render = render;
+    obj.params = {
+        ...params,
+        gameBox
+    }
+    obj.setPopup = setPopup;
+    return obj;
 };
 
 function isMarkerVisible(jqElement) {

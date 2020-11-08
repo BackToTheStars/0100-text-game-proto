@@ -3,7 +3,6 @@ html, body {
 }
 
 .textBox {
-    margin: 20px;
     min-width: 100px;
     max-width: 2000px;
     min-height: 50px;
@@ -157,7 +156,8 @@ button{
 /* подписи для ссылки и для даты */
 .left-bottom-label, .right-bottom-label { 
     position: absolute;
-    bottom: -21px;
+    /* bottom: -21px; */
+    bottom: 5px;
     transform: translateY(100%);
     padding: 5px;
     color: #fff;

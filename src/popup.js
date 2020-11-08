@@ -11,6 +11,7 @@ const createPopup = (inputDiv, game) => {
 
     // переменные и инициализация (constructor)
     let el = document.createElement('div');
+    let turnModel;
     drawModalWindow();
     const closeBtn = el.querySelector('#cancel-turn-modal');
     const saveBtn = el.querySelector('#save-turn-modal')
@@ -165,9 +166,8 @@ const createPopup = (inputDiv, game) => {
         let data = null;
         try {
             if (id) {
-                data = await updateTurn(turnObj);
-                // @todo: передать data существующему turn для обновления
-
+                turnModel.data = await updateTurn(turnObj);
+                turnModel.reCreate();
             } else {
                 turnObj = {
                     contentType: contentType,
@@ -179,7 +179,6 @@ const createPopup = (inputDiv, game) => {
                 }
 
                 data = await createTurn(turnObj);
-                // @todo: передать data для создания нового turn на странице
                 getTurn(data, game.params)
             }
         } catch (error) {
@@ -215,7 +214,9 @@ const createPopup = (inputDiv, game) => {
         el.style.display = 'none';
     }
 
-    const setTurn = (turn) => {
+    const setTurn = (turnModelParam) => {
+        turnModel = turnModelParam
+        const turn = turnModelParam.data;
         quill.setContents(turn.paragraph);
         headerInput.value = turn.header;
         idInput.value = turn._id;

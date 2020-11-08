@@ -34,7 +34,10 @@ const getYoutubeId = (address) => {
     return address.slice(address.lastIndexOf('?v=') + 3);
 }
 
-const getTurn = (elem, gameParams) => {
+const getTurn = (elem, gameParams, game) => {
+    const turnModel = {
+        data: elem
+    }
     const {
         popup,
         gameBox,
@@ -76,12 +79,15 @@ const getTurn = (elem, gameParams) => {
     // headerText
     const headerEl = el.querySelector('.headerText');
     const videoEl = el.querySelector('.video')
+    const imgEl = el.querySelector('.picture-content')
     
     gameBox.appendChild(el); // само добавление div-ов ходов
     const qs = el.querySelector('.paragraphText');
     if (qs) {
         qs.scrollTop = elem.scrollPosition;
     };
+
+    handleResize();
 
 // --------------- МЕТОДЫ ------------------------------------------
     function drawTurn() {
@@ -135,187 +141,19 @@ const getTurn = (elem, gameParams) => {
     };
 
     const editButtonHandler = () => {
-        popup.openModal();
-        popup.setTurn(turn);
+        game.popup.openModal();
+        game.popup.setTurn(turnModel);
     };
-  
-    // function makeNewBoxMessage(obj) {
-    //     // const {
-    //     //     paragraph,
-    //     //     height,
-    //     //     width,
-    //     //     contentType,
-    //     //     imageUrl,
-    //     //     videoUrl,
-    //     //     author_id,
-    //     //     sourceUrl,
-    //     //     date,
-    //     //     _id,
-    //     //     x,
-    //     //     y
-    //     // } = obj; // деструктуризатор для хода
-    //     // let { header } = obj;
 
-    //     // const authorObj = authorDictionary[author_id];
-    //     // создаёт div блока по заданным параметрам
-    //     // const elmnt = document.createElement('div');
+    function handleResize () {
+        if(imgEl) {
+            const ih = imgEl.naturalHeight;
+            const iw = imgEl.naturalWidth;
 
+            $(imgEl).width($(el).width());
+            $(imgEl).height(Math.floor(imgEl.naturalHeight * $(el).width() / imgEl.naturalWidth));
+        }
 
-
-    //     // elmnt.dataset.id = _id; // data attribute для div-a
-    //     // elmnt.style.left = `${x}px`;
-    //     // elmnt.style.top = `${y}px`;
-    //     // elmnt.style.height = `${height}px`;
-    //     // elmnt.style.width = `${width}px`;
-    //     // elmnt.className = 'textBox ui-widget-content';
-    //     // const p = makeParagraph(paragraph);
-
-    //     // if (contentType === 'comment' && authorObj) {
-    //     //     // если комментарий, то добавляем автора в header
-    //     //     header = authorObj.name + ':';
-    //     // }
-    //     // const h = makeHead(header);
-    //     // const editButton = makeEditButton({ _id, paragraph: paragraph, header: header });
-    //     // const editButton = makeEditButton(obj.turn);
-    //     // const deleteButton = makeDeleteButton({
-    //     //     _id,
-    //     //     paragraph: paragraph,
-    //     //     header: header,
-    //     // });
-    //     // h.appendChild(editButton);
-    //     // h.appendChild(deleteButton);
-
-    //     // elmnt.appendChild(h);
-
-    //     // elmnt.dataset.contentType = contentType; // data attribute для div-a
-    //     // const bottom
-    //     // if (sourceUrl) {
-    //     //     const leftBottomEl = document.createElement('div');
-    //     //     leftBottomEl.classList.add('left-bottom-label');
-    //     //     leftBottomEl.innerText = sourceUrl;
-    //     //     elmnt.appendChild(leftBottomEl);
-    //     // }
-
-    //     // if (date) {
-    //     //     const rightBottomEl = document.createElement('div');
-    //     //     rightBottomEl.classList.add('right-bottom-label');
-    //     //     rightBottomEl.innerText = new Date(date).toLocaleDateString();
-    //     //     elmnt.appendChild(rightBottomEl);
-    //     // }
-
-    //     // const wrapper = document.createElement('div');
-    //     // wrapper.style.display = '#flex';
-    //     // wrapper.style.flexDirection = 'column'; // соглашение, что camelCase = camel-case
-    //     // wrapper.style.alignItems = 'center';
-    //     // wrapper.style.justifyContent = 'space-between';
-    //     // wrapper.style.height = '100%';
-    //     // wrapper.style.width = '100%';
-
-    //     switch (contentType) {
-    //         case 'picture': {
-    //             // if (imageUrl && imageUrl.trim()) {
-    //             //     const img = document.createElement('img');
-    //             //     img.classList.add('picture-content');
-    //             //     img.style.background = '#000';
-    //             //     img.style.width = "100%";
-    //             //     img.src = imageUrl;
-    //             //     let max_height_factor = 0.9;
-    //             //     wrapper.appendChild(img);
-    //             //     if (paragraph && !(paragraph.length == 1 && paragraph[0].insert.trim() == '')) {
-    //             //         wrapper.appendChild(p);
-    //             //     } else {
-    //             //         max_height_factor = 1;
-    //             //     }
-    //             //     elmnt.appendChild(wrapper);
-    //             //     elmnt.onresize = function (ev) {
-    //             //         const cs = window.getComputedStyle(ev.target);
-    //             //         const h = cs.height.slice(0, -2);
-    //             //         const w = cs.width.slice(0, -2);
-    //             //         const img = ev.target.children[3].children[0];
-    //             //         const ih = img.naturalHeight;
-    //             //         const iw = img.naturalWidth;
-    //             //         const th = Math.min(h * max_height_factor, (w * ih) / iw);
-    //             //         const tw = Math.min(w, th * iw / ih);
-    //             //         ev.target.style.height = `${th}px`;
-    //             //         ev.target.style.width = `${tw}px`;
-    //             //     };
-    //             // } else {
-    //             //     elmnt.appendChild(p);
-    //             // }
-    //             // removed fragment 2 to fragments.js
-    //             break;
-    //         }
-    //         case 'video': {
-    //             // const frame = document.createElement('iframe');
-    //             // frame.classList.add('video');
-
-    //             // const m = videoUrl.match(/watch\?v=/);
-    //             // if (m) {
-    //             //     frame.src = `${videoUrl.substring(
-    //             //         0,
-    //             //         m.index
-    //             //     )}embed/${videoUrl.substring(m.index + 8)}`;
-    //             // } else {
-    //             //     frame.src = videoUrl;
-    //             // }
-    //             // frame.style.width = '100%';
-    //             // frame.style.height = '90%';
-    //             // frame.style.top = '0';
-    //             // frame.style.left = '0';
-    //             // frame.frameborder = '0';
-    //             // frame.allow =
-    //             //     'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-    //             // frame.allowfullscreen = true;
-    //             // wrapper.appendChild(frame);
-    //             // wrapper.appendChild(p);
-    //             // elmnt.appendChild(wrapper);
-    //             // elmnt.onresize = function (ev) {
-    //             //     // отвечает за корректный масштаб видео от ширины блока
-    //             //     const cs = window.getComputedStyle(ev.target);
-    //             //     const h = cs.height.slice(0, -2);
-    //             //     const w = cs.width.slice(0, -2);
-    //             //     ev.target.children[3].children[0].style.height = `${Math.min(
-    //             //         h * 0.9,
-    //             //         (w * 9) / 16
-    //             //     )}px`;
-    //             // };
-    //             // break;
-    //         }
-    //         case 'comment': {
-    //             // elmnt.classList.add('comment');
-    //             // wrapper.appendChild(p);
-    //             // elmnt.appendChild(wrapper);
-    //             // break;
-    //         }
-
-    //         default: {
-    //             // wrapper.appendChild(p);
-    //             // elmnt.appendChild(wrapper);
-    //         }
-    //     }
-
-    //     //* здесь был "Фрагмент 1"
-
-    //     return elmnt;
-    // };
-
-    // // function makeEditButton(turn) {
-    // //     // создать кнопку "Edit turn"
-    // //     let button = document.createElement('button');
-    // //     button.innerHTML = 'Edit';
-    // //     button.addEventListener('click', () => {
-    // //         // popup
-    // //         popup.openModal();
-    // //         popup.setTurn(turn);
-    // //         // openTurnModal(turn);
-    // //     });
-    // //     return button;
-    // // }
-
-    // -----------------------  ПРИВЯЗКА СОБЫТИЙ ---------------------------
-    deleteBtn.addEventListener('click', deleteButtonHandler);
-
-    el.onresize = function (ev) { // @todo: remove
         // const max_height_factor = 1;
 
         // const cs = window.getComputedStyle(ev.target);
@@ -331,7 +169,8 @@ const getTurn = (elem, gameParams) => {
         //     ev.target.style.height = `${th}px`;
         //     ev.target.style.width = `${tw}px`;
         // }
-        // // ev.target.children[3].children[0];
+
+        // ev.target.children[3].children[0];
 
 
         // // отвечает за корректный масштаб видео от ширины блока
@@ -344,7 +183,32 @@ const getTurn = (elem, gameParams) => {
 
         // получить высоту el, вычесть высоту header, сохранить в media wrapper
         $(mediaWrapperEl).height($(el).height() - $(headerEl).height())
-    };
+    }
+
+    const reCreate = () => {
+        // @todo: removeEventListeners
+        el.remove();
+        return getTurn(turnModel.data, gameParams, game);
+    }
+
+    // Фрагмент 7 перемещён
+
+    // -----------------------  ПРИВЯЗКА СОБЫТИЙ ---------------------------
+    deleteBtn.addEventListener('click', deleteButtonHandler);
+    editBtn.addEventListener('click', editButtonHandler);
+
+    el.onresize = handleResize;
+
+    $(el).resizable()
+    $(el).draggable({
+        stop: function (event, ui) {
+            drawLinesByEls(lineInfoEls, true); // @todo check frontLinesFlag);
+        },
+    });
+    $(qs).scroll(function (e) {
+        // определить скрытые маркеры
+        drawLinesByEls(lineInfoElss, true); // @todo check frontLinesFlag);
+    });
 
     // @todo: move
     getYellowElements(elem._id).forEach((el, index) => {
@@ -387,6 +251,9 @@ const getTurn = (elem, gameParams) => {
             );
         });
     });
+
+    turnModel.reCreate = reCreate;
+    return turnModel
 }
 
 export {
