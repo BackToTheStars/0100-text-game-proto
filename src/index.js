@@ -501,7 +501,7 @@ $('#toggle-left-panel').click((e) => {
 $('#toggle-links-btn').click(toggleLinesVisibility);
 $('#zoom-plus-btn').click(() => zoomInOut(1));
 $('#zoom-minus-btn').click(() => zoomInOut(-1));
-$('#add-new-class').click(addNewClass);
+//$('#add-new-class').click(addNewClass);
 $('#save-positions-btn').click(buttonSavePositions);
 $('#turn-type').change(selectChanged);
 

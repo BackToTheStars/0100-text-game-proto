@@ -12,7 +12,7 @@ const schema = new Schema({
     required: true
   },
   subClasses: {
-    type: JSON,
+    type: [String],
     required: false
   }
 });

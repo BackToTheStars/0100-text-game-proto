@@ -16,7 +16,7 @@ async function getGameClasses (req, res) {
 async function gameClassAddSubclass (req, res) {
   console.log(`${JSON.stringify(req.body)}`);
   const {className, subClass} = req.body;
-  const gameClassModel = await GameClass.find({gameClass: className}).exec();
+  const gameClassModel = await GameClass.find({gameClass: className});
   console.log(`${JSON.stringify(gameClassModel)}`);
   if (!gameClassModel.length) {
     console.log(`className: ${className} was not found in db`);
@@ -24,7 +24,7 @@ async function gameClassAddSubclass (req, res) {
     if (gameClassModel[0].subClasses) {
       console.log(`PUSH: gameClassModel[0].subClasses: ${JSON.stringify(gameClassModel[0].subClasses)}`);
       gameClassModel[0].subClasses.push(subClass);
-      gameClassModel[0].update({subClasses: gameClassModel[0].subClasses});
+      //gameClassModel[0].update({subClasses: gameClassModel[0].subClasses});
     } else {
       console.log(`NEW: gameClassModel[0].subClasses: ${JSON.stringify(gameClassModel[0].subClasses)}`);
       gameClassModel[0].subClasses = [subClass];
