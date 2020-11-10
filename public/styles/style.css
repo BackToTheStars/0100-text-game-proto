@@ -3,7 +3,7 @@ html, body {
 }
 
 .textBox {
-    min-width: 100px;
+    min-width: 300px;
     max-width: 2000px;
     min-height: 50px;
     max-height: 3000px;
