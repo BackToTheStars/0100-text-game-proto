@@ -1,3 +1,5 @@
+import { dateFormatter } from './formatters/dateFormatter'
+
 
 const getYoutubeId = (address) => {
     return address.slice(address.lastIndexOf('?v=') + 3);
@@ -65,7 +67,7 @@ class Turn {
     handleResize() {
         let minMediaHeight = 120;
         let maxMediaHeight = this.paragraphEl.scrollHeight + 20;
-        console.log($(this.paragraphEl).innerHeight());
+        // console.log($(this.paragraphEl).innerHeight());
 
         if (this.imgEl) {
             $(this.imgEl).width($(this.el).width());
@@ -110,8 +112,10 @@ class Turn {
             imageUrl,
             videoUrl,
             sourceUrl,
-            date,
         } = this.data;
+        let { date } = this.data;
+
+        if (date) { date = dateFormatter(date) };
 
         this.el.innerHTML = `<h5 class="headerText">
             ${header}

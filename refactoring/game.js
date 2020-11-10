@@ -15,7 +15,7 @@ class Game {
             stageEl: this.stageEl,
         }, this.triggers);
         this.triggers.dispatch = (type, data) => {
-            switch(type) {                               // д.з. какие здесь ещё понадобятся функции?
+            switch (type) {                               
                 case 'DRAW_LINES': {
                     console.log('DRAW_LINES')
                     break;
@@ -31,6 +31,10 @@ class Game {
                     console.log(data);
                     break;
                 }
+                case 'ZOOM'                : { break; }        // д.з. какие здесь ещё понадобятся функции?
+                case 'MANAGE_CLASS'        : { break; }
+                case 'MANAGE_SUBCLASS'     : { break; }
+                case 'FLY_TO_MINIMAP'      : { break; }
             }
         }
     }
