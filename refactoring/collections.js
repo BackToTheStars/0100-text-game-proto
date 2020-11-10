@@ -1,7 +1,10 @@
-import Turn from './turn';
-
 // предназначен для предоставления доступа к шагам,
 // но знает минимум об их реализации
+
+import Turn from './turn';
+
+
+
 class TurnCollection {
     constructor({ turnsData, stageEl }, triggers) {
         this.stageEl = stageEl;

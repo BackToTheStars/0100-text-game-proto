@@ -1,9 +1,6 @@
 import { dateFormatter } from './formatters/dateFormatter'
+import { youtubeFormatter } from './formatters/youtubeFormatter'
 
-
-const getYoutubeId = (address) => {
-    return address.slice(address.lastIndexOf('?v=') + 3);
-};
 const getParagraphText = (arrText) => {
     // @todo: remove
     const el = document.createElement('p');
@@ -24,6 +21,7 @@ const getParagraphText = (arrText) => {
 // размещает элемент игры на поле на основе полученных настроек
 // реагирует на события в DOM и меняет свои настройки
 // предоставляет свои настройки другим компонентам 
+
 class Turn {
     constructor({ data, stageEl }, triggers) {
         this._id = data._id;
@@ -101,7 +99,7 @@ class Turn {
         );
     }
     render() {
-        if (!this.needToRender) {                    // для оптимизации рендера
+        if (!this.needToRender) {                      // для оптимизации рендера
             return false;
         }
         this.needToRender = false;
@@ -110,12 +108,11 @@ class Turn {
             header,
             paragraph,
             imageUrl,
-            videoUrl,
             sourceUrl,
         } = this.data;
-        let { date } = this.data;
-
-        if (date) { date = dateFormatter(date) };
+        let { date, videoUrl } = this.data;
+        if (date)     { date = dateFormatter(date) };               // лежит в папке "refactoring/formatters"
+        if (videoUrl) {videoUrl = youtubeFormatter(videoUrl); };    // лежит там же
 
         this.el.innerHTML = `<h5 class="headerText">
             ${header}
@@ -130,7 +127,7 @@ class Turn {
             ${videoUrl && videoUrl.trim()
                 ? `<iframe
                 class="video"
-                src="https://www.youtube.com/embed/${getYoutubeId(videoUrl)}"
+                src="https://www.youtube.com/embed/${videoUrl}"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 style="width: 100%; height: 90%; top: 0px; left: 0px;">
             </iframe>`

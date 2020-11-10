@@ -33,9 +33,6 @@ function dateFormatter(dateString) {
 }
 
 
-
-
-
 export { dateFormatter };
 
 
