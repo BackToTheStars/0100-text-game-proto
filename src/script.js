@@ -309,11 +309,11 @@ class GameClass {
                 },
                 body: bodyJSON
             })
-            .then(() => {
-                //this,_id = _id
-            }, (err) => {
-                console.log(`ERROR: ${bodyJSON}: sending failed`);
-            })
+                .then(() => {
+                    //this,_id = _id
+                }, (err) => {
+                    console.log(`ERROR: ${bodyJSON}: sending failed`);
+                })
         }
     }
 
@@ -322,17 +322,17 @@ class GameClass {
         this.self.className = 'class-list col-12';
 
         this.subClasses = document.createElement('div');
-        this.subClasses.className= '';
+        this.subClasses.className = '';
 
         this.title = document.createElement('div');
         this.title.className = 'title';
-        
+
         this.input = document.createElement('input');
         this.input.className = 'col-12';
 
         this.buttonAddSubclass = document.createElement('button');
         this.buttonAddSubclass.className = 'add-element';
-        this.buttonAddSubclass.onClick = () => {this.this.onClickAddSubclass()};
+        this.buttonAddSubclass.onClick = () => { this.this.onClickAddSubclass() };
 
         this.self.appendChild(this.title);
         this.self.appendChild(this.subClasses);
@@ -341,7 +341,7 @@ class GameClass {
     }
 
     async render() {
-        
+
     }
 
     async delete() {
@@ -378,7 +378,7 @@ class GameClassPanel {
             <span class="prompt">Add new class:</span>
             <input id="newClassName" />
             <button id="add-new-class">Add</button>`;
-        this.fieldAddNewClass.onClick = 
+        this.fieldAddNewClass.onClick = ''; // добавил чтобы не было crash webpack
     }
 
     async render() {
