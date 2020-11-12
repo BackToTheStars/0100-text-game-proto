@@ -62,8 +62,13 @@ class Turn {
         this.el.style.height = `${height}px`;
         this.el.style.width = `${width}px`;
     }
+    moveEl(dLeft, dTop) {
+        // debugger;
+        this.el.style.left = `${parseInt(this.el.style.left) + dLeft}px`
+        this.el.style.top = `${parseInt(this.el.style.top) + dTop}px`
+    }
     handleResize() {
-        let minMediaHeight = 120;
+        let minMediaHeight = 0; // 120;
         let maxMediaHeight = this.paragraphEl.scrollHeight + 20;
         // console.log($(this.paragraphEl).innerHeight());
 

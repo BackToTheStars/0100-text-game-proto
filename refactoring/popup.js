@@ -1,10 +1,10 @@
 // @deprecated
 // УНИВЕРСАЛЬНОЕ ОКНО СОЗДАНИЯ И РЕДАКТИРОВАНИЯ ХОДА
 
-import { getQuill } from './quillHandler';
-import { getInputValue } from './script';
-import { createTurn, updateTurn } from './service';
-import { getTurn } from './turn';
+import { getQuill } from '../src/quillHandler';
+import { getInputValue } from '../src/script';
+import { createTurn, updateTurn } from '../src/service';
+import { getTurn } from '../src/turn';
 
 let popup = null;
 const createPopup = (inputDiv, game) => {

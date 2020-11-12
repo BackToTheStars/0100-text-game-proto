@@ -310,12 +310,14 @@ function insertNewClassElement(input, ul) {
     ul.appendChild(li);
 }
 
+// @deprecated
 const saveFieldSettings = (settings) => {
     // left, top,
     // width, height
     localStorage.setItem('gameField', JSON.stringify(settings));
 };
 
+// @deprecated
 const getFieldSettings = () => {
     const settings = JSON.parse(localStorage.getItem('gameField')) || {
         left: 0,
