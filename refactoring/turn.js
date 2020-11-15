@@ -62,6 +62,18 @@ class Turn {
         this.el.style.height = `${height}px`;
         this.el.style.width = `${width}px`;
     }
+
+    getPositionInfo() {
+        return {
+            x: parseInt(this.el.style.left) || 0,
+            y: parseInt(this.el.style.top) || 0,
+            height: parseInt(this.el.style.height),
+            width: parseInt(this.el.style.width),
+            id: this.el.dataset.id,
+            contentType: this.el.dataset.contentType,
+            scrollPosition: this.paragraphEl ? this.paragraphEl.scrollTop : null,
+        }
+    }
     moveEl(dLeft, dTop) {
         // debugger;
         this.el.style.left = `${parseInt(this.el.style.left) + dLeft}px`

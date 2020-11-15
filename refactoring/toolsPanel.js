@@ -15,12 +15,16 @@ class ToolsPanel {
     this.el = $('.actions');
     this.triggers = triggers;
 
-    this.addTurnBtn = this.el.find('#add-new-box-to-game-btn')
+    this.addTurnBtn = this.el.find('#add-new-box-to-game-btn');
+    this.toggleLeftPanelBtn = this.el.find('#toggle-left-panel');
+    this.savePositionsBtn = this.el.find('#save-positions-btn');
     this.addEventHandlers();
   }
   
   addEventHandlers() {
     this.addTurnBtn.click(() => this.triggers.dispatch("OPEN_POPUP"));
+    this.toggleLeftPanelBtn.click(() => this.triggers.dispatch("TOGGLE_CLASS_PANEL"));
+    this.savePositionsBtn.click(() => this.triggers.dispatch("SAVE_FIELD_POSITION"));
   }
 }
 

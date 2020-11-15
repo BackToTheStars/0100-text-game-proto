@@ -39,25 +39,33 @@ async function getTurns (req, res) {
 };
 
 async function updateCoordinates (req, res) {
-    log.debug(`Entering ... ${arguments.callee.name}`);
+    const time = Date.now();
     const { turns = [] } = req.body;
     const items = [];
     for (let turn of turns) {
-        //log.debug(`${arguments.callee.name}: turn = ${JSON.stringify(turn)}`);
         const { id, x, y, height, width, contentType, scrollPosition } = turn;
+
+        // Turn.findOneAndUpdate({
+        //     _id: id
+        // }, {
+        //     x, y, height, width, contentType, scrollPosition
+        // })
+
         const turnModel = await Turn.findById(id);
-        //log.debug(`${arguments.callee.name}: turnModel = ${JSON.stringify(turnModel)}`);
         turnModel.x = x;
         turnModel.y = y;
         turnModel.height = height;
         turnModel.width = width;
-        turnModel.contentType = contentType;
+        turnModel.contentType = contentType; // @todo: delete
         turnModel.scrollPosition = scrollPosition;
 
-        await turnModel.save();
-        items.push(turnModel)
+        turnModel.save();
+
+        items.push({
+            id: turnModel._id
+        })
     }
-    log.debug(`Ending ... ${arguments.callee.name}`);
+    console.log((Date.now() - time) / 1000);
     res.json({
         success: true,
         items

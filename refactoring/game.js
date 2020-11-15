@@ -1,9 +1,10 @@
 
-import { getTurns } from './service';
+import { getTurns, turnsUpdateCoordinates } from './service';
 import { TurnCollection } from './collections'
 import GameField from './gameField'
 import ToolsPanel from './toolsPanel'
 import { getPopup } from './popup'
+import ClassPanel from './classPanel'
 
 // настраивает компоненты игры,
 // обеспечивает передачу данных между компонентами
@@ -14,7 +15,8 @@ class Game {
         this.gameField = new GameField({
             stageEl: this.stageEl,
         }, this.triggers);
-        this.toolsPanel = new ToolsPanel({},this.triggers)
+        this.toolsPanel = new ToolsPanel({}, this.triggers);
+        this.classPanel = new ClassPanel({}, this.triggers);
         this.popup = getPopup(document.body, {})
     }
     async init() {
@@ -22,12 +24,20 @@ class Game {
             turnsData: await getTurns(),
             stageEl: this.stageEl,
         }, this.triggers);
-        this.triggers.dispatch = (type, data) => {
-            switch (type) {  
-                case 'RECALCULATE_FIELD': {
-                    this.gameField.recalculate(this.turnCollection.getTurns())
+        this.triggers.dispatch = async (type, data) => {
+            switch (type) {
+                case 'SAVE_FIELD_POSITION': {
+                    const turns = await this.turnCollection.getTurns();
+                    const payload = this.gameField.saveTurnPositions(turns);
+                    await turnsUpdateCoordinates(payload);
+                    console.log('Positions of all turns re-saved.');
                     break;
-                }                             
+                }
+                case 'RECALCULATE_FIELD': {      // двигает все ходы при отпускании draggable() поля
+                    const turns = await this.turnCollection.getTurns();
+                    this.gameField.recalculate(turns)
+                    break;
+                }
                 case 'DRAW_LINES': {
                     console.log('DRAW_LINES')
                     break;
@@ -39,7 +49,7 @@ class Game {
                     break;
                 }
                 case 'OPEN_POPUP': {
-                    if(data) {
+                    if (data) {
                         // обновление
                     } else {
                         // открытие попапа
@@ -47,10 +57,15 @@ class Game {
                     }
                     break;
                 }
-                case 'ZOOM'                : { break; }        // д.з. какие здесь ещё понадобятся функции?
-                case 'MANAGE_CLASS'        : { break; }
-                case 'MANAGE_SUBCLASS'     : { break; }
-                case 'FLY_TO_MINIMAP'      : { break; }
+                case 'TOGGLE_CLASS_PANEL': {
+                    this.classPanel.togglePanelVisibility();
+                    break;
+                }
+
+                case 'ZOOM': { break; }        // д.з. какие здесь ещё понадобятся функции?
+                case 'MANAGE_CLASS': { break; }
+                case 'MANAGE_SUBCLASS': { break; }
+                case 'FLY_TO_MINIMAP': { break; }
                 // ADD_LINE
                 // TOGGLE_LINES
                 // *LINE
