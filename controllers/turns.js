@@ -14,27 +14,27 @@ async function deleteTurn (req, res) {
     log.debug(`Entering ... ${arguments.callee.name}`);
     const { turn } = req.body;
     const turnModel = await Turn.findByIdAndRemove(turn._id);   //функция ищет по ид и удаляет
-    log.debug(`Ending ... ${arguments.callee.name}`);
+    // log.debug(`Ending ... ${arguments.callee.name}`);
     res.json(turnModel); // new true говорит отдать новую модель, а не старую
 }
 
 async function saveTurn (req, res) {
     log.debug(`Entering ... ${arguments.callee.name}`);
-    const { turn } = req.body; // деструктуризатор
+    let { turn } = req.body; // деструктуризатор
     // console.log(JSON.stringify(turn));
+    delete turn._id;
     const turnModel = new Turn(turn);
     if(turn.contentType === 'comment') {
         turnModel.header = 'comment';
     }
     await turnModel.save();
-    log.debug(`Ending ... ${arguments.callee.name}`);
     res.json(turnModel);
 };
 
 async function getTurns (req, res) {
-    log.debug(`Entering ... ${arguments.callee.name}`);
+    // log.debug(`Entering ... ${arguments.callee.name}`);
     const turns = await Turn.find();
-    log.debug(`Ending ... ${arguments.callee.name}`);
+    // log.debug(`Ending ... ${arguments.callee.name}`);
     res.json(turns);
 };
 

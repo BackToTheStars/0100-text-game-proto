@@ -8,8 +8,62 @@ const getTurns = async () =>
         });
     });
 
+const createTurn = async (turnObj) => {
+    return new Promise(async (resolve, reject) => {
+        fetch('/saveTurn', {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json',
+            },
+            body: JSON.stringify({ turn: turnObj }),
+        }).then((data) => {
+            // @todo: Проверить, не нужен ли data.json()
+            return data.json();
+        }).then(res => {
+            resolve(res);
+        })
+            .catch((err) => {
+                console.log(err);
+                reject('Request error');
+            });
+
+    })
+};
+
+const updateTurn = async (turnObj) => {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'POST',
+            url: '/updateTurn',
+            data: JSON.stringify({
+                turn: turnObj,
+            }),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: resolve,
+            error: reject
+        });
+    });
+};
+
+const deleteTurn = async (turnObj) => {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'DELETE',
+            url: '/deleteTurn',
+            data: JSON.stringify({
+                turn: turnObj,
+            }),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: resolve,
+            error: reject
+        });
+    })
+};
+
 const turnsUpdateCoordinates = async (turns) =>
-    new Promise((resolve,reject) => {
+    new Promise((resolve, reject) => {
         $.ajax({
             type: 'PUT',
             url: '/turns/coordinates',
@@ -23,5 +77,11 @@ const turnsUpdateCoordinates = async (turns) =>
         });
     });
 
-export { getTurns, turnsUpdateCoordinates };
+export {
+    getTurns,
+    createTurn,
+    updateTurn,
+    deleteTurn,
+    turnsUpdateCoordinates
+};
 

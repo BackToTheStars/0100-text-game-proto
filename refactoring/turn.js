@@ -43,6 +43,7 @@ class Turn {
             // drawLinesByEls(lineInfoEls, true); // @todo check frontLinesFlag);
             stop: (event, ui) => triggers.dispatch('DRAW_LINES')
         });
+        this.handleResize();
     }
     createDomEl() {
         const { _id, contentType } = this.data;
@@ -80,7 +81,7 @@ class Turn {
         this.el.style.top = `${parseInt(this.el.style.top) + dTop}px`
     }
     handleResize() {
-        let minMediaHeight = 0; // 120;
+        let minMediaHeight = 120; // @todo 
         let maxMediaHeight = this.paragraphEl.scrollHeight + 20;
         // console.log($(this.paragraphEl).innerHeight());
 
@@ -115,6 +116,11 @@ class Turn {
             `${maxMediaHeight + $(this.headerEl).height()}px`
         );
     }
+    update() {
+        this.needToRender = true;
+        this.render();
+    }
+
     render() {
         if (!this.needToRender) {                      // для оптимизации рендера
             return false;
@@ -162,7 +168,6 @@ class Turn {
         this.addEventHandlers();
     }
     deleteButtonHandler() {
-        console.log(this.triggers)
         if (confirm('Точно удалить?')) {
             this.triggers.dispatch('REMOVE_TURN', this.data)
             // @todo: удалить привязки и линии связи
@@ -175,7 +180,10 @@ class Turn {
         // game.popup.setTurn(turnModel);
     };
     // inner handlers
-    removeEventHandlers() { }
+    removeEventHandlers() {
+        this.deleteBtn && this.deleteBtn.removeEventListener('click', this.deleteButtonHandler.bind(this));
+        this.editBtn && this.editBtn.removeEventListener('click', this.editButtonHandler.bind(this));
+    }
     addEventHandlers() {
         this.editBtn = this.el.querySelector('.edit-btn');
         this.deleteBtn = this.el.querySelector('.delete-btn');
@@ -186,7 +194,6 @@ class Turn {
         this.videoEl = this.el.querySelector('.video');
         this.imgEl = this.el.querySelector('.picture-content');
         this.paragraphEl = this.el.querySelector('.paragraphText');
-        this.handleResize();
 
         this.deleteBtn.addEventListener('click', this.deleteButtonHandler.bind(this));
         this.editBtn.addEventListener('click', this.editButtonHandler.bind(this));

@@ -1,5 +1,11 @@
 
-import { getTurns, turnsUpdateCoordinates } from './service';
+import {
+    getTurns,
+    createTurn,
+    updateTurn,
+    deleteTurn,
+    turnsUpdateCoordinates
+} from './service';
 import { TurnCollection } from './collections'
 import GameField from './gameField'
 import ToolsPanel from './toolsPanel'
@@ -17,7 +23,7 @@ class Game {
         }, this.triggers);
         this.toolsPanel = new ToolsPanel({}, this.triggers);
         this.classPanel = new ClassPanel({}, this.triggers);
-        this.popup = getPopup(document.body, {})
+        this.popup = getPopup(document.body, this.triggers);
     }
     async init() {
         this.turnCollection = new TurnCollection({
@@ -42,15 +48,30 @@ class Game {
                     console.log('DRAW_LINES')
                     break;
                 }
+                case 'CREATE_TURN': {
+                    createTurn(data).then(res => {
+                        console.log(res);
+                        this.turnCollection.addTurn(res)
+                    });
+                    break;
+                }
+                case 'SAVE_TURN': {
+                    this.turnCollection.updateTurn(data);
+                    this.turnCollection.getTurn(data).update();
+                    updateTurn(data);
+                    break;
+                }
                 case 'REMOVE_TURN': {
                     this.turnCollection.getTurn(data).destroy();
-                    // @todo: backend request
                     this.turnCollection.removeTurn(data);
+                    deleteTurn(data);
                     break;
                 }
                 case 'OPEN_POPUP': {
                     if (data) {
                         // обновление
+                        this.popup.openModal();
+                        this.popup.setTurn(data);      // подставляет данные в модальное окно
                     } else {
                         // открытие попапа
                         this.popup.openModal();

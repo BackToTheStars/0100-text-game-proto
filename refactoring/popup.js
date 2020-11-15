@@ -7,7 +7,7 @@ import { createTurn, updateTurn } from '../src/service';
 import { getTurn } from '../src/turn';
 
 let popup = null;
-const createPopup = (inputDiv, game) => {
+const createPopup = (inputDiv, triggers) => {
 
     // переменные и инициализация (constructor)
     let el = document.createElement('div');
@@ -166,8 +166,9 @@ const createPopup = (inputDiv, game) => {
         let data = null;
         try {
             if (id) {
-                turnModel.data = await updateTurn(turnObj);
-                turnModel.reCreate();
+                triggers.dispatch('SAVE_TURN', turnObj);
+                closeModal();
+
             } else {
                 turnObj = {
                     contentType: contentType,
@@ -177,9 +178,8 @@ const createPopup = (inputDiv, game) => {
                     y: 50,
                     ...turnObj
                 }
-
-                data = await createTurn(turnObj);
-                getTurn(data, game.params)
+                triggers.dispatch('CREATE_TURN', turnObj);
+                closeModal();
             }
         } catch (error) {
             return showError(error);
@@ -214,9 +214,9 @@ const createPopup = (inputDiv, game) => {
         el.style.display = 'none';
     }
 
-    const setTurn = (turnModelParam) => {
-        turnModel = turnModelParam
-        const turn = turnModelParam.data;
+    const setTurn = (turn) => {                // подставляет данные в инпуты
+        // turnModel = turnModelParam
+        // const turn = turnModelParam.data;
         quill.setContents(turn.paragraph);
         headerInput.value = turn.header;
         idInput.value = turn._id;
@@ -258,9 +258,9 @@ const createPopup = (inputDiv, game) => {
     }
 }
 
-const getPopup = (inputDiv, game) => {
+const getPopup = (inputDiv, triggers) => {
     if (!popup) {
-        popup = createPopup(inputDiv, game);
+        popup = createPopup(inputDiv, triggers);
     }
     return popup;
 }
