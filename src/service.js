@@ -100,7 +100,6 @@ const getRedLogicLines = (callback) => {
         type: 'GET',
         url: '/game',
         success: function (data) {
-            // const { item = {redLogicLines} } = data;
             const redLogicLines = data.item.redLogicLines;
             callback(redLogicLines);
         },

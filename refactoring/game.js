@@ -4,13 +4,19 @@ import {
     createTurn,
     updateTurn,
     deleteTurn,
-    turnsUpdateCoordinates
+    turnsUpdateCoordinates,
+    getRedLogicLines
 } from './service';
-import { TurnCollection } from './collections'
+import {
+    TurnCollection,
+    LinesCollection
+} from './collections'
 import GameField from './gameField'
 import ToolsPanel from './toolsPanel'
 import { getPopup } from './popup'
 import ClassPanel from './classPanel'
+import LinesLayer from './linesLayer'
+
 
 // настраивает компоненты игры,
 // обеспечивает передачу данных между компонентами
@@ -24,12 +30,18 @@ class Game {
         this.toolsPanel = new ToolsPanel({}, this.triggers);
         this.classPanel = new ClassPanel({}, this.triggers);
         this.popup = getPopup(document.body, this.triggers);
+        this.linesLayer = new LinesLayer({ stageEl }, this.triggers);
     }
     async init() {
         this.turnCollection = new TurnCollection({
             turnsData: await getTurns(),
             stageEl: this.stageEl,
         }, this.triggers);
+
+        const { item: { redLogicLines }} = await getRedLogicLines();
+        this.linesLayer.linesCollection = new LinesCollection(redLogicLines);
+        this.linesLayer.render();
+        
         this.triggers.dispatch = async (type, data) => {
             switch (type) {
                 case 'SAVE_FIELD_POSITION': {
@@ -82,16 +94,19 @@ class Game {
                     this.classPanel.togglePanelVisibility();
                     break;
                 }
+                // lines and markers
+                // ACTIVATE_MARKER (DEACTIVATE_MARKER) - click on yellow
+                // CONNECT_MARKERS - click on yellow
+                // SHOW_MARKERS_PANEL / HIDE_MARKERS_PANEL - click on marker
+                // RENDER_LINES
+                // TOGGLE_LINES_VISIBILITY - button
+                // TOGGLE_LINES_TO_BACK - button
 
-                case 'ZOOM': { break; }        // д.з. какие здесь ещё понадобятся функции?
-                case 'MANAGE_CLASS': { break; }
-                case 'MANAGE_SUBCLASS': { break; }
+                case 'ZOOM_IN': { break; }        // д.з. какие здесь ещё понадобятся функции?
+                case 'EDIT_CLASS': { break; }
+                case 'EDIT_SUBCLASS': { break; }
+                case 'DELETE_SUBCLASS': { break; }
                 case 'FLY_TO_MINIMAP': { break; }
-                // ADD_LINE
-                // TOGGLE_LINES
-                // *LINE
-
-                // SAVE_POSITIONS
             }
         }
     }

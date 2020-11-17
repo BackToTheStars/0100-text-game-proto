@@ -77,11 +77,23 @@ const turnsUpdateCoordinates = async (turns) =>
         });
     });
 
+
+const getRedLogicLines = async () =>
+    new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'GET',
+            url: '/game',
+            success: resolve,
+            error: reject
+        });
+    });
+
 export {
     getTurns,
     createTurn,
     updateTurn,
     deleteTurn,
-    turnsUpdateCoordinates
+    turnsUpdateCoordinates,
+    getRedLogicLines
 };
 

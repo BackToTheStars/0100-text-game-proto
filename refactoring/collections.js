@@ -3,8 +3,6 @@
 
 import Turn from './turn';
 
-
-
 class TurnCollection {
     constructor({ turnsData, stageEl }, triggers) {
         this.stageEl = stageEl;
@@ -32,6 +30,34 @@ class TurnCollection {
     }
 }
 
+class LinesCollection {
+    constructor( lines ) {
+        this.lines = lines;
+    }
+    getLines() {
+        return this.lines;
+    }
+    getLine({ _id }) {
+        return this.lines.find((line) => line._id === _id);
+    }
+    addLine(data) {
+        this.lines.push(data);
+    }
+    updateLine(data) {
+        const line = this.getLine({ _id: data._id });
+        for(let k in data) {
+            line[k] = data[k]
+        }
+    }
+    removeLine({ _id }) {
+        const index = this.lines.findIndex(
+            (line) => line._id === _id
+        );
+        this.lines.slice(index, 1);
+    }
+}
+
 export {
-    TurnCollection
+    TurnCollection,
+    LinesCollection
 };

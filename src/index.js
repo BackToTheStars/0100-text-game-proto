@@ -167,7 +167,7 @@ $('.link-lines-info').on('click', '.del-btn', function () {
             el.targetTurnId != targetTurnId ||
             el.targetMarker != targetMarker
         ) {
-            return true;
+            return true; // @todo: link на себя самого, сделать проверку
         }
         return false;
     });
@@ -204,18 +204,6 @@ getTurns((data) => {
         getTurn(elem, game.params, game);
     }
 
-    // setTimeout(() => $('.textBox').resizable(), 500)
-    // $('.textBox').draggable({
-    //     stop: function (event, ui) {
-    //         drawLinesByEls(lineInfoEls, frontLinesFlag);
-    //     },
-    // });
-    // $('.paragraphText').scroll(function (e) {
-    //     // определить скрытые маркеры
-    //     drawLinesByEls(lineInfoEls, frontLinesFlag);
-    // });
-
-    // @todo: Проверить, что массив lineInfoEls загружен
     drawLinesByEls(lineInfoEls, frontLinesFlag);
     markYellowElementsWithRed(lineInfoEls);
 
@@ -261,7 +249,7 @@ const selectChanged = () => {
     }
 };
 
-function drawLinesByEls(lineInfoEls, frontFlag = false) {
+function drawLinesByEls(lineInfoEls, frontFlag = false) { // + Z-index, впереди показывать или позади
     // функция рисования красной линии логической связи из точки "А" в точку "Б"
     let linesStr = '';
     for (let lineInfo of lineInfoEls) {
@@ -270,7 +258,7 @@ function drawLinesByEls(lineInfoEls, frontFlag = false) {
             lineInfo.sourceMarker
         );
         if (!isMarkerVisible($(sourceMarkerEl))) {
-            continue;
+            continue;        // перескакивает на следующую итерацию for
         }
         const targetMarkerEl = getYellowElement(
             lineInfo.targetTurnId,
@@ -307,7 +295,7 @@ function drawLinesByEls(lineInfoEls, frontFlag = false) {
                 (sourceFirst ? -2 : 2), // - 5,
             y2: targetCoords.top + Math.floor(targetCoords.height / 2),
         };
-        // отрисовка координат
+        // отрисовка координат @todo: сделать ifNeedToRender()
         linesStr += getLine(gameBox, line.x1, line.y1, line.x2, line.y2);
     }
     if ($('#lines').length) {
