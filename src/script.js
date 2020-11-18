@@ -313,27 +313,27 @@ class GameClass {
             })
                 .then((res) => {
                     res.json()
-                    .then((json)=> {
-                        const {id} = json;
-                        this.dbId = _id;
-                        this.prerender()
-                        .then(() => {
-                            this.render();
+                        .then((json) => {
+                            const { id } = json;
+                            this.dbId = _id;
+                            this.prerender()
+                                .then(() => {
+                                    this.render();
+                                });
+                        }, (err) => {
+                            console.log(`ERROR: GameClass: construtor: fetch: not JSON: ${err}`);
                         });
-                    }, (err) => {
-                        console.log(`ERROR: GameClass: construtor: fetch: not JSON: ${err}`);
-                    });
                 }, (err) => {
                     console.log(`ERROR: ${bodyJSON}: sending failed`);
                 })
         } else {
             this.prerender()
-            .then(() => {
-                this.render()
                 .then(() => {
-                    this.subClassNames.forEach((name) => {this.renderSubclass({subClassName: name})});
-                });
-            })
+                    this.render()
+                        .then(() => {
+                            this.subClassNames.forEach((name) => { this.renderSubclass({ subClassName: name }) });
+                        });
+                })
         }
     }
 
@@ -353,7 +353,7 @@ class GameClass {
 
         this.buttonAddSubclass = document.createElement('button');
         this.buttonAddSubclass.className = 'add-element';
-        this.buttonAddSubclass.onclick = () => { this.onClickAddSubclass({sync: true}) };
+        this.buttonAddSubclass.onclick = () => { this.onClickAddSubclass({ sync: true }) };
         this.buttonAddSubclass.innerText = 'Add';
 
         this.self.appendChild(this.title);
@@ -376,26 +376,26 @@ class GameClass {
 
     async onClickAddSubclass(obj) {
         console.log('onClickAddSubClass');
-        const {sync, subClassName} = obj;
+        const { sync, subClassName } = obj;
         if (sync) {
-        const bodyObj = {
-            className: this.name,
-            subClass: this.input.value,
-        };
-        const bodyJSON = JSON.stringify(bodyObj);
-        fetch('/gameClass/addSubclass', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Content-Length': bodyJSON.length,
-            },
-            body: bodyJSON
-        })
-            .then(() => {
-                this.renderSubclass({subClassName: bodyObj.subClass});
-            }, (err) => { console.log(JSON.stringify(err)) });
+            const bodyObj = {
+                className: this.name,
+                subClass: this.input.value,
+            };
+            const bodyJSON = JSON.stringify(bodyObj);
+            fetch('/gameClass/addSubclass', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': bodyJSON.length,
+                },
+                body: bodyJSON
+            })
+                .then(() => {
+                    this.renderSubclass({ subClassName: bodyObj.subClass });
+                }, (err) => { console.log(JSON.stringify(err)) });
         } else {
-            this.renderSubclass({subClassName});
+            this.renderSubclass({ subClassName });
         }
     }
 
@@ -418,9 +418,9 @@ class GameClassPanel {
         this.inputEl = undefined;
         this.buttonEl = undefined;
         this.prerender()
-        .then(() => {
-            this.render();
-        });
+            .then(() => {
+                this.render();
+            });
     }
 
     async load() {
@@ -432,7 +432,7 @@ class GameClassPanel {
 
     async prerender() {
         this.addNewClassBlock = document.createElement('div');
-        this.addNewClassBlock.className = "col-12";
+        this.addNewClassBlock.className = "addclass col-12";
         this.addNewClassBlock.innerHTML = `<span class="prompt">Add new class:</span>`;
 
         this.inputEl = document.createElement('input');
@@ -440,7 +440,7 @@ class GameClassPanel {
 
         this.buttonEl = document.createElement('button');
         this.buttonEl.innerText = 'Add';
-        this.buttonEl.onclick = () => {this.onClickAddNewClass()};
+        this.buttonEl.onclick = () => { this.onClickAddNewClass() };
         this.addNewClassBlock.appendChild(this.buttonEl);
     }
 
@@ -450,13 +450,15 @@ class GameClassPanel {
         await this.load();
         console.log(JSON.stringify(this.gameClassDescs));
         this.gameClasses = [];
-        this.gameClassDescs.forEach((classDesc) => {this.gameClasses.push(new GameClass({
-            name: classDesc.gameClass,
-            subClasses: classDesc.subClasses,
-            dbId: classDesc._id,
-            rootToAppend: this.rootElement,
-            sync: false
-        }))});
+        this.gameClassDescs.forEach((classDesc) => {
+            this.gameClasses.push(new GameClass({
+                name: classDesc.gameClass,
+                subClasses: classDesc.subClasses,
+                dbId: classDesc._id,
+                rootToAppend: this.rootElement,
+                sync: false
+            }))
+        });
     }
 
     async onClickAddNewClass() {
