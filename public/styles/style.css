@@ -170,26 +170,29 @@ button{
 .right-bottom-label {
     right: 0;
 }
-
+.addclass {
+    font-size: 1.4rem;
+}
 .class-list {
     padding-left: 0;
     outline: 1px solid #000;
     padding-right: 0;
+    font-size: 1.4rem;
 }
 
 .class-list .title {
-    padding-left: 10%;
+    padding-left: 3%;
     outline: 1px solid #000;
     font-weight: 600;
 }
 
 .class-list .el {
     background: #fff;
-    padding-left: 15%;
+    padding-left: 7%;
 }
 
 .class-list input {
-    margin-left: 10%;
+    margin-left: 3%;
     width: 65%;
     display: inline-block;
 }
