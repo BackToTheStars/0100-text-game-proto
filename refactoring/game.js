@@ -9,7 +9,8 @@ import {
 } from './service';
 import {
     TurnCollection,
-    LinesCollection
+    LinesCollection,
+    QuotesCollection
 } from './collections'
 import GameField from './gameField'
 import ToolsPanel from './toolsPanel'
@@ -41,6 +42,7 @@ class Game {
         const { item: { redLogicLines }} = await getRedLogicLines();
         this.linesLayer.linesCollection = new LinesCollection(redLogicLines);
         this.linesLayer.render();
+        this.linesLayer.quotesCollection = new QuotesCollection(this.turnCollection.getTurns())
         
         this.triggers.dispatch = async (type, data) => {
             switch (type) {

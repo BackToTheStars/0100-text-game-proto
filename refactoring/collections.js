@@ -57,7 +57,18 @@ class LinesCollection {
     }
 }
 
+class QuotesCollection {
+    constructor(turns) {
+
+    }
+
+    getQuote(turnId, num) {
+
+    }
+}
+
 export {
     TurnCollection,
-    LinesCollection
+    LinesCollection,
+    QuotesCollection
 };

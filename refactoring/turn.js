@@ -116,6 +116,22 @@ class Turn {
             `${maxMediaHeight + $(this.headerEl).height()}px`
         );
     }
+
+    getTopHeight() {
+        const headerHeight = $(this.headerEl).height() || 0;
+        const pictureHeight = $(this.imgEl).height() || 0;
+        const iFrameHeight = $(this.videoEl).height() || 0;
+        return headerHeight + pictureHeight + iFrameHeight;
+    }
+
+    getBottomHeight() {
+        const paragraphHeight = $(this.parapraphEl).height();
+        const headerHeight = $(this.headerEl).height() || 0;
+        const pictureHeight = $(this.imgEl).height() || 0;
+        const iFrameHeight = $(this.videoEl).height() || 0;
+        return headerHeight + paragraphHeight + pictureHeight + iFrameHeight
+    }
+
     update() {
         this.needToRender = true;
         this.render();
@@ -134,8 +150,8 @@ class Turn {
             sourceUrl,
         } = this.data;
         let { date, videoUrl } = this.data;
-        if (date)     { date = dateFormatter(date) };               // лежит в папке "refactoring/formatters"
-        if (videoUrl) {videoUrl = youtubeFormatter(videoUrl); };    // лежит там же
+        if (date) { date = dateFormatter(date) };               // лежит в папке "refactoring/formatters"
+        if (videoUrl) { videoUrl = youtubeFormatter(videoUrl); };    // лежит там же
 
         this.el.innerHTML = `<h5 class="headerText">
             ${header}
