@@ -431,17 +431,37 @@ class GameClassPanel {
     }
 
     async prerender() {
+        this.addIcon = document.createElement('img');
+        this.addIcon.src = "/icons/add.svg";
+        this.addIcon.style.display = 'inline-block';
+        this.addIcon.style.cursor = 'pointer';
+        this.addIcon.onclick = () => {
+            this.addIcon.style.display = 'none';
+            this.addNewClassBlockHiddenBlock.style.display = 'block';
+        }
+
         this.addNewClassBlock = document.createElement('div');
-        this.addNewClassBlock.className = "addclass col-12";
-        this.addNewClassBlock.innerHTML = `<span class="prompt">Add new class:</span>`;
+        this.addNewClassBlock.className = "col-12";
+
+        this.addNewClassBlockHiddenBlock = document.createElement('div');
+        this.addNewClassBlockHiddenBlock.innerHTML = `<span class="prompt">Add class:</span>`;
 
         this.inputEl = document.createElement('input');
-        this.addNewClassBlock.appendChild(this.inputEl);
+        this.addNewClassBlockHiddenBlock.appendChild(this.inputEl);
 
         this.buttonEl = document.createElement('button');
         this.buttonEl.innerText = 'Add';
-        this.buttonEl.onclick = () => { this.onClickAddNewClass() };
-        this.addNewClassBlock.appendChild(this.buttonEl);
+        this.buttonEl.onclick = () => {
+            this.onClickAddNewClass();
+            this.addIcon.style.display = 'block';
+            this.addNewClassBlockHiddenBlock.style.display = 'none';
+        };
+        this.addNewClassBlockHiddenBlock.appendChild(this.buttonEl);
+
+        this.addNewClassBlockHiddenBlock.style.display = 'none';
+
+        this.addNewClassBlock.appendChild(this.addIcon);
+        this.addNewClassBlock.appendChild(this.addNewClassBlockHiddenBlock);
     }
 
     async render() {
@@ -450,19 +470,18 @@ class GameClassPanel {
         await this.load();
         console.log(JSON.stringify(this.gameClassDescs));
         this.gameClasses = [];
-        this.gameClassDescs.forEach((classDesc) => {
-            this.gameClasses.push(new GameClass({
-                name: classDesc.gameClass,
-                subClasses: classDesc.subClasses,
-                dbId: classDesc._id,
-                rootToAppend: this.rootElement,
-                sync: false
-            }))
-        });
+        this.gameClassDescs.forEach((classDesc) => {this.gameClasses.push(new GameClass({
+            name: classDesc.gameClass,
+            subClasses: classDesc.subClasses,
+            dbId: classDesc._id,
+            rootToAppend: this.rootElement,
+            sync: false
+        }))});
     }
 
     async onClickAddNewClass() {
         const newClassName = this.inputEl.value;
+        this.inputEl.value = '';
         this.gameClasses.push(new GameClass({ name: newClassName, rootToAppend: this.rootElement, sync: true }));
     }
 }
