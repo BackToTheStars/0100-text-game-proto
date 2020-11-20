@@ -175,6 +175,7 @@ button{
     padding-left: 0;
     outline: 1px solid #000;
     padding-right: 0;
+    font-size: 1.1rem;
 }
 
 .class-list .title {
@@ -201,5 +202,10 @@ button{
 }
 
 #classMenu .prompt {
-    padding-left: 5%;
+    #padding-left: 5%;
+}
+
+#classMenu {
+    overflow-y: scroll;
+    height: 100vh;
 }
