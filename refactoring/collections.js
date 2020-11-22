@@ -2,6 +2,7 @@
 // но знает минимум об их реализации
 
 import Turn from './turn';
+import {Quote,Line} from './linesLayer';
 
 class TurnCollection {
     constructor({ turnsData, stageEl }, triggers) {
@@ -31,8 +32,9 @@ class TurnCollection {
 }
 
 class LinesCollection {
-    constructor( lines ) {
-        this.lines = lines;
+    constructor( lines, {getQuote} ) {
+        this.getQuote = getQuote;
+        this.lines = lines.map(data => new Line(data, {getQuote}));
     }
     getLines() {
         return this.lines;
@@ -41,13 +43,7 @@ class LinesCollection {
         return this.lines.find((line) => line._id === _id);
     }
     addLine(data) {
-        this.lines.push(data);
-    }
-    updateLine(data) {
-        const line = this.getLine({ _id: data._id });
-        for(let k in data) {
-            line[k] = data[k]
-        }
+        this.lines.push(new Line(data, {getQuote: this.getQuote}));
     }
     removeLine({ _id }) {
         const index = this.lines.findIndex(
@@ -58,12 +54,26 @@ class LinesCollection {
 }
 
 class QuotesCollection {
-    constructor(turns) {
-
+    constructor(turnObjects) {
+        this.turnObjects = turnObjects;
+        this.quoteObjects = [];
+        for(let turnObject of turnObjects) {
+            const quoteElements = turnObject.getQuoteElements();
+            // for(let index=0; index<quoteElements.length; index++)
+            for(let [index, quoteElement] of quoteElements.entries()) {
+                this.quoteObjects.push(new Quote({
+                    el: $(quoteElement),
+                    turn: turnObject,
+                    index
+                }))
+            }
+        }
+        this.getQuote = this.getQuote.bind(this);
     }
 
-    getQuote(turnId, num) {
-
+    getQuote(turnId, num) { // @todo: change to get by id
+        return this.quoteObjects.find((quoteObject) =>
+            (quoteObject.turn._id == turnId && num == quoteObject.index));
     }
 }
 

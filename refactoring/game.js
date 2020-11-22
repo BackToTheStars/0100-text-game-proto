@@ -40,9 +40,11 @@ class Game {
         }, this.triggers);
 
         const { item: { redLogicLines }} = await getRedLogicLines();
-        this.linesLayer.linesCollection = new LinesCollection(redLogicLines);
-        this.linesLayer.render();
         this.linesLayer.quotesCollection = new QuotesCollection(this.turnCollection.getTurns())
+        this.linesLayer.linesCollection = new LinesCollection(redLogicLines, {
+            getQuote: this.linesLayer.quotesCollection.getQuote
+        });
+        this.linesLayer.render();
         
         this.triggers.dispatch = async (type, data) => {
             switch (type) {
@@ -60,6 +62,7 @@ class Game {
                 }
                 case 'DRAW_LINES': {
                     console.log('DRAW_LINES')
+                    this.linesLayer.render();
                     break;
                 }
                 case 'CREATE_TURN': {

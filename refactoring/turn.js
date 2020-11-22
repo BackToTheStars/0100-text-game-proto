@@ -41,7 +41,8 @@ class Turn {
         });
         $(this.el).draggable({
             // drawLinesByEls(lineInfoEls, true); // @todo check frontLinesFlag);
-            stop: (event, ui) => triggers.dispatch('DRAW_LINES')
+            stop: (event, ui) => triggers.dispatch('DRAW_LINES'),
+            drag: (event, ui) => triggers.dispatch('DRAW_LINES')
         });
         this.handleResize();
     }
@@ -125,7 +126,7 @@ class Turn {
     }
 
     getBottomHeight() {
-        const paragraphHeight = $(this.parapraphEl).height();
+        const paragraphHeight = $(this.paragraphEl).height();
         const headerHeight = $(this.headerEl).height() || 0;
         const pictureHeight = $(this.imgEl).height() || 0;
         const iFrameHeight = $(this.videoEl).height() || 0;
@@ -135,6 +136,15 @@ class Turn {
     update() {
         this.needToRender = true;
         this.render();
+    }
+
+    getQuoteElements() {
+        return $(this.paragraphEl)
+            .find('span')
+            .toArray()
+            .filter((spanEl) => {
+                return $(spanEl).css('background-color') === 'rgb(255, 255, 0)';
+            });
     }
 
     render() {
@@ -195,6 +205,12 @@ class Turn {
         // game.popup.openModal();
         // game.popup.setTurn(turnModel);
     };
+    scrollParagrahpHandler() {
+        this.data.scrollPosition = this.paragraphEl.scrollTop;
+        if(this.triggers.dispatch) {
+            this.triggers.dispatch('DRAW_LINES')
+        }
+    }
     // inner handlers
     removeEventHandlers() {
         this.deleteBtn && this.deleteBtn.removeEventListener('click', this.deleteButtonHandler.bind(this));
@@ -211,8 +227,13 @@ class Turn {
         this.imgEl = this.el.querySelector('.picture-content');
         this.paragraphEl = this.el.querySelector('.paragraphText');
 
+        $(this.paragraphEl).ready(() => {
+            this.paragraphEl.scrollTop = this.data.scrollPosition
+        })
+
         this.deleteBtn.addEventListener('click', this.deleteButtonHandler.bind(this));
         this.editBtn.addEventListener('click', this.editButtonHandler.bind(this));
+        this.paragraphEl.addEventListener('scroll', this.scrollParagrahpHandler.bind(this))
     }
     destroy() {
         // @todo: remove common handlers
