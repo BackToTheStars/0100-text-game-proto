@@ -99,6 +99,10 @@ class Game {
                     this.classPanel.togglePanelVisibility();
                     break;
                 }
+                case 'MAKE_FIELD_TRANSLUCENT': {
+                    this.gameField.makeTranslucent(data); // data = true/false
+                    break;
+                }
                 // lines and markers
                 // ACTIVATE_MARKER (DEACTIVATE_MARKER) - click on yellow
                 // CONNECT_MARKERS - click on yellow

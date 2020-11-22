@@ -41,7 +41,11 @@ class Turn {
         });
         $(this.el).draggable({
             // drawLinesByEls(lineInfoEls, true); // @todo check frontLinesFlag);
-            stop: (event, ui) => triggers.dispatch('DRAW_LINES'),
+            start: (event, ui) => triggers.dispatch('MAKE_FIELD_TRANSLUCENT', true),
+            stop: (event, ui) => {
+                triggers.dispatch('DRAW_LINES');
+                triggers.dispatch('MAKE_FIELD_TRANSLUCENT', false);
+            },
             drag: (event, ui) => triggers.dispatch('DRAW_LINES')
         });
         this.handleResize();

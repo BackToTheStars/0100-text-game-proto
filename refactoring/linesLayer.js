@@ -4,57 +4,6 @@ import {
 } from './collections'
 
 
-let linkLineWidth = 2;
-
-function isMarkerVisible(jqElement) {
-    // элементы отбрасывают "тень", иметь ввиду для дальнейших видов контента!
-    // if(jqElement.parents('[data-content-type="picture"]').length) {
-    //     debugger;
-    // }
-    if (!jqElement.length) {
-        // console.log('Попытка обратиться к несуществующему jquery элементу'); @todo
-        return false;
-    }
-    const top = jqElement.position()['top'];
-    const height = jqElement.height();
-    const paragraphHeight = jqElement.parents('.paragraphText').height();
-    const headerHeight =
-        jqElement.parents('.textBox').find('.headerText').height() || 0;
-    const pictureHeight =
-        jqElement.parents('.textBox').find('.picture-content').height() || 0;
-    const iFrameHeight =
-        jqElement.parents('.textBox').find('.video').height() || 0;
-
-    if (top + height < headerHeight + pictureHeight + iFrameHeight) {
-        return false;
-    }
-    if (top > headerHeight + paragraphHeight + pictureHeight + iFrameHeight) {
-        return false;
-    }
-    return true;
-}
-
-const getLine = (gameBox, x1, y1, x2, y2) => {
-    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="red" stroke-width="${linkLineWidth}" />`;
-};
-
-// const getMarkerCoords = (turnId, markerPos) => {
-//     // берём координаты жёлтых цитат
-//     const element = $(`[data-id = "${turnId}"]`);
-//     const markerEls = element
-//         .find('.paragraphText span')
-//         .toArray()
-//         .filter((spanEl) => {
-//             return $(spanEl).css('background-color') === 'rgb(255, 255, 0)';
-//         });
-//     return {
-//         left: $(markerEls[markerPos]).offset()['left'],
-//         top: $(markerEls[markerPos]).offset()['top'],
-//         width: $(markerEls[markerPos]).width(),
-//         height: $(markerEls[markerPos]).height(),
-//     };
-// };
-
 const getYellowElements = (turnId) => {
     const element = $(`[data-id = "${turnId}"]`);
     return element
@@ -119,7 +68,7 @@ class Line {
         );
     }
     isVisible() {
-        if(!this.sourceQuote || !this.targetQuote) {
+        if (!this.sourceQuote || !this.targetQuote) {
             // @fixme
             return false;
         }
@@ -147,7 +96,16 @@ class Line {
                 (sourceFirst ? -2 : 2), // - 5,
             y2: targetCoords.top + Math.floor(targetCoords.height / 2),
         };
-        return `<line x1="${line.x1}" y1="${line.y1}" x2="${line.x2}" y2="${line.y2}" stroke="red" stroke-width="2" />`;
+
+        const k = 0.5
+        // line.x1 + k * (line.x2 - line.x1)
+        // line.y1 + k * (line.y2 - line.y1)
+
+        return `<path 
+            d="M${line.x1} ${line.y1} C ${line.x1 + k * (line.x2 - line.x1)} ${line.y1}, ${line.x2 - k * (line.x2 - line.x1)} ${line.y2}, ${line.x2} ${line.y2}"
+            stroke="red" stroke-width="2" fill="transparent"
+        />`
+        // return `<line x1="${line.x1}" y1="${line.y1}" x2="${line.x2}" y2="${line.y2}" stroke="red" stroke-width="2" />`;
     }
 }
 
@@ -169,7 +127,7 @@ class LinesLayer {
         let linesStr = '';
         console.log('collection', this.linesCollection)
         for (let lineObj of this.linesCollection.getLines()) {
-            if(!lineObj.isVisible()) {
+            if (!lineObj.isVisible()) {
                 continue;
             }
             linesStr += lineObj.getSvgLine();

@@ -53,6 +53,14 @@ class GameField {
         return payload;
     }
 
+    makeTranslucent(flag) { // flag = true / false, делать прозрачным или нет
+        if (flag) {
+            this.stageEl.addClass('translucent');
+        } else {
+            this.stageEl.removeClass('translucent');
+        }
+    }
+
     addEventHandlers() {
         this.stageEl.draggable({
             stop: (event, ui) => {
