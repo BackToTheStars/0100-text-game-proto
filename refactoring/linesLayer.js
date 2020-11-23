@@ -103,7 +103,7 @@ class Line {
 
         return `<path 
             d="M${line.x1} ${line.y1} C ${line.x1 + k * (line.x2 - line.x1)} ${line.y1}, ${line.x2 - k * (line.x2 - line.x1)} ${line.y2}, ${line.x2} ${line.y2}"
-            stroke="red" stroke-width="2" fill="transparent"
+            stroke="red" stroke-width="3" fill="transparent"
         />`
         // return `<line x1="${line.x1}" y1="${line.y1}" x2="${line.x2}" y2="${line.y2}" stroke="red" stroke-width="2" />`;
     }

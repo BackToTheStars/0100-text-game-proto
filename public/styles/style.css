@@ -3,12 +3,12 @@ html, body {
 }
 
 .translucent .textBox {
-    opacity: 0.6;
+    opacity: 0.4;
 }
 
 .textBox {
     cursor: move;
-    transition: opacity 0.15s;
+    transition: opacity 0.25s;
     min-width: 300px;
     max-width: 2000px;
     min-height: 50px;
