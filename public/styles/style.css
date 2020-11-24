@@ -107,7 +107,7 @@ button{
     float: right;
 }
 
-.red-link-line {
+.red-border-to-quote {
     outline: 3px solid red;
     padding-left: 3px;
     padding-right: 3px;

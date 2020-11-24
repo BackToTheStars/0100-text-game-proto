@@ -40,7 +40,7 @@ class Game {
         }, this.triggers);
 
         const { item: { redLogicLines }} = await getRedLogicLines();
-        this.linesLayer.quotesCollection = new QuotesCollection(this.turnCollection.getTurns())
+        this.linesLayer.quotesCollection = new QuotesCollection(this.turnCollection.getTurns(), this.triggers)
         this.linesLayer.linesCollection = new LinesCollection(redLogicLines, {
             getQuote: this.linesLayer.quotesCollection.getQuote
         });
@@ -101,6 +101,14 @@ class Game {
                 }
                 case 'MAKE_FIELD_TRANSLUCENT': {
                     this.gameField.makeTranslucent(data); // data = true/false
+                    break;
+                }
+                case 'TOGGLE_LINES_FRONT_BACK': {
+                    this.linesLayer.toggleLinesZIndex();
+                    break;
+                }
+                case 'CLICKED_QUOTE': {
+                    this.linesLayer.setClickedQuote(data)
                     break;
                 }
                 // lines and markers

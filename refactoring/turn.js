@@ -238,6 +238,7 @@ class Turn {
         this.deleteBtn.addEventListener('click', this.deleteButtonHandler.bind(this));
         this.editBtn.addEventListener('click', this.editButtonHandler.bind(this));
         this.paragraphEl.addEventListener('scroll', this.scrollParagrahpHandler.bind(this))
+        this.el.addEventListener('dblclick', () => this.triggers.dispatch('TOGGLE_LINES_FRONT_BACK'));
     }
     destroy() {
         // @todo: remove common handlers

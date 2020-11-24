@@ -1,0 +1,44 @@
+class Quote {
+  constructor({ el, turn, index }, triggers) {
+      this.el = el;
+      this.turn = turn;
+      this.triggers = triggers;
+      // порядковый номер
+      this.index = index;
+      // координаты
+      this.addEventHandlers();
+  }
+  isVisible() {
+      if (!this.el.length) {
+          // console.log('Попытка обратиться к несуществующему jquery элементу'); @todo
+          return false;
+      }
+      this.top = this.el.position()['top'];
+      this.height = this.el.height();
+
+      if (this.top + this.height < this.turn.getTopHeight()) {
+          return false;
+      }
+      if (this.top > this.turn.getBottomHeight()) {
+          return false;
+      }
+      return true;
+  }
+  getCoords() {
+      return {
+          left: this.el.offset()['left'],
+          top: this.el.offset()['top'],
+          width: this.el.width(),
+          height: this.el.height(),
+      };
+  }
+  addEventHandlers() {
+      // click - красная рамка
+      this.el.get(0).addEventListener('click', () => this.triggers.dispatch('CLICKED_QUOTE', {
+        turnId: this.turn._id,
+        num: this.index
+      }))
+  }
+}
+
+module.exports = Quote

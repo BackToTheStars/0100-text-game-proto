@@ -2,7 +2,8 @@
 // но знает минимум об их реализации
 
 import Turn from './turn';
-import {Quote,Line} from './linesLayer';
+import Quote from './quote';
+import Line from './line'; 
 
 class TurnCollection {
     constructor({ turnsData, stageEl }, triggers) {
@@ -54,7 +55,7 @@ class LinesCollection {
 }
 
 class QuotesCollection {
-    constructor(turnObjects) {
+    constructor(turnObjects, triggers) {
         this.turnObjects = turnObjects;
         this.quoteObjects = [];
         for(let turnObject of turnObjects) {
@@ -65,7 +66,7 @@ class QuotesCollection {
                     el: $(quoteElement),
                     turn: turnObject,
                     index
-                }))
+                }, triggers))
             }
         }
         this.getQuote = this.getQuote.bind(this);
