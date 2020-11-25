@@ -175,15 +175,16 @@ button{
 }
 .class-list {
     padding-left: 0;
-    outline: 1px solid #000;
+    #outline: 1px solid #000;
     padding-right: 0;
     font-size: 1.1rem;
 }
 
-.class-list .title {
+.class-list .title-block {
     padding-left: 3%;
     outline: 1px solid #000;
     font-weight: 600;
+    display: flex;
 }
 
 .class-list .el {
@@ -203,11 +204,28 @@ button{
     display: inline-block;
 }
 
-#classMenu .prompt {
-    #padding-left: 5%;
-}
-
 #classMenu {
     overflow-y: scroll;
     height: 100vh;
+}
+
+.title-button-add {
+    background: url('/icons/add.svg') no-repeat center center;
+    border: none;
+    cursor: pointer;
+    width: 24px;
+}
+
+.title-button-edit {
+    background: url('/icons/edit.svg') no-repeat center center;
+    border: none;
+    cursor: pointer;
+    width: 24px;
+}
+
+.title-button-delete {
+    background: url('/icons/delete.svg') no-repeat center center;
+    border: none;
+    cursor: pointer;
+    width: 24px;
 }

@@ -344,19 +344,63 @@ class GameClass {
         this.subClasses = document.createElement('div');
         //this.subClasses.className = '';
 
-        this.title = document.createElement('div');
-        this.title.className = 'title';
-        this.title.innerText = this.name;
+        this.titleBlock = document.createElement('div');
+        this.titleBlock.className = 'title-block';
+
+        this.titleName = document.createElement('div');
+        this.titleName.innerText = this.name;
+
+        this.titleButtonAdd = document.createElement('button');
+        this.titleButtonAdd.className = 'title-button-add';
+        this.titleButtonAdd.onclick = () => {
+            this.input.style.display = 'inline-block';
+            this.buttonAddSubclass.style.display = 'inline-block';
+        };
+
+        this.titleButtonEdit = document.createElement('button');
+        this.titleButtonEdit.className = 'title-button-edit';
+        this.titleButtonEdit.onclick = () => {
+            
+        };
+
+        this.titleButtonDelete = document.createElement('button');
+        this.titleButtonDelete.className = 'title-button-delete';
+        this.titleButtonDelete.onclick = () => {
+
+        };
+
+        this.titleBlock.appendChild(this.titleName);
+        this.titleBlock.appendChild(this.titleButtonAdd);
+        this.titleBlock.appendChild(this.titleButtonEdit);
+        this.titleBlock.appendChild(this.titleButtonDelete);
+
+        this.titleButtonAdd.style.display = 'none';
+        this.titleButtonEdit.style.display = 'none';
+        this.titleButtonDelete.style.display = 'none';
+
+        this.titleBlock.onmouseover = () => {
+            this.titleButtonAdd.style.display = 'block';
+            this.titleButtonEdit.style.display = 'block';
+            this.titleButtonDelete.style.display = 'block';
+        };
+
+        this.titleBlock.onmouseleave = () => {
+            this.titleButtonAdd.style.display = 'none';
+            this.titleButtonEdit.style.display = 'none';
+            this.titleButtonDelete.style.display = 'none';
+        }
 
         this.input = document.createElement('input');
         this.input.className = 'col-12';
+        this.input.style.display = 'none';
 
         this.buttonAddSubclass = document.createElement('button');
         this.buttonAddSubclass.className = 'add-element';
         this.buttonAddSubclass.onclick = () => { this.onClickAddSubclass({ sync: true }) };
         this.buttonAddSubclass.innerText = 'Add';
+        this.buttonAddSubclass.style.display = 'none';
 
-        this.self.appendChild(this.title);
+        this.self.appendChild(this.titleBlock);
         this.self.appendChild(this.subClasses);
         this.self.appendChild(this.input);
         this.self.appendChild(this.buttonAddSubclass);
@@ -433,7 +477,7 @@ class GameClassPanel {
     async prerender() {
         this.addIcon = document.createElement('img');
         this.addIcon.src = "/icons/add.svg";
-        this.addIcon.style.display = 'inline-block';
+        this.addIcon.style.display = 'block';
         this.addIcon.style.cursor = 'pointer';
         this.addIcon.onclick = () => {
             this.addIcon.style.display = 'none';
@@ -449,14 +493,23 @@ class GameClassPanel {
         this.inputEl = document.createElement('input');
         this.addNewClassBlockHiddenBlock.appendChild(this.inputEl);
 
-        this.buttonEl = document.createElement('button');
-        this.buttonEl.innerText = 'Add';
-        this.buttonEl.onclick = () => {
+        this.buttonAddEl = document.createElement('button');
+        this.buttonAddEl.innerText = 'Add';
+        this.buttonAddEl.onclick = () => {
             this.onClickAddNewClass();
             this.addIcon.style.display = 'block';
             this.addNewClassBlockHiddenBlock.style.display = 'none';
         };
-        this.addNewClassBlockHiddenBlock.appendChild(this.buttonEl);
+        this.addNewClassBlockHiddenBlock.appendChild(this.buttonAddEl);
+
+        this.buttonCancelEl = document.createElement('button');
+        this.buttonCancelEl.innerText = 'Cancel';
+        this.buttonCancelEl.onclick = () => {
+            this.inputEl.value = '';
+            this.addIcon.style.display = 'block';
+            this.addNewClassBlockHiddenBlock.style.display = 'none';
+        }
+        this.addNewClassBlockHiddenBlock.appendChild(this.buttonCancelEl);
 
         this.addNewClassBlockHiddenBlock.style.display = 'none';
 
@@ -470,13 +523,15 @@ class GameClassPanel {
         await this.load();
         console.log(JSON.stringify(this.gameClassDescs));
         this.gameClasses = [];
-        this.gameClassDescs.forEach((classDesc) => {this.gameClasses.push(new GameClass({
-            name: classDesc.gameClass,
-            subClasses: classDesc.subClasses,
-            dbId: classDesc._id,
-            rootToAppend: this.rootElement,
-            sync: false
-        }))});
+        this.gameClassDescs.forEach((classDesc) => {
+            this.gameClasses.push(new GameClass({
+                name: classDesc.gameClass,
+                subClasses: classDesc.subClasses,
+                dbId: classDesc._id,
+                rootToAppend: this.rootElement,
+                sync: false
+            }))
+        });
     }
 
     async onClickAddNewClass() {
