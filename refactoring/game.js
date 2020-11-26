@@ -39,14 +39,15 @@ class Game {
             stageEl: this.stageEl,
         }, this.triggers);
 
-        const { item: { redLogicLines }} = await getRedLogicLines();
+        const { item: { redLogicLines } } = await getRedLogicLines();
         this.linesLayer.quotesCollection = new QuotesCollection(this.turnCollection.getTurns(), this.triggers)
         this.linesLayer.linesCollection = new LinesCollection(redLogicLines, {
             getQuote: this.linesLayer.quotesCollection.getQuote
         });
         this.linesLayer.render();
-        
+
         this.triggers.dispatch = async (type, data) => {
+            // добавить логгер действий пользователя - потом её можно использовать в тестах и телеметрии
             switch (type) {
                 case 'SAVE_FIELD_POSITION': {
                     const turns = await this.turnCollection.getTurns();
@@ -63,6 +64,12 @@ class Game {
                 case 'DRAW_LINES': {
                     console.log('DRAW_LINES')
                     this.linesLayer.render();
+                    break;
+                }
+                case 'CREATE_LINE': {
+                    // @todo: backend request
+                    // добавить в коллекцию линий
+                    // отрисовать линии
                     break;
                 }
                 case 'CREATE_TURN': {

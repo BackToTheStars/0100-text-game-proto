@@ -3,7 +3,7 @@
 
 import Turn from './turn';
 import Quote from './quote';
-import Line from './line'; 
+import Line from './line';
 
 class TurnCollection {
     constructor({ turnsData, stageEl }, triggers) {
@@ -33,9 +33,14 @@ class TurnCollection {
 }
 
 class LinesCollection {
-    constructor( lines, {getQuote} ) {
+    constructor(lines, { getQuote }) {
         this.getQuote = getQuote;
-        this.lines = lines.map(data => new Line(data, {getQuote}));
+        this.lines = lines
+            .map(data => new Line(data, { getQuote }))
+            .filter((line) => {
+                // @fixme
+                return line.sourceQuote && line.targetQuote
+            });
     }
     getLines() {
         return this.lines;
@@ -43,8 +48,11 @@ class LinesCollection {
     getLine({ _id }) {
         return this.lines.find((line) => line._id === _id);
     }
+    getLineByQuotes(quote1, quote2) {
+        return this.lines.find((line) => line.hasQuote(quote1) && line.hasQoute(quote2));
+    }
     addLine(data) {
-        this.lines.push(new Line(data, {getQuote: this.getQuote}));
+        this.lines.push(new Line(data, { getQuote: this.getQuote }));
     }
     removeLine({ _id }) {
         const index = this.lines.findIndex(
@@ -58,10 +66,10 @@ class QuotesCollection {
     constructor(turnObjects, triggers) {
         this.turnObjects = turnObjects;
         this.quoteObjects = [];
-        for(let turnObject of turnObjects) {
+        for (let turnObject of turnObjects) {
             const quoteElements = turnObject.getQuoteElements();
             // for(let index=0; index<quoteElements.length; index++)
-            for(let [index, quoteElement] of quoteElements.entries()) {
+            for (let [index, quoteElement] of quoteElements.entries()) {
                 this.quoteObjects.push(new Quote({
                     el: $(quoteElement),
                     turn: turnObject,

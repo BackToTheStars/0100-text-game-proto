@@ -4,6 +4,7 @@ import Line from './line';
 
 class LinesLayer {
     constructor({ stageEl }, triggers) {
+        this.triggers = triggers;
         this.stageEl = stageEl;
         this.quotesCollection = new QuotesCollection([]);
         this.linesCollection = new LinesCollection([], {
@@ -21,10 +22,39 @@ class LinesLayer {
         this.activeLines = [];
     }
 
-    setClickedQuote({turnId, num}) {
+    setClickedQuote({ turnId, num }) { // ПРОВЕРКИ, ЧТО ДАЛЬШЕ ДЕЛАТЬ С КЛИКНУТОЙ ЦИТАТОЙ
         const quote = this.quotesCollection.getQuote(turnId, num);
-        // @todo: более сложная логика
-        console.log(quote);
+        if (this.activeQuote) { // активная цитата уже была
+            if (quote.isEqual(this.activeQuote)) { // нажата та же цитата, что и раньше
+                this.activeQuote = null;
+                const line = this.linesCollection.getLines().find(line => line.hasQuote(quote))
+                // проверить, есть ли связи у цитаты
+                // если нет, то убрать рамочку
+                if (!line) {
+                    quote.removeBorder();
+                }
+                // @todo скрыть panel редактирования связей
+            } else { // нажата новая цитата
+                const line = this.linesCollection.getLineByQuotes(
+                    quote,
+                    this.activeQuote
+                );
+                if (!line) { // если линии, соединяющей две цитаты, ещё нет
+                    this.triggers.dispatch('CREATE_LINE', {
+                        sourceQuote: this.activeQuote,
+                        targetQuote: quote
+                    });
+                }
+                this.activeQuote = quote;
+                // дождаться создания линии
+                // @todo: перерисовать панель редактирования связей на новую цитату
+            }
+        } else { // активной цитаты ещё не было
+            this.activeQuote = quote;
+            // @todo: перерисовать панель редактирования связей на активную цитату
+            // рисуем рамку вокруг активной цитаты
+            quote.addBorder();
+        }
     }
 
     render() {

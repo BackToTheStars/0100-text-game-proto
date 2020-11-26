@@ -8,8 +8,8 @@ class Line {
           data.targetTurnId,
           data.targetMarker
       );
-      this.sourceQuote && this.sourceQuote.el.addClass('red-border-to-quote')  // @todo: clean  
-      this.targetQuote && this.targetQuote.el.addClass('red-border-to-quote')
+      this.sourceQuote && this.sourceQuote.addBorder()  
+      this.targetQuote && this.targetQuote.addBorder() 
   }
   isVisible() {
       if (!this.sourceQuote || !this.targetQuote) {
@@ -17,6 +17,9 @@ class Line {
           return false;
       }
       return this.sourceQuote.isVisible() && this.targetQuote.isVisible();
+  }
+  hasQuote(quote) {
+    return this.sourceQuote.isEqual(quote) || this.targetQuote.isEqual(quote)
   }
   getSvgLine() {
       const sourceCoords = this.sourceQuote.getCoords();
