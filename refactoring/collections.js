@@ -48,8 +48,11 @@ class LinesCollection {
     getLine({ _id }) {
         return this.lines.find((line) => line._id === _id);
     }
+    getLinesByQuote(quote) {
+        return this.lines.filter((line) => line.hasQuote(quote)); // возвращает массив
+    }
     getLineByQuotes(quote1, quote2) {
-        return this.lines.find((line) => line.hasQuote(quote1) && line.hasQoute(quote2));
+        return this.lines.find((line) => line.hasQuote(quote1) && line.hasQuote(quote2));
     }
     addLine(data) {
         this.lines.push(new Line(data, { getQuote: this.getQuote }));

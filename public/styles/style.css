@@ -117,7 +117,7 @@ button{
     z-index: 3;
 }
 
-.link-lines-info {
+.quotes-panel {
     position: absolute;
     left: 570px;
     bottom: 30px;
@@ -125,7 +125,7 @@ button{
     min-width: 300px;
     z-index: 4;
 }
-.link-lines-info table {
+.quotes-panel table {
     width: 100%;
 }
 

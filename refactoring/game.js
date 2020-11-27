@@ -17,6 +17,7 @@ import ToolsPanel from './toolsPanel'
 import { getPopup } from './popup'
 import ClassPanel from './classPanel'
 import LinesLayer from './linesLayer'
+import QuotesPanel from './quotesPanel';
 
 
 // настраивает компоненты игры,
@@ -28,10 +29,15 @@ class Game {
         this.gameField = new GameField({
             stageEl: this.stageEl,
         }, this.triggers);
+
         this.toolsPanel = new ToolsPanel({}, this.triggers);
         this.classPanel = new ClassPanel({}, this.triggers);
+        
         this.popup = getPopup(document.body, this.triggers);
-        this.linesLayer = new LinesLayer({ stageEl }, this.triggers);
+        this.linesLayer = new LinesLayer({
+            stageEl,
+            quotesPanel: new QuotesPanel({}, this.triggers) // создали панель управления линиями
+        }, this.triggers);
     }
     async init() {
         this.turnCollection = new TurnCollection({
@@ -62,7 +68,6 @@ class Game {
                     break;
                 }
                 case 'DRAW_LINES': {
-                    console.log('DRAW_LINES')
                     this.linesLayer.render();
                     break;
                 }

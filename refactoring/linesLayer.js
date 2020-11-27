@@ -3,9 +3,10 @@ import Quote from './quote';
 import Line from './line';
 
 class LinesLayer {
-    constructor({ stageEl }, triggers) {
+    constructor({ stageEl, quotesPanel }, triggers) {
         this.triggers = triggers;
         this.stageEl = stageEl;
+        this.quotesPanel = quotesPanel;
         this.quotesCollection = new QuotesCollection([]);
         this.linesCollection = new LinesCollection([], {
             getQuote: this.quotesCollection.getQuote
@@ -32,8 +33,8 @@ class LinesLayer {
                 // если нет, то убрать рамочку
                 if (!line) {
                     quote.removeBorder();
-                }
-                // @todo скрыть panel редактирования связей
+                } 
+                this.quotesPanel.hide();      // скрыть panel редактирования линий 
             } else { // нажата новая цитата
                 const line = this.linesCollection.getLineByQuotes(
                     quote,
@@ -47,11 +48,19 @@ class LinesLayer {
                 }
                 this.activeQuote = quote;
                 // дождаться создания линии
-                // @todo: перерисовать панель редактирования связей на новую цитату
+                // @todo: перерисовать панель редактирования линий на новую цитату
+                this.quotesPanel.show({
+                    quote: this.activeQuote,
+                    lines: this.linesCollection.getLinesByQuote(this.activeQuote)
+                })
             }
         } else { // активной цитаты ещё не было
             this.activeQuote = quote;
-            // @todo: перерисовать панель редактирования связей на активную цитату
+            // @todo: перерисовать панель редактирования линий на активную цитату
+            this.quotesPanel.show({
+                quote: this.activeQuote,
+                lines: this.linesCollection.getLinesByQuote(this.activeQuote)
+            })
             // рисуем рамку вокруг активной цитаты
             quote.addBorder();
         }

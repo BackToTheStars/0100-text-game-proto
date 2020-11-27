@@ -22,7 +22,7 @@ function youtubeFormatter(videoAddress) {
     //     address = videoAddress;
     // }
 
-    console.log(address);
+    // console.log(address);
     return address;
 };
 
