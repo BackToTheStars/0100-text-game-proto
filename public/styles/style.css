@@ -175,7 +175,6 @@ button{
 }
 .class-list {
     padding-left: 0;
-    #outline: 1px solid #000;
     padding-right: 0;
     font-size: 1.1rem;
 }
@@ -185,6 +184,10 @@ button{
     outline: 1px solid #000;
     font-weight: 600;
     display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-content: center;
+    align-items: center;
 }
 
 .class-list .el {
@@ -214,6 +217,7 @@ button{
     border: none;
     cursor: pointer;
     width: 24px;
+    height: 24px;
 }
 
 .title-button-edit {
@@ -221,6 +225,7 @@ button{
     border: none;
     cursor: pointer;
     width: 24px;
+    height: 24px;
 }
 
 .title-button-delete {
@@ -228,4 +233,5 @@ button{
     border: none;
     cursor: pointer;
     width: 24px;
+    height: 24px;
 }
