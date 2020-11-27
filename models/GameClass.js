@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 const config = require('../config.json');
 
 const schema = new Schema({
-  id: {
+  _id: {
     type: String,
     required: false
   },

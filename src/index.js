@@ -6,7 +6,6 @@ import {
     saveFieldSettings,
     saveLinesSettings,
     savePanelSettings,
-    addNewClass,
     addNewBoxToGame,
 } from './script.js';
 

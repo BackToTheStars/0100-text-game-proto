@@ -297,7 +297,7 @@ class GameClass {
         this.rootToAppend = rootToAppend;
         this.subClassNames = subClasses;
         this.sync = sync;                   // говорит что этот класс нужно отправить на сервер
-        console.log(`GameClass: constructor: obj = ${JSON.stringify(obj)}`);
+        //console.log(`GameClass: constructor: obj = ${JSON.stringify(obj)}`);
         if (sync) {
             const body = {
                 gameClass: name
@@ -350,17 +350,39 @@ class GameClass {
         this.titleName = document.createElement('div');
         this.titleName.innerText = this.name;
 
+        this.titleNameInput = document.createElement('input');
+        this.titleNameInput.className = 'col-6';
+        this.titleNameInput.addEventListener('keyup', (ev) => {
+            ev.preventDefault();
+            if (ev.keyCode === 13) {
+                const val = this.titleNameInput.value;
+                if (val.trim() != '') {
+                    //console.log(`${val} key enter`);
+                    this.name = val;
+                    this.titleName.innerHTML = '';
+                    this.titleName.innerText = this.name;
+                    //fetch('')
+                }
+            }
+        });
+
+        this.titleButtons = document.createElement('div');
+        this.titleButtons.className = 'title-buttons';
+
         this.titleButtonAdd = document.createElement('button');
         this.titleButtonAdd.className = 'title-button-add';
         this.titleButtonAdd.onclick = () => {
             this.input.style.display = 'inline-block';
             this.buttonAddSubclass.style.display = 'inline-block';
+            this.buttonCancelInput.style.display = 'inline-block';
         };
 
         this.titleButtonEdit = document.createElement('button');
         this.titleButtonEdit.className = 'title-button-edit';
         this.titleButtonEdit.onclick = () => {
-            
+            this.titleNameInput.value = this.name;
+            this.titleName.innerHTML = '';
+            this.titleName.appendChild(this.titleNameInput);
         };
 
         this.titleButtonDelete = document.createElement('button');
@@ -369,29 +391,25 @@ class GameClass {
 
         };
 
-        this.titleBlock.appendChild(this.titleName);
-        this.titleBlock.appendChild(this.titleButtonAdd);
-        this.titleBlock.appendChild(this.titleButtonEdit);
-        this.titleBlock.appendChild(this.titleButtonDelete);
+        this.titleButtons.appendChild(this.titleButtonAdd);
+        this.titleButtons.appendChild(this.titleButtonEdit);
+        this.titleButtons.appendChild(this.titleButtonDelete);
 
-        this.titleButtonAdd.style.display = 'none';
-        this.titleButtonEdit.style.display = 'none';
-        this.titleButtonDelete.style.display = 'none';
+        this.titleButtons.style.display = 'none';
+
+        this.titleBlock.appendChild(this.titleName);
+        this.titleBlock.appendChild(this.titleButtons);
 
         this.titleBlock.onmouseover = () => {
-            this.titleButtonAdd.style.display = 'block';
-            this.titleButtonEdit.style.display = 'block';
-            this.titleButtonDelete.style.display = 'block';
+            this.titleButtons.style.display = 'block';
         };
 
         this.titleBlock.onmouseleave = () => {
-            this.titleButtonAdd.style.display = 'none';
-            this.titleButtonEdit.style.display = 'none';
-            this.titleButtonDelete.style.display = 'none';
+            this.titleButtons.style.display = 'none';
         }
 
         this.input = document.createElement('input');
-        this.input.className = 'col-12';
+        this.input.className = 'col-5';
         this.input.style.display = 'none';
 
         this.buttonAddSubclass = document.createElement('button');
@@ -400,14 +418,27 @@ class GameClass {
         this.buttonAddSubclass.innerText = 'Add';
         this.buttonAddSubclass.style.display = 'none';
 
+        this.buttonCancelInput = document.createElement('button');
+        this.buttonCancelInput.className = 'cancel-input';
+        this.buttonCancelInput.innerText = 'Cancel';
+        this.buttonCancelInput.onclick = () => {
+            this.buttonAddSubclass.style.display = 'none';
+            this.buttonCancelInput.style.display = 'none';
+            this.input.style.display = 'none';
+            this.input.value = '';
+        };
+        this.buttonCancelInput.style.display = 'none';
+
         this.self.appendChild(this.titleBlock);
         this.self.appendChild(this.subClasses);
         this.self.appendChild(this.input);
         this.self.appendChild(this.buttonAddSubclass);
+        this.self.appendChild(this.buttonCancelInput);
     }
 
     async render() {
         this.rootToAppend.appendChild(this.self);
+        //console.log(`${this.name}: id = ${this.dbId}`);
     }
 
     async delete() {
@@ -437,6 +468,10 @@ class GameClass {
             })
                 .then(() => {
                     this.renderSubclass({ subClassName: bodyObj.subClass });
+                    this.input.value = '';
+                    this.input.style.display = 'none';
+                    this.buttonAddSubclass.style.display = 'none';
+                    this.buttonCancelInput.style.display = 'none';
                 }, (err) => { console.log(JSON.stringify(err)) });
         } else {
             this.renderSubclass({ subClassName });
@@ -445,7 +480,6 @@ class GameClass {
 
     renderSubclass(obj) {
         let value = obj.subClassName;
-        this.input.value = '';
         let li = document.createElement('div'); //li
         li.className = 'el';
         li.innerText = value;
@@ -521,7 +555,7 @@ class GameClassPanel {
         this.rootElement.innerHTML = '';
         this.rootElement.appendChild(this.addNewClassBlock);
         await this.load();
-        console.log(JSON.stringify(this.gameClassDescs));
+        //console.log(JSON.stringify(this.gameClassDescs));
         this.gameClasses = [];
         this.gameClassDescs.forEach((classDesc) => {
             this.gameClasses.push(new GameClass({
@@ -542,76 +576,6 @@ class GameClassPanel {
 }
 
 const gameClassPanel = new GameClassPanel('classMenu');
-
-function addNewClass() {
-    // создаёт поле нового класса, напр. "PERSON"
-    let newClassName = getInputValue('newClassName');
-    let newClassDiv = createClassField(newClassName);
-    const bodyObj = {
-        gameClass: newClassName,
-    };
-    const bodyJSON = JSON.stringify(bodyObj);
-    fetch('/gameClass', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': bodyJSON.length
-        },
-        body: bodyJSON
-    })
-        .then(() => {
-        }, (err) => {
-            console.log(JSON.stringify(err))
-        });
-    insertNewClass(newClassDiv);
-};
-
-function createClassField(name) {
-    let uniqueInputId = 'classInput' + name;
-    let uniqueUlId = 'classUl' + name;
-    let div = document.createElement('div');
-    div.className = 'class-list col-12';
-    div.innerHTML = `<div class="title">${name}</div>
-    <div id="${uniqueUlId}"></div><!--ul-->
-    <input id="${uniqueInputId}" class="col-12">
-    <button class="add-element">Add</button>`;
-    div.querySelector('.add-element').addEventListener('click', (e) => {
-        const bodyObj = {
-            className: name,
-            subClass: div.querySelector(`#${uniqueInputId}`).value,
-        };
-        const bodyJSON = JSON.stringify(bodyObj);
-        fetch('/gameClass/addSubclass', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Content-Length': bodyJSON.length,
-            },
-            body: bodyJSON
-        })
-            .then(() => {
-                insertNewClassElement(
-                    div.querySelector(`#${uniqueInputId}`),
-                    div.querySelector(`#${uniqueUlId}`)
-                );
-            }, (err) => { console.log(JSON.stringify(err)) });
-    });
-    return div;
-}
-
-function insertNewClass(childClass) {
-    let parent = document.getElementById('classMenu');
-    parent.appendChild(childClass);
-}
-
-function insertNewClassElement(input, ul) {
-    let value = input.value;
-    input.value = '';
-    let li = document.createElement('div'); //li
-    li.className = 'el';
-    li.innerHTML = value;
-    ul.appendChild(li);
-}
 
 const saveFieldSettings = (settings) => {
     // left, top,
@@ -662,10 +626,6 @@ export {
     makeEditButton,
     makeDeleteButton,
     makeNewBoxMessage,
-    addNewClass,
-    createClassField,
-    insertNewClass,
-    insertNewClassElement,
     saveFieldSettings,
     getFieldSettings,
     savePanelSettings,

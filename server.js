@@ -31,8 +31,8 @@ app.post("/saveTurn", jsonParser, turnsController.saveTurn);
 app.delete("/deleteTurn", turnsController.deleteTurn);
 app.get("/getTurns", turnsController.getTurns);
 
-app.post("/saveGameClass", jsonParser, gameClassesController.saveGameClass);
-app.get("/getGameClasses", gameClassesController.getGameClasses);
+//app.post("/saveGameClass", jsonParser, gameClassesController.saveGameClass);
+//app.get("/getGameClasses", gameClassesController.getGameClasses);
 
 app.post("/saveComment", jsonParser, commentsController.saveComment);
 app.get("/getComments", commentsController.getComments);
