@@ -61,7 +61,7 @@ class LinesCollection {
         const index = this.lines.findIndex(
             (line) => line._id === _id
         );
-        this.lines.slice(index, 1);
+        this.lines.splice(index, 1);
     }
 }
 

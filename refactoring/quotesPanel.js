@@ -15,7 +15,7 @@ class QuotesPanel {
     show(data) {
         const { lines, quote } = data;
         this.lines = lines;
-        this.el.html(`<table>
+        this.el.html(lines.length ? `<table>
           <thead>
               <tr><th>from</th><th>to</th><th>actions</th></tr>
           </thead>
@@ -33,14 +33,17 @@ class QuotesPanel {
                 })
                 .join('')}
           </tbody>
-        </table>`);
+        </table>` : '');
         this.el.show('fast');
     }
     addEventHandlers() {
-      const lines = this.lines;
+      const me = this;
       this.el.on('click','.del-btn', function() {
         const index = parseInt($(this).parents('tr').attr('data-index'));
-        console.log(lines[index]);     
+        console.log(me.lines[index]);
+        me.triggers.dispatch('DELETE_LINE', {
+          line: me.lines[index]
+        });
       })
       // this.el.find('.del-btn').click((e) => {});
     

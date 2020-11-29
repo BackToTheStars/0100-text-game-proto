@@ -77,6 +77,25 @@ class Game {
                     // отрисовать линии
                     break;
                 }
+                case 'DELETE_LINE': {
+                    // удалить отрисовку линии
+                    const { line } = data;
+                    this.linesLayer.linesCollection.removeLine(line);
+                    this.linesLayer.render();
+                    // проверить нужны ли рамки у цитат
+                    this.linesLayer.checkIfRedBorderNeeded(line.sourceQuote)
+                    this.linesLayer.checkIfRedBorderNeeded(line.targetQuote)
+                    // удалить линию из нижней панели
+                        // при необходимости - закрыть
+                    this.linesLayer.showPanelWithActiveQuote();
+                    // отправить запрос на бэкенд
+
+
+
+
+                    // @todo: backend request
+                    break;
+                }
                 case 'CREATE_TURN': {
                     createTurn(data).then(res => {
                         console.log(res);
