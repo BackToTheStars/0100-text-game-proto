@@ -314,7 +314,8 @@ class GameClass {
                 .then((res) => {
                     res.json()
                         .then((json) => {
-                            const { id } = json;
+                            const { _id } = json;
+                            console.log(_id)
                             this.dbId = _id;
                             this.prerender()
                                 .then(() => {
@@ -358,10 +359,32 @@ class GameClass {
                 const val = this.titleNameInput.value;
                 if (val.trim() != '') {
                     //console.log(`${val} key enter`);
-                    this.name = val;
+                    const bodyObj = {
+                        id: this.dbId,
+                        gameClass: val.trim()
+                    };
                     this.titleName.innerHTML = '';
                     this.titleName.innerText = this.name;
-                    //fetch('')
+                    const bodyJSON = JSON.stringify(bodyObj);
+                    fetch('/gameClass', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': bodyJSON.length
+                        },
+                        body: bodyJSON
+                    })
+                        .then((res) => {
+                            if (res.status == 201) {
+                                this.name = bodyObj.gameClass;
+                                this.titleName.innerHTML = '';
+                                this.titleName.innerText = this.name;
+                            } else {
+                                console.log(`ERROR: res.status = ${res.status} | res = ${JSON.stringify(res)}`);
+                            }
+                        }, (err) => {
+                            console.log(err);
+                        })
                 }
             }
         });
@@ -388,7 +411,26 @@ class GameClass {
         this.titleButtonDelete = document.createElement('button');
         this.titleButtonDelete.className = 'title-button-delete';
         this.titleButtonDelete.onclick = () => {
-
+            const bodyObj = {
+                id: this.dbId,
+                toDelete: true
+            };
+            const bodyJSON = JSON.stringify(bodyObj);
+            fetch('/gameClass', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': bodyJSON.length
+                },
+                body: bodyJSON
+            })
+            .then((res) => {
+                if (res.status == 200) {
+                    this.self.remove();
+                } else {
+                    console.log(`ERROR: res.status = ${res.status} | ${JSON.stringify(res)}`);
+                }
+            })
         };
 
         this.titleButtons.appendChild(this.titleButtonAdd);
@@ -454,11 +496,11 @@ class GameClass {
         const { sync, subClassName } = obj;
         if (sync) {
             const bodyObj = {
-                className: this.name,
-                subClass: this.input.value,
+                id: this.dbId,
+                addNewSubclass: this.input.value,
             };
             const bodyJSON = JSON.stringify(bodyObj);
-            fetch('/gameClass/addSubclass', {
+            fetch('/gameClass', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -467,7 +509,7 @@ class GameClass {
                 body: bodyJSON
             })
                 .then(() => {
-                    this.renderSubclass({ subClassName: bodyObj.subClass });
+                    this.renderSubclass({ subClassName: bodyObj.addNewSubclass });
                     this.input.value = '';
                     this.input.style.display = 'none';
                     this.buttonAddSubclass.style.display = 'none';
