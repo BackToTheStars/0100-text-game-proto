@@ -83,9 +83,9 @@ class QuotesCollection {
         this.getQuote = this.getQuote.bind(this);
     }
 
-    getQuote(turnId, num) { // @todo: change to get by id
+    getQuote(turnId, index) { // @todo: change to get by id
         return this.quoteObjects.find((quoteObject) =>
-            (quoteObject.turn._id == turnId && num == quoteObject.index));
+            (quoteObject.turn._id == turnId && index == quoteObject.index));
     }
 }
 

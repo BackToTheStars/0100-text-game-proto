@@ -88,12 +88,42 @@ const getRedLogicLines = async () =>
         });
     });
 
+const updateRedLogicLines = async (redLogicLines) => 
+    new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'PUT',
+            url: '/game/red-logic-lines',
+            data: JSON.stringify({
+                redLogicLines,
+            }),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: resolve,
+            error: reject
+        });
+    });
+
+const createRedLogicLine = async (line) => 
+    new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'POST',
+            url: '/game/red-logic-lines',
+            data: JSON.stringify(line),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: resolve,
+            error: reject
+        });
+    });
+
 export {
     getTurns,
     createTurn,
     updateTurn,
     deleteTurn,
     turnsUpdateCoordinates,
-    getRedLogicLines
+    getRedLogicLines,
+    updateRedLogicLines,
+    createRedLogicLine
 };
 

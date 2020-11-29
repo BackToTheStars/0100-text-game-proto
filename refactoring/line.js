@@ -1,6 +1,7 @@
 class Line {
     constructor(data, { getQuote }) {
         this._id = data._id;
+        this.data = data;
         this.sourceQuote = getQuote(
             data.sourceTurnId,
             data.sourceMarker

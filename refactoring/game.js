@@ -5,7 +5,9 @@ import {
     updateTurn,
     deleteTurn,
     turnsUpdateCoordinates,
-    getRedLogicLines
+    getRedLogicLines,
+    updateRedLogicLines,
+    createRedLogicLine
 } from './service';
 import {
     TurnCollection,
@@ -72,9 +74,18 @@ class Game {
                     break;
                 }
                 case 'CREATE_LINE': {
-                    // @todo: backend request
-                    // добавить в коллекцию линий
-                    // отрисовать линии
+                    createRedLogicLine({
+                        sourceTurnId: data.sourceQuote.turnId,
+                        sourceMarker: data.sourceQuote.index,
+                        targetTurnId: data.targetQuote.turnId,
+                        targetMarker: data.targetQuote.index,
+                    }).then((res) => {
+                        const { item } = res;
+                        // добавить в коллекцию линий
+                        this.linesLayer.linesCollection.addLine(item); 
+                        // отрисовать линии
+                        this.linesLayer.render();
+                    })
                     break;
                 }
                 case 'DELETE_LINE': {
@@ -89,16 +100,15 @@ class Game {
                         // при необходимости - закрыть
                     this.linesLayer.showPanelWithActiveQuote();
                     // отправить запрос на бэкенд
-
-
-
-
-                    // @todo: backend request
+                    updateRedLogicLines(
+                        this.linesLayer.linesCollection.getLines()
+                            .map(line => line.data)
+                    );
                     break;
                 }
                 case 'CREATE_TURN': {
                     createTurn(data).then(res => {
-                        console.log(res);
+                        // console.log(res);
                         this.turnCollection.addTurn(res)
                     });
                     break;

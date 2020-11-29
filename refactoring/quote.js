@@ -5,6 +5,10 @@ class Quote {
         this.triggers = triggers;
         // порядковый номер
         this.index = index;
+        this.data = {
+            turnId: turn._id,
+            index
+        }
         // координаты
         this.addEventHandlers();
     }
@@ -43,10 +47,10 @@ class Quote {
     }
     addEventHandlers() {
         // click - красная рамка
-        this.el.get(0).addEventListener('click', () => this.triggers.dispatch('CLICKED_QUOTE', {
-            turnId: this.turn._id,
-            num: this.index
-        }))
+        this.el.get(0).addEventListener('click', () => {
+            // console.log(this.data);
+            this.triggers.dispatch('CLICKED_QUOTE', this.data)
+        })
     }
 }
 

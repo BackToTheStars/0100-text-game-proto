@@ -41,8 +41,9 @@ class LinesLayer {
         })
     }
 
-    setClickedQuote({ turnId, num }) { // ПРОВЕРКИ, ЧТО ДАЛЬШЕ ДЕЛАТЬ С КЛИКНУТОЙ ЦИТАТОЙ
-        const quote = this.quotesCollection.getQuote(turnId, num);
+    setClickedQuote({ turnId, index }) { // ПРОВЕРКИ, ЧТО ДАЛЬШЕ ДЕЛАТЬ С КЛИКНУТОЙ ЦИТАТОЙ
+        const quote = this.quotesCollection.getQuote(turnId, index);
+        console.log({quote})
         if (this.activeQuote) { // активная цитата уже была
             if (quote.isEqual(this.activeQuote)) { // нажата та же цитата, что и раньше
                 this.activeQuote = null;
@@ -54,8 +55,8 @@ class LinesLayer {
                 );
                 if (!line) { // если линии, соединяющей две цитаты, ещё нет
                     this.triggers.dispatch('CREATE_LINE', {
-                        sourceQuote: this.activeQuote,
-                        targetQuote: quote
+                        sourceQuote: this.activeQuote.data,
+                        targetQuote: quote.data
                     });
                 }
                 this.activeQuote = quote;

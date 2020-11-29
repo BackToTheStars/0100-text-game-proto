@@ -52,10 +52,10 @@ const createTurn = async (turnObj) => {
         }).then(res => {
             resolve(res);
         })
-        .catch((err) => {
-            console.log(err);
-            reject('Request error');
-        });
+            .catch((err) => {
+                console.log(err);
+                reject('Request error');
+            });
 
     })
 };
