@@ -36,13 +36,13 @@ class Line {
                 sourceCoords.left +
                 (sourceFirst ? sourceCoords.width : 0) -
                 sideBarWidth +
-                (sourceFirst ? 6 : -6), // + 3,
+                (sourceFirst ? 7 : -1), // + 3,
             y1: sourceCoords.top + Math.floor(sourceCoords.height / 2),
             x2:
                 targetCoords.left +
                 (sourceFirst ? 0 : targetCoords.width) -
                 sideBarWidth +
-                (sourceFirst ? -2 : 2), // - 5,
+                (sourceFirst ? -1 : 7), // - 5,
             y2: targetCoords.top + Math.floor(targetCoords.height / 2),
         };
 
