@@ -58,8 +58,10 @@ class LinesLayer {
                         sourceQuote: this.activeQuote.data,
                         targetQuote: quote.data
                     });
+                    this.activeQuote = null;
+                } else {
+                    this.activeQuote = quote;
                 }
-                this.activeQuote = quote;
                 // дождаться создания линии
                 // @todo: перерисовать панель редактирования линий на новую цитату
                 this.showPanelWithActiveQuote()
@@ -71,6 +73,11 @@ class LinesLayer {
             // рисуем рамку вокруг активной цитаты
             quote.addBorder();
         }
+    }
+
+    removeActiveQuote(quote) {
+        this.activeQuote = null;
+        this.quotesPanel.hide();
     }
 
     render() {

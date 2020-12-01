@@ -7,7 +7,8 @@ import {
     turnsUpdateCoordinates,
     getRedLogicLines,
     updateRedLogicLines,
-    createRedLogicLine
+    createRedLogicLine,
+    deleteLines
 } from './service';
 import {
     TurnCollection,
@@ -98,7 +99,7 @@ class Game {
                     this.linesLayer.checkIfRedBorderNeeded(line.targetQuote)
                     // удалить линию из нижней панели
                         // при необходимости - закрыть
-                    this.linesLayer.showPanelWithActiveQuote();
+                    this.linesLayer.removeActiveQuote();
                     // отправить запрос на бэкенд
                     updateRedLogicLines(
                         this.linesLayer.linesCollection.getLines()
@@ -122,7 +123,23 @@ class Game {
                 case 'REMOVE_TURN': {
                     this.turnCollection.getTurn(data).destroy();
                     this.turnCollection.removeTurn(data);
-                    deleteTurn(data);
+                    const linesToRemove = this.linesLayer.linesCollection.getLines()
+                        .filter((line) => {
+                            if(line.sourceQuote.data.turnId === data._id) {
+                                return true
+                            }
+                            if(line.targetQuote.data.turnId === data._id) {
+                                return true
+                            }
+                            return false
+                        })
+                    for(let lineToRemove of linesToRemove) {
+                        this.linesLayer.linesCollection.removeLine(lineToRemove)
+                    }
+                    this.linesLayer.render();
+                    console.log(linesToRemove)
+                    deleteLines(linesToRemove.map(line => line.data))
+                        .then(() => deleteTurn(data))
                     break;
                 }
                 case 'OPEN_POPUP': {

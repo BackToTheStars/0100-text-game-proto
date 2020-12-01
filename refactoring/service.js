@@ -116,6 +116,22 @@ const createRedLogicLine = async (line) =>
         });
     });
 
+const deleteLines = async (redLogicLines) => {
+    new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'DELETE',
+            url: '/game/red-logic-lines',
+            data: JSON.stringify({
+                redLogicLines,
+            }),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: resolve,
+            error: reject
+        });
+    });
+}
+
 export {
     getTurns,
     createTurn,
@@ -124,6 +140,7 @@ export {
     turnsUpdateCoordinates,
     getRedLogicLines,
     updateRedLogicLines,
-    createRedLogicLine
+    createRedLogicLine,
+    deleteLines
 };
 

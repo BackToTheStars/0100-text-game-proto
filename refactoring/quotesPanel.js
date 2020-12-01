@@ -40,7 +40,7 @@ class QuotesPanel {
       const me = this;
       this.el.on('click','.del-btn', function() {
         const index = parseInt($(this).parents('tr').attr('data-index'));
-        console.log(me.lines[index]);
+        // console.log(me.lines[index]);
         me.triggers.dispatch('DELETE_LINE', {
           line: me.lines[index]
         });
