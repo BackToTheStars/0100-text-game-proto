@@ -138,6 +138,23 @@ button{
     padding:0;
 }
 
+.video {
+    position: relative;
+}
+
+.iframe-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 0;
+    background-color: rgba(255,255,255,0);
+}
+
+.ui-resizable-resizing .iframe-overlay {
+    height: 100%;
+}
+
 .textBox .picture-content {
     object-fit: contain;
     max-height: 100%;

@@ -86,23 +86,23 @@ class Turn {
         this.el.style.top = `${parseInt(this.el.style.top) + dTop}px`
     }
     handleResize() {
-        let minMediaHeight = 120; // @todo 
-        let maxMediaHeight = this.paragraphEl.scrollHeight + 20;
+        let minMediaHeight = 15; // @todo
+
+        let maxMediaHeight = this.paragraphEl.scrollHeight + 15; // 15 это снизу появляется нестыковка
         // console.log($(this.paragraphEl).innerHeight());
 
         if (this.imgEl) {
-            $(this.imgEl).width($(this.el).width());
-            $(this.imgEl).height(
-                Math.floor(
-                    (this.imgEl.naturalHeight * $(this.el).width()) /
-                    this.imgEl.naturalWidth
-                )
+            const newImgHeight = Math.floor(
+                (this.imgEl.naturalHeight * $(this.el).width()) /
+                this.imgEl.naturalWidth
             );
-            minMediaHeight += $(this.imgEl).height();
-            maxMediaHeight += $(this.imgEl).height();
+            $(this.imgWrapperEl).width($(this.el).width());
+            $(this.imgWrapperEl).height(newImgHeight);
+            minMediaHeight += newImgHeight;
+            maxMediaHeight += newImgHeight;
             $(this.mediaWrapperEl).css('min-height', `${minMediaHeight}px`);
         } else if (this.videoEl) {
-            $(this.videoEl).width($(this.el).width() - 4);
+            $(this.videoEl).width($(this.el).width()-3);   // можно использовать в дизайне 
             $(this.videoEl).height(Math.floor((9 * $(this.el).width()) / 16));
             minMediaHeight += $(this.videoEl).height();
             maxMediaHeight += $(this.videoEl).height();
@@ -124,7 +124,7 @@ class Turn {
 
     getTopHeight() {
         const headerHeight = $(this.headerEl).height() || 0;
-        const pictureHeight = $(this.imgEl).height() || 0;
+        const pictureHeight = $(this.imgWrapperEl).height() || 0;
         const iFrameHeight = $(this.videoEl).height() || 0;
         return headerHeight + pictureHeight + iFrameHeight;
     }
@@ -132,7 +132,7 @@ class Turn {
     getBottomHeight() {
         const paragraphHeight = $(this.paragraphEl).height();
         const headerHeight = $(this.headerEl).height() || 0;
-        const pictureHeight = $(this.imgEl).height() || 0;
+        const pictureHeight = $(this.imgWrapperEl).height() || 0;
         const iFrameHeight = $(this.videoEl).height() || 0;
         return headerHeight + paragraphHeight + pictureHeight + iFrameHeight
     }
@@ -178,17 +178,21 @@ class Turn {
             class="media-wrapper"
             style="display: flex; flex-direction: column; align-items: center;">
             ${videoUrl && videoUrl.trim()
-                ? `<iframe
-                class="video"
-                src="https://www.youtube.com/embed/${videoUrl}"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                style="width: 100%; height: 90%; top: 0px; left: 0px;">
-            </iframe>`
+                ? `<div class="video">
+                <div class="iframe-overlay"></div>
+                <iframe
+                    src="https://www.youtube.com/embed/${videoUrl}"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    style="width: 100%; height: 100%;">
+                </iframe>
+                </div>`
                 : ''
             }
             ${imageUrl && imageUrl.trim()
-                ? `<img class="picture-content" src="${imageUrl}"
-                style="background: rgb(0, 0, 0); width: 100%;">`
+                ? `<div class="picture-content">
+                    <img src="${imageUrl}"
+                        style="background: rgb(0, 0, 0); width: 100%; height: 100%;">
+                </div>`
                 : ''
             }
             <p class="paragraphText">
@@ -228,8 +232,14 @@ class Turn {
         // headerText
         this.headerEl = this.el.querySelector('.headerText');
         this.videoEl = this.el.querySelector('.video');
-        this.imgEl = this.el.querySelector('.picture-content');
+        this.imgWrapperEl = this.el.querySelector('.picture-content');
+        this.imgEl = this.imgWrapperEl ? this.imgWrapperEl.querySelector('img') : null;
         this.paragraphEl = this.el.querySelector('.paragraphText');
+
+        // @todo: remove after quill fix
+        if(!$(this.paragraphEl).text().trim()) {
+            $(this.paragraphEl).css('display','none');
+        }
 
         $(this.paragraphEl).ready(() => {
             this.paragraphEl.scrollTop = this.data.scrollPosition
