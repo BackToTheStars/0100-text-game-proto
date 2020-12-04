@@ -291,7 +291,8 @@ function makeNewBoxMessage(obj, authorDictionary = {}) {
 
 class GameClass {
     constructor(obj) {
-        const { name, rootToAppend, subClasses, dbId, sync } = obj;
+        const { panel, name, rootToAppend, subClasses, dbId, sync } = obj;
+        this.panel = panel;
         this.name = name;
         this.dbId = dbId;
         this.rootToAppend = rootToAppend;
@@ -349,10 +350,12 @@ class GameClass {
         this.titleBlock.className = 'title-block';
 
         this.titleName = document.createElement('div');
+        this.titleName.style.flexGrow = 1;
+        this.titleName.style.flexShrink = 1;
         this.titleName.innerText = this.name;
 
         this.titleNameInput = document.createElement('input');
-        this.titleNameInput.className = 'col-6';
+        this.titleNameInput.className = 'title-name-input';
         this.titleNameInput.addEventListener('keyup', (ev) => {
             ev.preventDefault();
             if (ev.keyCode === 13) {
@@ -389,6 +392,8 @@ class GameClass {
             }
         });
 
+        this.titleButtonsArray = [];
+
         this.titleButtons = document.createElement('div');
         this.titleButtons.className = 'title-buttons';
 
@@ -402,52 +407,39 @@ class GameClass {
 
         this.titleButtonEdit = document.createElement('button');
         this.titleButtonEdit.className = 'title-button-edit';
-        this.titleButtonEdit.onclick = () => {
-            this.titleNameInput.value = this.name;
-            this.titleName.innerHTML = '';
-            this.titleName.appendChild(this.titleNameInput);
-        };
+        this.titleButtonEdit.onclick = this.titleEdit.bind(this);
 
         this.titleButtonDelete = document.createElement('button');
         this.titleButtonDelete.className = 'title-button-delete';
-        this.titleButtonDelete.onclick = () => {
-            const bodyObj = {
-                id: this.dbId,
-                toDelete: true
-            };
-            const bodyJSON = JSON.stringify(bodyObj);
-            fetch('/gameClass', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': bodyJSON.length
-                },
-                body: bodyJSON
-            })
-            .then((res) => {
-                if (res.status == 200) {
-                    this.self.remove();
-                } else {
-                    console.log(`ERROR: res.status = ${res.status} | ${JSON.stringify(res)}`);
-                }
-            })
-        };
+        this.titleButtonDelete.onclick = this.delete.bind(this);
 
-        this.titleButtons.appendChild(this.titleButtonAdd);
-        this.titleButtons.appendChild(this.titleButtonEdit);
-        this.titleButtons.appendChild(this.titleButtonDelete);
+        //this.titleButtons.appendChild(this.titleButtonAdd);
+        //this.titleButtons.appendChild(this.titleButtonEdit);
+        //this.titleButtons.appendChild(this.titleButtonDelete);
 
         this.titleButtons.style.display = 'none';
 
         this.titleBlock.appendChild(this.titleName);
-        this.titleBlock.appendChild(this.titleButtons);
+        //this.titleBlock.appendChild(this.titleButtons);
+
+        this.titleButtonsArray.push(this.titleButtonAdd);
+        this.titleButtonsArray.push(this.titleButtonEdit);
+        this.titleButtonsArray.push(this.titleButtonDelete);
+
+        this.titleButtonsArray.forEach(it => {it.style.display = "none";});
+
+        this.titleBlock.appendChild(this.titleButtonAdd);
+        this.titleBlock.appendChild(this.titleButtonEdit);
+        this.titleBlock.appendChild(this.titleButtonDelete);
 
         this.titleBlock.onmouseover = () => {
-            this.titleButtons.style.display = 'block';
+            //this.titleButtons.style.display = 'block';
+            this.titleButtonsArray.forEach(it => {it.style.display = "block";});
         };
 
         this.titleBlock.onmouseleave = () => {
-            this.titleButtons.style.display = 'none';
+            this.titleButtonsArray.forEach(it => {it.style.display = "none";});
+            //this.titleButtons.style.display = 'none';
         }
 
         this.input = document.createElement('input');
@@ -484,11 +476,33 @@ class GameClass {
     }
 
     async delete() {
-
+        const bodyObj = {
+            id: this.dbId,
+            toDelete: true
+        };
+        const bodyJSON = JSON.stringify(bodyObj);
+        fetch('/gameClass', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': bodyJSON.length
+            },
+            body: bodyJSON
+        })
+        .then((res) => {
+            if (res.status == 200) {
+                this.self.remove();
+                this.panel.deleteClass(this);
+            } else {
+                console.log(`ERROR: res.status = ${res.status} | ${JSON.stringify(res)}`);
+            }
+        })
     }
 
-    async edit() {
-
+    async titleEdit() {
+        this.titleNameInput.value = this.name;
+        this.titleName.innerHTML = '';
+        this.titleName.appendChild(this.titleNameInput);
     }
 
     async onClickAddSubclass(obj) {
@@ -601,6 +615,7 @@ class GameClassPanel {
         this.gameClasses = [];
         this.gameClassDescs.forEach((classDesc) => {
             this.gameClasses.push(new GameClass({
+                panel: this,
                 name: classDesc.gameClass,
                 subClasses: classDesc.subClasses,
                 dbId: classDesc._id,
@@ -613,7 +628,19 @@ class GameClassPanel {
     async onClickAddNewClass() {
         const newClassName = this.inputEl.value;
         this.inputEl.value = '';
-        this.gameClasses.push(new GameClass({ name: newClassName, rootToAppend: this.rootElement, sync: true }));
+        this.gameClasses.push(new GameClass({ panel: this, name: newClassName, rootToAppend: this.rootElement, sync: true }));
+        console.log(`onClickAddNewClass: ${this.gameClasses.length}`);
+    }
+
+    async deleteClass(obj) {
+        const ind = this.gameClasses.indexOf(obj);
+        //console.log(`deleteClass: ${ind} / ${this.gameClasses.length}`)
+        if (ind == -1) {
+            console.log(`ERROR: deleteClass: ind == -1 | obj = ${JSON.stringify(obj)}`);
+        } else {
+            this.gameClasses.splice(ind,1);
+        }
+        //console.log(`deleteClass: ${this.gameClasses.length}`);
     }
 }
 

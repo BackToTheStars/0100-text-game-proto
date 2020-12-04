@@ -182,12 +182,22 @@ button{
 .class-list .title-block {
     padding-left: 3%;
     outline: 1px solid #000;
+    height: 24px;
     font-weight: 600;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-content: center;
     align-items: center;
+}
+
+.class-list .title-block .title-name-input {
+    padding: 0;
+    margin: 0;
+    margin-top: 1px;
+    border: 2px solid #000;
+    height: 100%;
+    width: 100%;
 }
 
 .class-list .el {
@@ -218,6 +228,8 @@ button{
     cursor: pointer;
     width: 24px;
     height: 24px;
+    flex-grow: 0;
+    flex-shrink: 0;
 }
 
 .title-button-edit {
@@ -226,6 +238,8 @@ button{
     cursor: pointer;
     width: 24px;
     height: 24px;
+    flex-grow: 0;
+    flex-shrink: 0;
 }
 
 .title-button-delete {
@@ -234,4 +248,6 @@ button{
     cursor: pointer;
     width: 24px;
     height: 24px;
+    flex-grow: 0;
+    flex-shrink: 0;
 }
