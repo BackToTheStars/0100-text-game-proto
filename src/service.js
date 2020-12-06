@@ -1,45 +1,15 @@
-const getTurns = (callback) => {
-    $.ajax({
-        type: 'GET',
-        url: '/getTurns',
-        data: '',
-        success: (data) => {
-            callback(
-                data.map((item) => ({
-                    author_id: '123', // @fixme
-                    ...item,
-                }))
-            );
-        },
+const getTurns = async () =>
+    new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'GET',
+            url: '/getTurns',
+            success: resolve,
+            error: reject
+        });
     });
-};
-
-const turnsUpdateCoordinates = (turnObjects, callback) => {
-    $.ajax({
-        type: 'PUT',
-        url: '/turns/coordinates',
-        data: JSON.stringify({
-            turns: turnObjects,
-        }),
-        dataType: 'json',
-        contentType: 'application/json',
-        success: callback,
-    });
-};
 
 const createTurn = async (turnObj) => {
     return new Promise(async (resolve, reject) => {
-
-        // const data = await fetch('/saveTurn', {
-        //     method: 'POST',
-        //     headers: {
-        //         'content-type': 'application/json',
-        //     },
-        //     body: JSON.stringify({ turn: turnObj }),
-        // });
-        // const res = data.json();
-        // resolve(res);
-
         fetch('/saveTurn', {
             method: 'POST',
             headers: {
@@ -70,61 +40,107 @@ const updateTurn = async (turnObj) => {
             }),
             dataType: 'json',
             contentType: 'application/json',
-            success: (data) => {
-                resolve(data);
-            },
-            error: (errObj) => {
-                console.log(errObj);
-                reject('Request error');
-            }
+            success: resolve,
+            error: reject
         });
     });
 };
 
-// @todo: refactor
-const deleteTurn = (turnObj, callback) => {
-    $.ajax({
-        type: 'DELETE',
-        url: '/deleteTurn',
-        data: JSON.stringify({
-            turn: turnObj,
-        }),
-        dataType: 'json',
-        contentType: 'application/json',
-        success: callback,
-    });
+const deleteTurn = async (turnObj) => {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'DELETE',
+            url: '/deleteTurn',
+            data: JSON.stringify({
+                turn: turnObj,
+            }),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: resolve,
+            error: reject
+        });
+    })
 };
 
-const getRedLogicLines = (callback) => {
-    $.ajax({
-        type: 'GET',
-        url: '/game',
-        success: function (data) {
-            const redLogicLines = data.item.redLogicLines;
-            callback(redLogicLines);
-        },
+const turnsUpdateCoordinates = async (turns) =>
+    new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'PUT',
+            url: '/turns/coordinates',
+            data: JSON.stringify({
+                turns,
+            }),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: resolve,
+            error: reject
+        });
     });
-};
 
-const updateRedLogicLines = (redLogicLines, callback) => {
-    $.ajax({
-        type: 'PUT',
-        url: '/game/red-logic-lines',
-        data: JSON.stringify({
-            redLogicLines,
-        }),
-        dataType: 'json',
-        contentType: 'application/json',
-        success: callback,
+
+const getRedLogicLines = async () =>
+    new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'GET',
+            url: '/game',
+            success: resolve,
+            error: reject
+        });
     });
-};
+
+const updateRedLogicLines = async (redLogicLines) => 
+    new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'PUT',
+            url: '/game/red-logic-lines',
+            data: JSON.stringify({
+                redLogicLines,
+            }),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: resolve,
+            error: reject
+        });
+    });
+
+const createRedLogicLine = async (line) => 
+    new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'POST',
+            url: '/game/red-logic-lines',
+            data: JSON.stringify(line),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: resolve,
+            error: reject
+        });
+    });
+
+const deleteLines = async (redLogicLines) => {
+    new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'DELETE',
+            url: '/game/red-logic-lines',
+            data: JSON.stringify({
+                redLogicLines,
+            }),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: resolve,
+            error: reject
+        });
+    });
+}
 
 export {
     getTurns,
-    turnsUpdateCoordinates,
     createTurn,
     updateTurn,
     deleteTurn,
+    turnsUpdateCoordinates,
     getRedLogicLines,
     updateRedLogicLines,
+    createRedLogicLine,
+    deleteLines
 };
+

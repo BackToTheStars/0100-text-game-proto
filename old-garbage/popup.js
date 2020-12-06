@@ -1,12 +1,13 @@
 // @deprecated
 // УНИВЕРСАЛЬНОЕ ОКНО СОЗДАНИЯ И РЕДАКТИРОВАНИЯ ХОДА
 
-import { getQuill } from '../src/quillHandler';
-import { createTurn, updateTurn } from '../src/service';
-import { getTurn } from '../src/turn';
+import { getQuill } from './quillHandler';
+import { getInputValue } from './script';
+import { createTurn, updateTurn } from './service';
+import { getTurn } from './turn';
 
 let popup = null;
-const createPopup = (inputDiv, triggers) => {
+const createPopup = (inputDiv, game) => {
 
     // переменные и инициализация (constructor)
     let el = document.createElement('div');
@@ -165,9 +166,8 @@ const createPopup = (inputDiv, triggers) => {
         let data = null;
         try {
             if (id) {
-                triggers.dispatch('SAVE_TURN', turnObj);
-                closeModal();
-
+                turnModel.data = await updateTurn(turnObj);
+                turnModel.reCreate();
             } else {
                 turnObj = {
                     contentType: contentType,
@@ -177,8 +177,9 @@ const createPopup = (inputDiv, triggers) => {
                     y: 50,
                     ...turnObj
                 }
-                triggers.dispatch('CREATE_TURN', turnObj);
-                closeModal();
+
+                data = await createTurn(turnObj);
+                getTurn(data, game.params)
             }
         } catch (error) {
             return showError(error);
@@ -213,9 +214,9 @@ const createPopup = (inputDiv, triggers) => {
         el.style.display = 'none';
     }
 
-    const setTurn = (turn) => {                // подставляет данные в инпуты
-        // turnModel = turnModelParam
-        // const turn = turnModelParam.data;
+    const setTurn = (turnModelParam) => {
+        turnModel = turnModelParam
+        const turn = turnModelParam.data;
         quill.setContents(turn.paragraph);
         headerInput.value = turn.header;
         idInput.value = turn._id;
@@ -257,9 +258,9 @@ const createPopup = (inputDiv, triggers) => {
     }
 }
 
-const getPopup = (inputDiv, triggers) => {
+const getPopup = (inputDiv, game) => {
     if (!popup) {
-        popup = createPopup(inputDiv, triggers);
+        popup = createPopup(inputDiv, game);
     }
     return popup;
 }
