@@ -71,10 +71,10 @@ class Turn {
 
     getPositionInfo() {
         return {
-            x: parseInt(this.el.style.left) || 0,
-            y: parseInt(this.el.style.top) || 0,
-            height: parseInt(this.el.style.height),
-            width: parseInt(this.el.style.width),
+            x: parseInt($(this.el).css('left')) || 0,
+            y: parseInt($(this.el).css('top')) || 0,
+            height: parseInt($(this.el).height()),
+            width: parseInt($(this.el).width()),
             id: this.el.dataset.id,
             contentType: this.el.dataset.contentType,
             scrollPosition: this.paragraphEl ? this.paragraphEl.scrollTop : null,

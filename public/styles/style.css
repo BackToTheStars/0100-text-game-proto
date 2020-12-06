@@ -67,7 +67,7 @@ html, body {
     background-color: lightgrey;
     margin-bottom: 0;
     min-height: 0;
-    max-height: 30%; 
+    /* max-height: 30%;  */
     overflow-y: auto;
     overflow-x: auto;
     width: 100%;
