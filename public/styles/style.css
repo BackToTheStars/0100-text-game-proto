@@ -203,6 +203,10 @@ button{
 .class-list .el {
     background: #fff;
     padding-left: 7%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    align-content: center;
 }
 
 .class-list input {
@@ -250,4 +254,16 @@ button{
     height: 24px;
     flex-grow: 0;
     flex-shrink: 0;
+}
+
+.subclasses-block p {
+    margin: 0;
+    padding: 0;
+    flex-shrink: 1;
+    flex-grow: 1;
+}
+
+.subclasses-block button {
+    flex-shrink: 0;
+    flex-grow: 0;
 }

@@ -344,7 +344,7 @@ class GameClass {
         this.self.className = 'class-list col-12';
 
         this.subClasses = document.createElement('div');
-        //this.subClasses.className = '';
+        this.subClasses.className = 'subclasses-block';
 
         this.titleBlock = document.createElement('div');
         this.titleBlock.className = 'title-block';
@@ -535,10 +535,61 @@ class GameClass {
     }
 
     renderSubclass(obj) {
-        let value = obj.subClassName;
-        let li = document.createElement('div'); //li
+        const value = obj.subClassName;
+        const li = document.createElement('div');
         li.className = 'el';
-        li.innerText = value;
+        const liName = document.createElement('p');
+        liName.innerText = value;
+        li.appendChild(liName);
+        const buttonEdit = document.createElement('button');
+        buttonEdit.className = 'title-button-edit';
+        const input = document.createElement('input');
+        buttonEdit.onclick = () => {
+            input.value = liName.innerText;
+            liName.style.display = 'none';
+            liName.after(input);
+            input.addEventListener('keyup', (ev) => {
+                ev.preventDefault();
+                if (ev.keyCode == 13) {
+                    const val = input.value;
+                    input.remove();
+                    liName.style.display = 'block';
+                    const bodyObj = {
+                        id: this.dbId,
+                        renameSubclass: {
+                            from: liName.innerText,
+                            to: val
+                        }
+                    };
+                    const bodyJSON = JSON.stringify(bodyObj);
+                    fetch('/gameClass', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': bodyJSON.length
+                        },
+                        body: bodyJSON
+                    })
+                        .then((res) => {
+                            if (res.status == 201) {
+                                liName.innerText = val;
+                            } else {
+                                console.log(`res.status == ${res.status}`);
+                            }
+                        }, (err) => {console.log(err)});
+                }
+            });
+        };
+        const buttonDelete = document.createElement('button');
+        buttonDelete.className = 'title-button-delete';
+        li.onmouseover = () => {
+            li.appendChild(buttonEdit);
+            li.appendChild(buttonDelete);
+        };
+        li.onmouseleave = () => {
+            buttonDelete.remove();
+            buttonEdit.remove();
+        }
         this.subClasses.appendChild(li);
     }
 }
