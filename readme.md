@@ -24,6 +24,9 @@ We as humans have a lot of tools of analysis, disassembly, partitioning of knowl
 
 This system allows us to do exactly that.
 
+
 Launch:
-npm i
-npm run dev
+1) Switch to the branch «webpack» 
+2) npm i (install dependencies)
+3) npm run dev (1st terminal)
+4) npm run webpack (2nd terminal)
