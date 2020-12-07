@@ -1,4 +1,5 @@
 import Game from './game';
+import { } from './script';
 
 (async () => {
     const game = new Game({
