@@ -194,25 +194,47 @@ button{
 .right-bottom-label {
     right: 0;
 }
-
+.addclass {
+    font-size: 1.4rem;
+}
 .class-list {
     padding-left: 0;
-    outline: 1px solid #000;
     padding-right: 0;
+    font-size: 1.1rem;
 }
 
-.class-list .title {
-    padding-left: 10%;
+.class-list .title-block {
+    padding-left: 3%;
     outline: 1px solid #000;
+    height: 24px;
+    font-weight: 600;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-content: center;
+    align-items: center;
+}
+
+.class-list .title-block .title-name-input {
+    padding: 0;
+    margin: 0;
+    margin-top: 1px;
+    border: 2px solid #000;
+    height: 100%;
+    width: 100%;
 }
 
 .class-list .el {
     background: #fff;
-    padding-left: 15%;
+    padding-left: 7%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    align-content: center;
 }
 
 .class-list input {
-    margin-left: 10%;
+    margin-left: 3%;
     width: 65%;
     display: inline-block;
 }
@@ -223,6 +245,49 @@ button{
     display: inline-block;
 }
 
-#classMenu .prompt {
-    padding-left: 5%;
+#classMenu {
+    overflow-y: scroll;
+    height: 100vh;
+}
+
+.title-button-add {
+    background: url('/icons/add.svg') no-repeat center center;
+    border: none;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.title-button-edit {
+    background: url('/icons/edit.svg') no-repeat center center;
+    border: none;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.title-button-delete {
+    background: url('/icons/delete.svg') no-repeat center center;
+    border: none;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.subclasses-block p {
+    margin: 0;
+    padding: 0;
+    flex-shrink: 1;
+    flex-grow: 1;
+}
+
+.subclasses-block button {
+    flex-shrink: 0;
+    flex-grow: 0;
 }
