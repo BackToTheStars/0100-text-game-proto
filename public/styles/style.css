@@ -2,9 +2,14 @@ html, body {
     height: 100%;
 }
 
+.translucent .textBox {
+    opacity: 0.4;
+}
+
 .textBox {
-    margin: 20px;
-    min-width: 100px;
+    cursor: move;
+    transition: opacity 0.25s;
+    min-width: 300px;
     max-width: 2000px;
     min-height: 50px;
     max-height: 3000px;
@@ -35,6 +40,7 @@ html, body {
 
 #gameBox {
     /* min-height: 1000px; */
+    border: none;
     width: 100%;
     height: 100%;
     overflow: hidden;
@@ -53,7 +59,7 @@ html, body {
     max-height: 100%;
     overflow-x: auto;
     overflow-y: scroll;
-    padding: 0px 15px 15px 15px;
+    padding: 5px 15px 15px 15px;
     font-size: 1.15rem;
 }
 
@@ -61,7 +67,7 @@ html, body {
     background-color: lightgrey;
     margin-bottom: 0;
     min-height: 0;
-    max-height: 30%; 
+    /* max-height: 30%;  */
     overflow-y: auto;
     overflow-x: auto;
     width: 100%;
@@ -101,7 +107,7 @@ button{
     float: right;
 }
 
-.red-link-line {
+.red-border-to-quote {
     outline: 3px solid red;
     padding-left: 3px;
     padding-right: 3px;
@@ -111,7 +117,7 @@ button{
     z-index: 3;
 }
 
-.link-lines-info {
+.quotes-panel {
     position: absolute;
     left: 570px;
     bottom: 30px;
@@ -119,7 +125,7 @@ button{
     min-width: 300px;
     z-index: 4;
 }
-.link-lines-info table {
+.quotes-panel table {
     width: 100%;
 }
 
@@ -132,19 +138,36 @@ button{
     padding:0;
 }
 
+.video {
+    position: relative;
+}
+
+.iframe-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 0;
+    background-color: rgba(255,255,255,0);
+}
+
+.ui-resizable-resizing .iframe-overlay {
+    height: 100%;
+}
+
 .textBox .picture-content {
     object-fit: contain;
     max-height: 100%;
     max-width: 100%;
 }    
 
-.textBox.comment .paragraphText {
+.textBox.comment-type .paragraphText {
     height: 100%;
     overflow-y: hidden;
 }
 
-.textBox.comment .paragraphText,
-.textBox.comment .headerText {
+.textBox.comment-type .paragraphText,
+.textBox.comment-type .headerText {
     background: rgb(236, 237, 154);
 }
 
@@ -157,7 +180,8 @@ button{
 /* подписи для ссылки и для даты */
 .left-bottom-label, .right-bottom-label { 
     position: absolute;
-    bottom: -21px;
+    /* bottom: -21px; */
+    bottom: 5px;
     transform: translateY(100%);
     padding: 5px;
     color: #fff;

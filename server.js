@@ -39,7 +39,8 @@ app.get("/getComments", commentsController.getComments);
 
 app.get("/game", gameController.getItem);
 app.put("/game/red-logic-lines", gameController.updateRedLogicLines);   // camelCase в endpoints не используют
-
+app.post("/game/red-logic-lines", gameController.createRedLogicLine);
+app.delete("/game/red-logic-lines", gameController.deleteRedLogicLines);
 
 app.listen(config.port, () => {
     console.log("Server started on port " + config.port);
