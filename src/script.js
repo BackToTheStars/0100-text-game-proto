@@ -3,7 +3,7 @@ import { getRedLogicLines, saveTurn, deleteTurn, updateRedLogicLines } from './s
 import { getPopup } from './popup';
 
 
-const popup = getPopup(document.body);
+// const popup = getPopup(document.body);
 
 const getInputValue = (id) => {
     // обработчик поля Input
@@ -120,6 +120,7 @@ function makeDeleteButton(turn) {
 }
 
 function makeNewBoxMessage(obj, authorDictionary = {}) {
+    return false;
     //console.log(`${JSON.stringify(obj)}`);
     const {
         paragraph,

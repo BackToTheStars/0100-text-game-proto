@@ -12,18 +12,19 @@
 
 
 function youtubeFormatter(videoAddress) {
-    
-    const address = videoAddress.slice(videoAddress.lastIndexOf('?v=') + 3);   
-    
-    // let address = videoAddress.match(/watch\?v=/);
-    // if (address) {
-    //     address = `${videoAddress.substring(0, m.index)}embed/${videoAddress.substring(m.index + 8)}`;
-    // } else {
-    //     address = videoAddress;
-    // }
 
-    // console.log(address);
-    return address;
+    if (videoAddress.indexOf('/embed/') !== -1) {
+        return videoAddress.slice(videoAddress.lastIndexOf('/embed/') + 7);
+    } else if (videoAddress.indexOf('?v=') !== -1) {
+        return videoAddress.slice(videoAddress.lastIndexOf('?v=') + 3);
+    }
+    console.log(`Incorrect youtube url: ${videoAddress}`)
+    return ''
+    // https://www.youtube.com/embed/fxc3Tv3tV7M
+
+    // const address = videoAddress.slice(videoAddress.lastIndexOf('?v=') + 3);
+
+    // return address;
 };
 
 
