@@ -1,14 +1,12 @@
 heroku git:remote -a discourse-prototype
 git push heroku master
-
+git push heroku heroku-12-9-20
+wrote .env variables
 
 // 10-15-2020
 // installed bunyan - logger
 
-
-
 // почитать про rem, em, 
-
 
 // вопрос: почему мы используем Ajax а не Axios?
 // свои атрибуты html: data-id
