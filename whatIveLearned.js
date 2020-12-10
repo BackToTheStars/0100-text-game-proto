@@ -1,3 +1,7 @@
+heroku git:remote -a discourse-prototype
+git push heroku master
+
+
 // 10-15-2020
 // installed bunyan - logger
 
