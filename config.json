@@ -1,12 +1,11 @@
 {
-  "port": 3000,
-  "mongo": {
-    "url": "mongodb://127.0.0.1:27017",
-    "dbname": "TextGame",
-    "collections": {
-      "classes": "classes",
-      "comments": "comments",
-      "turns": "turns"
+    "port": 3000,
+    "mongo": {
+        "dbname": "TextGame",
+        "collections": {
+            "classes": "classes",
+            "comments": "comments",
+            "turns": "turns"
+        }
     }
-  }
 }
