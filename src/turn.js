@@ -110,7 +110,8 @@ class Turn {
         }
         // получить высоту el, вычесть высоту header, сохранить в media wrapper
         $(this.mediaWrapperEl).height(
-            $(this.el).height() - $(this.headerEl).height()
+            // @fixme: 1px
+            $(this.el).height() + 1 - $(this.headerEl).height()
         );
         $(this.el).css(
             'min-height',
