@@ -99,9 +99,38 @@ button{
     margin-left: 6px !important;
     font-size: 1.1rem !important;
 }
-.headerText button {
-    float: right;
+.headerText {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
+
+.headerTextActions {
+    display: flex;
+    align-items: center;
+}
+
+.headerText .edit-btn, .headerText .delete-btn {
+    transition: 0.2s;
+    font-size: 30px;
+    display: inline-block;
+    margin-left: 15px;
+    cursor: pointer;
+}
+.headerText a.delete-btn {
+    font-size: 28px;
+}
+.headerText a.edit-btn, .headerText a.delete-btn {
+    color: rgb(160, 160, 160);
+    margin-top: -1px
+}
+.headerText a.edit-btn:hover {
+    color: rgb(58, 58, 58);
+}
+.headerText a.delete-btn:hover {
+    color: rgb(255, 92, 92);
+}
+
 
 .red-border-to-quote {
     outline: 3px solid red;
@@ -188,6 +217,11 @@ button{
 .left-bottom-label {
     left: 0;
 }
+
+.left-bottom-label a {
+    color: #fff;
+}
+
 .right-bottom-label {
     right: 0;
 }

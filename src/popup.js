@@ -251,6 +251,8 @@ const createPopup = (inputDiv, triggers) => {
         button.addEventListener('click', () => setTurnType(button.value));
     });
 
+    el.addEventListener('click', (e) => (e.target.getAttribute('id') == "modalBackground") && closeModal())
+
     return {
         openModal,
         setTurn
