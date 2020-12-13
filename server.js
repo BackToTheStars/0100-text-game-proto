@@ -44,7 +44,7 @@ app.post("/game/red-logic-lines", gameController.createRedLogicLine);
 app.delete("/game/red-logic-lines", gameController.deleteRedLogicLines);
 
 app.listen(port, () => {
-    console.log("Server is running on port " + port);
+    console.log(`Server is running on http://localhost:${port}`);
 });
 
 
