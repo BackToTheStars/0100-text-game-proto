@@ -1,5 +1,6 @@
 import { dateFormatter } from './formatters/dateFormatter'
 import { youtubeFormatter } from './formatters/youtubeFormatter'
+import { getShortLink } from './formatters/urlFormatter'
 
 const getParagraphText = (arrText) => {
     // @todo: remove
@@ -169,11 +170,17 @@ class Turn {
         if (videoUrl) { videoUrl = youtubeFormatter(videoUrl); };    // лежит там же
 
         this.el.innerHTML = `<h5 class="headerText">
-            ${header}
-            <button class="edit-btn">Edit</button>
-            <button class="delete-btn">Delete</button>
+            <div class="headerTextTitle">${header}</div>
+            <div class="headerTextActions">
+                <a class="edit-btn"><i class="fas fa-pen-square"></i></a>
+                <a class="delete-btn"><i class="fas fa-trash-alt"></i></a>
+            </div>
         </h5>
-        ${sourceUrl ? `<div class="left-bottom-label">${sourceUrl}</div>` : ''}
+        ${sourceUrl ? `<div class="left-bottom-label">
+            <a href="${sourceUrl}">
+                ${getShortLink(sourceUrl)}
+            </a>
+        </div>` : ''}
         ${date ? `<div class="right-bottom-label">${date}</div>` : ''}
         <div
             class="media-wrapper"
