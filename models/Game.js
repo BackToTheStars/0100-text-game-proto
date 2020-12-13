@@ -1,7 +1,6 @@
 
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const config = require('../config.json');
 
 const redLogicLine = new Schema({
   sourceTurnId: {
@@ -31,7 +30,7 @@ const schema = new Schema({
   timestamps: true
 });
 
-module.exports = mongoose.model('Game', schema, config.mongo.collections.games);
+module.exports = mongoose.model('Game', schema, "games");
 
 
 
