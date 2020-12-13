@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const config = require('../config.json');
 
 const schema = new Schema({
     header: {
@@ -52,5 +51,5 @@ const schema = new Schema({
     }
 });
 
-module.exports = mongoose.model('Turn', schema, config.mongo.collections.turns);
+module.exports = mongoose.model('Turn', schema, "turns");
 

@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const config = require('../config.json');
 
 const schema = new Schema({
   id: {
@@ -17,7 +16,7 @@ const schema = new Schema({
   }
 });
 
-module.exports = mongoose.model('GameClass', schema, config.mongo.collections.classes);
+module.exports = mongoose.model('GameClass', schema, "classes");
 
 
 

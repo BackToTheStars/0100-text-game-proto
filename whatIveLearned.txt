@@ -1,0 +1,86 @@
+----------------------------- ТИПЫ --------------------------------------------------
+
+1. Object
+    Object (with keys)
+    Array         (class)
+    Function            typeof == 'function'
+    Map - дерево и hash-таблица, ключ и значение, set и get
+    WeakMap - автоматически удаляет данные недействительного ключа
+2. Symbol               
+3. Undefined
+4. Number
+5. Null                - тоже не совпадает typeof == 'object' 
+6. String
+7. Boolean
+8. BigInt           
+
+ 3  == '3'
+'3' === '3'  не допускает преобразование типов - почитать про алгоритм сравнения
+
+undefined == null (true)
+undefined === null (false)
+
+let x;   undefined
+falsy:
+    !null == true
+    !NaN  == true
+    !undefined == true
+    0 == false
+    '' == false  
+    if (x) {}  true
+    -0 == false
+    0n == false
+    -0n == false
+
+Это всё для дебажинга
+
+var let const
+const - нельзя присваивать, но можно вызывать методы (methods) и свойства (properties), нет hoisting
+let - действительна до конца scope, например, при выходе из For будет уничтожена, нет hoisting 
+splice - удалить элемент массива
+var - есть hoisting внутри одного scope (похоже на function и ()=>{} ) 
+Symbol - не контейнер, но уникальный идентификатор, гарантированно не пересекается, равен только себе 
+BigInt    let x = 8465356083096836n
+NaN - не тип 
+Всё наследуется от Object, любой класс, например, Array
+Класс в JS - это не класс, а "синтаксический сахар" 
+
+MD5 научились подделывать hash
+sha3 - повсеместный стандарт (используется в криптовалютах) 
+'use strict' - директива, если файл начинается с него, то вступают ограничения наобъявляемые переменные, и выполнение кода если throw error (пока этого не сделали)
+JSON - формат передачи данных, объект в строке, по семейству HTTP
+GRPC - Google, он компактнее хранит, но не строки, низкоуровневое подключение, передаёт бинарные данные, а не строки
+EPS - эпсилон, точность сравнения по модулю при вычислениях
+
+---------------------------------------------------------------------------------
+
+heroku git:remote -a discourse-prototype
+git push heroku master
+git push heroku heroku-12-9-20
+wrote .env variables
+
+10-15-2020
+
+installed bunyan - logger
+const { nameFromLevel } = require("bunyan")
+
+// почитать про rem, em, 
+
+// вопрос: почему мы используем Ajax а не Axios?
+// свои атрибуты html: data-id
+
+document.querySelector('textBox[data-id="123"]')
+elmnt.setAttribute('data-id', id);
+
+let input = document.getElementById(id);
+let div = document.createElement("div");
+div.className = "textBox";
+div.innerHTML = "<h4 class='headerText'>" + headStr + "</h4><hr><p class='paragraphText'>" + parStr + "</p>";
+gameBox.appendChild(newDiv);
+
+let id = 'someId'
+headStr = 'someHeadStr'
+parStr = 'someParStr'
+newDiv = 'someNewDiv'
+
+document.getElementById("dateInput").value = `${date.getFullYear()}-${('0' + (date.getMonth()+1)).slice(-2) }-${('0' + date.getDate()).slice(-2) }`;

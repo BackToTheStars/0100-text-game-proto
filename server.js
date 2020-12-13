@@ -6,8 +6,9 @@ const turnsController = require("./controllers/turns");
 const gameClassesController = require("./controllers/gameClasses");
 const gameController = require("./controllers/game");
 const commentsController = require("./controllers/comments")
-let config = require('./config.json');
 let app = express();
+
+const port = process.env.PORT || 3000;
 
 let jsonParser = express.json();
 
@@ -42,9 +43,8 @@ app.put("/game/red-logic-lines", gameController.updateRedLogicLines);   // camel
 app.post("/game/red-logic-lines", gameController.createRedLogicLine);
 app.delete("/game/red-logic-lines", gameController.deleteRedLogicLines);
 
-app.listen(config.port, () => {
-    console.log("Server started on port " + config.port);
-    console.log("App is running on http://localhost:3000/");
+app.listen(port, () => {
+    console.log("Server is running on port " + port);
 });
 
 
