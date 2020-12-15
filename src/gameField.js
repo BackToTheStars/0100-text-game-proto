@@ -41,6 +41,31 @@ class GameField {
         });
     };
 
+    handleLoadImages() {
+        const images = $('img');
+        let counter = images.length;
+        images.toArray().forEach((el) => {
+            if ($(el).get(0).complete) {
+                counter = counter - 1;
+            } else {
+                $(el).one('load', () => {
+                    counter = counter - 1;
+                    // console.log(counter); // можно сделать Progress Bar
+                    if (counter === 0) {
+                        this.triggers.dispatch('DRAW_LINES');
+                    }
+                });
+                $(el).one('error', () => {
+                    counter = counter - 1;
+                    console.log(`Failed to load image ${$(el).attr('src')}`); // можно сделать Progress Bar
+                    if (counter === 0) {
+                        this.triggers.dispatch('DRAW_LINES');
+                    }
+                });
+            }
+        });
+    }
+
     saveTurnPositions(turns) {
         // функция сохранения поля
         const payload = [];
