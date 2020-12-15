@@ -48,6 +48,8 @@ class Game {
             stageEl: this.stageEl,
         }, this.triggers);
 
+        this.gameField.handleLoadImages();
+
         const { item: { redLogicLines } } = await getRedLogicLines();
         this.linesLayer.quotesCollection = new QuotesCollection(this.turnCollection.getTurns(), this.triggers)
         this.linesLayer.linesCollection = new LinesCollection(redLogicLines, {

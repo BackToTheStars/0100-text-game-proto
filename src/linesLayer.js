@@ -43,7 +43,7 @@ class LinesLayer {
 
     setClickedQuote({ turnId, index }) { // ПРОВЕРКИ, ЧТО ДАЛЬШЕ ДЕЛАТЬ С КЛИКНУТОЙ ЦИТАТОЙ
         const quote = this.quotesCollection.getQuote(turnId, index);
-        console.log({quote})
+        console.log({ quote })
         if (this.activeQuote) { // активная цитата уже была
             if (quote.isEqual(this.activeQuote)) { // нажата та же цитата, что и раньше
                 this.activeQuote = null;
