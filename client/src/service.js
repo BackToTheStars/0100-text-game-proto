@@ -1,8 +1,12 @@
+let API_URL = 'http://localhost:3000'
+if((typeof process !== 'undefined') && process.env.API_URL) {
+    API_URL = process.env.API_URL
+}
 const getTurns = async () =>
     new Promise((resolve, reject) => {
         $.ajax({
             type: 'GET',
-            url: '/getTurns',
+            url: `${API_URL}/getTurns`,
             success: resolve,
             error: reject
         });
@@ -10,7 +14,7 @@ const getTurns = async () =>
 
 const createTurn = async (turnObj) => {
     return new Promise(async (resolve, reject) => {
-        fetch('/saveTurn', {
+        fetch(`${API_URL}/saveTurn`, {
             method: 'POST',
             headers: {
                 'content-type': 'application/json',
@@ -34,7 +38,7 @@ const updateTurn = async (turnObj) => {
     return new Promise((resolve, reject) => {
         $.ajax({
             type: 'POST',
-            url: '/updateTurn',
+            url: `${API_URL}/updateTurn`,
             data: JSON.stringify({
                 turn: turnObj,
             }),
@@ -50,7 +54,7 @@ const deleteTurn = async (turnObj) => {
     return new Promise((resolve, reject) => {
         $.ajax({
             type: 'DELETE',
-            url: '/deleteTurn',
+            url: `${API_URL}/deleteTurn`,
             data: JSON.stringify({
                 turn: turnObj,
             }),
@@ -66,7 +70,7 @@ const turnsUpdateCoordinates = async (turns) =>
     new Promise((resolve, reject) => {
         $.ajax({
             type: 'PUT',
-            url: '/turns/coordinates',
+            url: `${API_URL}/turns/coordinates`,
             data: JSON.stringify({
                 turns,
             }),
@@ -82,7 +86,7 @@ const getRedLogicLines = async () =>
     new Promise((resolve, reject) => {
         $.ajax({
             type: 'GET',
-            url: '/game',
+            url: `${API_URL}/game`,
             success: resolve,
             error: reject
         });
@@ -92,7 +96,7 @@ const updateRedLogicLines = async (redLogicLines) =>
     new Promise((resolve, reject) => {
         $.ajax({
             type: 'PUT',
-            url: '/game/red-logic-lines',
+            url: `${API_URL}/game/red-logic-lines`,
             data: JSON.stringify({
                 redLogicLines,
             }),
@@ -107,7 +111,7 @@ const createRedLogicLine = async (line) =>
     new Promise((resolve, reject) => {
         $.ajax({
             type: 'POST',
-            url: '/game/red-logic-lines',
+            url: `${API_URL}/game/red-logic-lines`,
             data: JSON.stringify(line),
             dataType: 'json',
             contentType: 'application/json',
@@ -120,7 +124,7 @@ const deleteLines = async (redLogicLines) => {
     new Promise((resolve, reject) => {
         $.ajax({
             type: 'DELETE',
-            url: '/game/red-logic-lines',
+            url: `${API_URL}/game/red-logic-lines`,
             data: JSON.stringify({
                 redLogicLines,
             }),

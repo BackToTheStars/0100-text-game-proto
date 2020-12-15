@@ -1,9 +1,9 @@
 // @deprecated
 // УНИВЕРСАЛЬНОЕ ОКНО СОЗДАНИЯ И РЕДАКТИРОВАНИЯ ХОДА
 
-import { getQuill } from '../src/quillHandler';
-import { createTurn, updateTurn } from '../src/service';
-import { getTurn } from '../src/turn';
+import { getQuill } from './quillHandler';
+import { createTurn, updateTurn } from './service';
+import { getTurn } from './turn';
 
 let popup = null;
 const createPopup = (inputDiv, triggers) => {

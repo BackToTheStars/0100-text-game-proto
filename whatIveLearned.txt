@@ -89,3 +89,14 @@ parStr = 'someParStr'
 newDiv = 'someNewDiv'
 
 document.getElementById("dateInput").value = `${date.getFullYear()}-${('0' + (date.getMonth()+1)).slice(-2) }-${('0' + date.getDate()).slice(-2) }`;
+
+
+MVC - Model View Controller
+React - MVP Model View Presenter + MVV
+
+Как работает debugger в браузере
+
+Домашка: переписать запросы в models и controllers
+
+Почитать про ajax и fetch
+nest.js - стандартный сервер backend на TS
