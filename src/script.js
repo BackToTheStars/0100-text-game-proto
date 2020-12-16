@@ -732,6 +732,29 @@ class GameClassPanel {
 
 const gameClassPanel = new GameClassPanel('classMenu');
 
+class NotificationPanel {
+    constructor(rootToAppend) {
+        this.root = document.getElementById(rootToAppend);
+        this.prerender();
+        this.notifications = [];
+        this.notBlock = document.createElement('div');
+    }
+
+    alert(obj) {
+        const {msgTitle, msgText, timespan} = obj;
+        const not = document.createElement('div');
+        not.className = 'notification';
+        const notTitle = document.createElement('p');
+        notTitle.className = 'not-title';
+        notTitle.innerText = msgTitle;
+        const notText = document.createElement('p');
+        notText.className = 'not-text';
+        notText.innerText = msgText;
+
+        this.notBlock.appendChild(not);
+    }
+};
+
 const saveFieldSettings = (settings) => {
     // left, top,
     // width, height
