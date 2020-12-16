@@ -1,7 +1,7 @@
 const GameClass = require("../models/GameClass");
 
 async function saveGameClass(req, res) {
-  const { id, gameClass, addNewSubclass, toDelete, renameSubclass } = req.body; // деструктуризатор
+  const { id, gameClass, addNewSubclass, toDelete, renameSubclass, subclassToDelete } = req.body; // деструктуризатор
   try {
     if (id) {
       let it;
@@ -39,18 +39,30 @@ async function saveGameClass(req, res) {
         }
         if (renameSubclass) {
           //console.log('before typecheck');
-          if (typeof(renameSubclass.from) == 'string' && typeof(renameSubclass.to) == 'string') {
+          if (typeof(renameSubclass.from) === 'string' && typeof(renameSubclass.to) === 'string') {
             const from = renameSubclass.from.trim();
             const to = renameSubclass.to.trim();
             //console.log(`from: "${from}" | to: "${to}"`);
-            if (from != to) {
+            if (from !== to) {
               const ind = it.subClasses.indexOf(from);
               //console.log(`ind: ${ind}`);
-              if (ind != -1) {
+              if (ind !== -1) {
                 //console.log('before splice');
                 it.subClasses.splice(ind, 1, to);
                 flag = true;
               }
+            }
+          }
+        }
+        if (subclassToDelete) {
+          const ind = it.subClasses.indexOf(subclassToDelete);
+          if (ind !== -1) {
+            it.subClasses.splice(ind, 1);
+            if (!flag) {
+              it.save();
+              res.status(204);
+              res.send();
+              return;
             }
           }
         }

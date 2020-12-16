@@ -297,7 +297,7 @@ class GameClass {
         this.name = name;
         this.dbId = dbId;
         this.rootToAppend = rootToAppend;
-        this.subClassNames = subClasses;
+        this.subClassNames = subClasses || [];
         this.sync = sync;                   // говорит что этот класс нужно отправить на сервер
         //console.log(`GameClass: constructor: obj = ${JSON.stringify(obj)}`);
         if (sync) {
@@ -525,13 +525,14 @@ class GameClass {
             })
                 .then(() => {
                     this.renderSubclass({ subClassName: bodyObj.addNewSubclass });
+                    this.subClassNames.push( bodyObj.addNewSubclass );
                     this.input.value = '';
                     this.input.style.display = 'none';
                     this.buttonAddSubclass.style.display = 'none';
                     this.buttonCancelInput.style.display = 'none';
                 }, (err) => { console.log(JSON.stringify(err)) });
         } else {
-            this.renderSubclass({ subClassName });
+            this.subClassNames.push( subClassName );
         }
     }
 
@@ -583,6 +584,39 @@ class GameClass {
         };
         const buttonDelete = document.createElement('button');
         buttonDelete.className = 'title-button-delete';
+        buttonDelete.onclick = () => {
+            const bodyObj = {
+                id: this.dbId,
+                subclassToDelete: liName.innerText
+            };
+            const bodyJSON = JSON.stringify(bodyObj);
+            fetch('/gameClass', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': bodyJSON.length
+                },
+                body: bodyJSON
+            })
+                .then((res) => {
+                    //console.log(`just for logging: ${res.status}`);
+                    if (res.status === 204) {
+                        li.remove();
+                        const ind = this.subClassNames.indexOf(liName.innerText);
+                        if (ind === -1) {
+                            console.log(`buttonDelete for SubClass: "${liName.innerText}" not found: ind === -1`);
+                            console.log(this.subClassNames);
+                        } else {
+                            this.subClassNames.splice(ind, 1);
+                        }
+                    } else {
+                        console.log(`ERROR: /gameClass res.status =  ${res.status}`);
+                    }
+                }, (err) => {
+                    console.log(err);
+                });
+        };
+
         li.onmouseover = () => {
             li.appendChild(buttonEdit);
             li.appendChild(buttonDelete);
