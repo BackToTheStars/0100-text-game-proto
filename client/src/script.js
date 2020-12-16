@@ -1,6 +1,8 @@
+import { API_URL } from './config'
+
 import { getRedLogicLines, saveTurn, deleteTurn, updateRedLogicLines } from './service';
 // import { openTurnModal } from './modal';
-import { getPopup } from './popup';
+// import { getPopup } from './popup';
 
 
 // const popup = getPopup(document.body);
@@ -305,7 +307,7 @@ class GameClass {
                 gameClass: name
             };
             const bodyJSON = JSON.stringify(body);
-            fetch('/gameClass', {
+            fetch(`${API_URL}/gameClass`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -370,7 +372,7 @@ class GameClass {
                     this.titleName.innerHTML = '';
                     this.titleName.innerText = this.name;
                     const bodyJSON = JSON.stringify(bodyObj);
-                    fetch('/gameClass', {
+                    fetch(`${API_URL}/gameClass`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -427,7 +429,7 @@ class GameClass {
         this.titleButtonsArray.push(this.titleButtonEdit);
         this.titleButtonsArray.push(this.titleButtonDelete);
 
-        this.titleButtonsArray.forEach(it => {it.style.display = "none";});
+        this.titleButtonsArray.forEach(it => { it.style.display = "none"; });
 
         this.titleBlock.appendChild(this.titleButtonAdd);
         this.titleBlock.appendChild(this.titleButtonEdit);
@@ -435,11 +437,11 @@ class GameClass {
 
         this.titleBlock.onmouseover = () => {
             //this.titleButtons.style.display = 'block';
-            this.titleButtonsArray.forEach(it => {it.style.display = "block";});
+            this.titleButtonsArray.forEach(it => { it.style.display = "block"; });
         };
 
         this.titleBlock.onmouseleave = () => {
-            this.titleButtonsArray.forEach(it => {it.style.display = "none";});
+            this.titleButtonsArray.forEach(it => { it.style.display = "none"; });
             //this.titleButtons.style.display = 'none';
         }
 
@@ -482,7 +484,7 @@ class GameClass {
             toDelete: true
         };
         const bodyJSON = JSON.stringify(bodyObj);
-        fetch('/gameClass', {
+        fetch(`${API_URL}/gameClass`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -490,14 +492,14 @@ class GameClass {
             },
             body: bodyJSON
         })
-        .then((res) => {
-            if (res.status == 200) {
-                this.self.remove();
-                this.panel.deleteClass(this);
-            } else {
-                console.log(`ERROR: res.status = ${res.status} | ${JSON.stringify(res)}`);
-            }
-        })
+            .then((res) => {
+                if (res.status == 200) {
+                    this.self.remove();
+                    this.panel.deleteClass(this);
+                } else {
+                    console.log(`ERROR: res.status = ${res.status} | ${JSON.stringify(res)}`);
+                }
+            })
     }
 
     async titleEdit() {
@@ -515,7 +517,7 @@ class GameClass {
                 addNewSubclass: this.input.value,
             };
             const bodyJSON = JSON.stringify(bodyObj);
-            fetch('/gameClass', {
+            fetch(`${API_URL}/gameClass`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -563,7 +565,7 @@ class GameClass {
                         }
                     };
                     const bodyJSON = JSON.stringify(bodyObj);
-                    fetch('/gameClass', {
+                    fetch(`${API_URL}/gameClass`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -577,7 +579,7 @@ class GameClass {
                             } else {
                                 console.log(`res.status == ${res.status}`);
                             }
-                        }, (err) => {console.log(err)});
+                        }, (err) => { console.log(err) });
                 }
             });
         };
@@ -610,7 +612,7 @@ class GameClassPanel {
     }
 
     async load() {
-        const res = await fetch('gameClasses', {
+        const res = await fetch(`${API_URL}/gameClasses`, {
             method: 'GET'
         });
         this.gameClassDescs = await res.json();
@@ -618,7 +620,7 @@ class GameClassPanel {
 
     async prerender() {
         this.addIcon = document.createElement('img');
-        this.addIcon.src = "/icons/add.svg";
+        this.addIcon.src = "./icons/add.svg";
         this.addIcon.style.display = 'block';
         this.addIcon.style.cursor = 'pointer';
         this.addIcon.onclick = () => {
@@ -690,7 +692,7 @@ class GameClassPanel {
         if (ind == -1) {
             console.log(`ERROR: deleteClass: ind == -1 | obj = ${JSON.stringify(obj)}`);
         } else {
-            this.gameClasses.splice(ind,1);
+            this.gameClasses.splice(ind, 1);
         }
         //console.log(`deleteClass: ${this.gameClasses.length}`);
     }

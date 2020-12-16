@@ -1,5 +1,6 @@
 require("dotenv").config()
 require("./models/db");
+const cors = require("cors");
 
 let express = require('express');
 const turnsController = require("./controllers/turns");
@@ -12,8 +13,8 @@ const port = process.env.PORT || 3000;
 
 let jsonParser = express.json();
 
-app.use('/', express.static(__dirname + "/public/"));   // загружает index.html
-app.use('/node_modules', express.static(__dirname + "/node_modules/"));
+app.use(cors());
+app.use('/', express.static(__dirname + "/../client/public/"));   // загружает index.html
 app.use(jsonParser);
 
 // app.put("/turns/:id")

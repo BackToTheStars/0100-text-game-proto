@@ -1,7 +1,5 @@
-let API_URL = 'http://localhost:3000'
-if((typeof process !== 'undefined') && process.env.API_URL) {
-    API_URL = process.env.API_URL
-}
+import { API_URL } from './config'
+
 const getTurns = async () =>
     new Promise((resolve, reject) => {
         $.ajax({
@@ -92,7 +90,7 @@ const getRedLogicLines = async () =>
         });
     });
 
-const updateRedLogicLines = async (redLogicLines) => 
+const updateRedLogicLines = async (redLogicLines) =>
     new Promise((resolve, reject) => {
         $.ajax({
             type: 'PUT',
@@ -107,7 +105,7 @@ const updateRedLogicLines = async (redLogicLines) =>
         });
     });
 
-const createRedLogicLine = async (line) => 
+const createRedLogicLine = async (line) =>
     new Promise((resolve, reject) => {
         $.ajax({
             type: 'POST',
