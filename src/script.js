@@ -427,7 +427,7 @@ class GameClass {
         this.titleButtonsArray.push(this.titleButtonEdit);
         this.titleButtonsArray.push(this.titleButtonDelete);
 
-        this.titleButtonsArray.forEach(it => {it.style.display = "none";});
+        this.titleButtonsArray.forEach(it => { it.style.display = "none"; });
 
         this.titleBlock.appendChild(this.titleButtonAdd);
         this.titleBlock.appendChild(this.titleButtonEdit);
@@ -435,11 +435,11 @@ class GameClass {
 
         this.titleBlock.onmouseover = () => {
             //this.titleButtons.style.display = 'block';
-            this.titleButtonsArray.forEach(it => {it.style.display = "block";});
+            this.titleButtonsArray.forEach(it => { it.style.display = "block"; });
         };
 
         this.titleBlock.onmouseleave = () => {
-            this.titleButtonsArray.forEach(it => {it.style.display = "none";});
+            this.titleButtonsArray.forEach(it => { it.style.display = "none"; });
             //this.titleButtons.style.display = 'none';
         }
 
@@ -479,25 +479,24 @@ class GameClass {
     async delete() {
         const bodyObj = {
             id: this.dbId,
-            toDelete: true
         };
         const bodyJSON = JSON.stringify(bodyObj);
         fetch('/gameClass', {
-            method: 'POST',
+            method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
                 'Content-Length': bodyJSON.length
             },
             body: bodyJSON
         })
-        .then((res) => {
-            if (res.status == 200) {
-                this.self.remove();
-                this.panel.deleteClass(this);
-            } else {
-                console.log(`ERROR: res.status = ${res.status} | ${JSON.stringify(res)}`);
-            }
-        })
+            .then((res) => {
+                if (res.status == 204) {
+                    this.self.remove();
+                    this.panel.deleteClass(this);
+                } else {
+                    console.log(`ERROR: res.status = ${res.status} | ${JSON.stringify(res)}`);
+                }
+            })
     }
 
     async titleEdit() {
@@ -525,14 +524,14 @@ class GameClass {
             })
                 .then(() => {
                     this.renderSubclass({ subClassName: bodyObj.addNewSubclass });
-                    this.subClassNames.push( bodyObj.addNewSubclass );
-                    this.input.value = '';
-                    this.input.style.display = 'none';
-                    this.buttonAddSubclass.style.display = 'none';
-                    this.buttonCancelInput.style.display = 'none';
+                    this.subClassNames.push(bodyObj.addNewSubclass);
                 }, (err) => { console.log(JSON.stringify(err)) });
+            this.input.value = '';
+            this.input.style.display = 'none';
+            this.buttonAddSubclass.style.display = 'none';
+            this.buttonCancelInput.style.display = 'none';
         } else {
-            this.subClassNames.push( subClassName );
+            this.subClassNames.push(subClassName);
         }
     }
 
@@ -578,7 +577,7 @@ class GameClass {
                             } else {
                                 console.log(`res.status == ${res.status}`);
                             }
-                        }, (err) => {console.log(err)});
+                        }, (err) => { console.log(err) });
                 }
             });
         };
@@ -587,11 +586,11 @@ class GameClass {
         buttonDelete.onclick = () => {
             const bodyObj = {
                 id: this.dbId,
-                subclassToDelete: liName.innerText
+                subClassToDelete: liName.innerText
             };
             const bodyJSON = JSON.stringify(bodyObj);
             fetch('/gameClass', {
-                method: 'POST',
+                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     'Content-Length': bodyJSON.length
@@ -602,9 +601,9 @@ class GameClass {
                     //console.log(`just for logging: ${res.status}`);
                     if (res.status === 204) {
                         li.remove();
-                        const ind = this.subClassNames.indexOf(liName.innerText);
+                        const ind = this.subClassNames.indexOf(bodyObj.subClassToDelete);
                         if (ind === -1) {
-                            console.log(`buttonDelete for SubClass: "${liName.innerText}" not found: ind === -1`);
+                            console.log(`buttonDelete for SubClass: "${bodyObj.subClassToDelete}" not found: ind === -1`);
                             console.log(this.subClassNames);
                         } else {
                             this.subClassNames.splice(ind, 1);
@@ -724,7 +723,7 @@ class GameClassPanel {
         if (ind == -1) {
             console.log(`ERROR: deleteClass: ind == -1 | obj = ${JSON.stringify(obj)}`);
         } else {
-            this.gameClasses.splice(ind,1);
+            this.gameClasses.splice(ind, 1);
         }
         //console.log(`deleteClass: ${this.gameClasses.length}`);
     }
@@ -741,7 +740,7 @@ class NotificationPanel {
     }
 
     alert(obj) {
-        const {msgTitle, msgText, timespan} = obj;
+        const { msgTitle, msgText, timespan } = obj;
         const not = document.createElement('div');
         not.className = 'notification';
         const notTitle = document.createElement('p');
