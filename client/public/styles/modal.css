@@ -1,0 +1,63 @@
+.flex-1 {
+    flex: 1;
+}
+
+#modalBackground{
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    left: 0;
+    top: 0;
+    z-index: 1500;
+    background-color: rgba(89, 89, 89, 0.90);
+    display: none;
+}
+
+#modal{
+    position: fixed;
+    min-width: 20%;
+    max-width: 70vw;
+    height: 80vh;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2000;
+    background-color: whitesmoke;
+    border-radius: 3px;
+    display: flex;
+    flex-direction: column;
+}
+
+.radio-group {
+    padding: 0 15px 10px;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid #999;
+    margin-bottom: 35px;
+}
+
+.radio-group .form-group {
+    display: flex;
+    align-items: center;
+}
+
+.radio-group input {
+    margin-right: 10px;
+}
+
+.quill-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+#editor-container {
+    flex: 1;
+    background-color: white;
+    max-height: 60vh;
+}
+
+#modal label,
+#modal .form-control,
+#modal .radio-group span {
+    font-size: 1.3rem;
+}
