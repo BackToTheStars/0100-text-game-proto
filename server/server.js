@@ -25,6 +25,7 @@ app.put("/turns/coordinates", turnsController.updateCoordinates);
 
 app.get("/gameClasses", gameClassesController.getGameClasses)
 app.post("/gameClass", gameClassesController.saveGameClass);
+app.delete("/gameClass", gameClassesController.deleteGameClass);
 // app.delete("/gameClass", gameClassesController.deleteGameClass);
 app.post("/gameClass/addSubclass", gameClassesController.gameClassAddSubclass);
 

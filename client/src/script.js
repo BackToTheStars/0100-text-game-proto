@@ -484,7 +484,7 @@ class GameClass {
         };
         const bodyJSON = JSON.stringify(bodyObj);
         fetch(`${API_URL}/gameClass`, {
-            method: 'POST',
+            method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
                 'Content-Length': bodyJSON.length
@@ -492,7 +492,7 @@ class GameClass {
             body: bodyJSON
         })
             .then((res) => {
-                if (res.status == 200) {
+                if (res.status == 204) {
                     this.self.remove();
                     this.panel.deleteClass(this);
                 } else {
