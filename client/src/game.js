@@ -21,6 +21,7 @@ import { getPopup } from './popup'
 import ClassPanel from './classPanel'
 import LinesLayer from './linesLayer'
 import QuotesPanel from './quotesPanel';
+import { NotificationPanel, GameClassPanel } from './script';
 
 
 // настраивает компоненты игры,
@@ -41,6 +42,9 @@ class Game {
             stageEl,
             quotesPanel: new QuotesPanel({}, this.triggers) // создали панель управления линиями
         }, this.triggers);
+
+        this.notificationPanel = new NotificationPanel('notificationPanel');
+        this.gameClassPanel = new GameClassPanel('classMenu');
     }
     async init() {
         this.turnCollection = new TurnCollection({
@@ -64,6 +68,7 @@ class Game {
                     const turns = await this.turnCollection.getTurns();
                     const payload = this.gameField.saveTurnPositions(turns);
                     await turnsUpdateCoordinates(payload);
+                    this.notificationPanel.alert({msgTitle: 'Info:', msgText: 'Field has been saved', timespan: 1500});
                     console.log('Positions of all turns re-saved.');
                     break;
                 }

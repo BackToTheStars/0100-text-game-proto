@@ -328,3 +328,44 @@ button{
     flex-shrink: 0;
     flex-grow: 0;
 }
+
+#notificationPanel {
+    position: fixed;
+    width: calc(min(25vw, 400px));
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 4;
+}
+
+#notificationPanel .notification {
+    /* background: #fff; */
+    display: flex;
+    flex-direction: row;
+    justify-content: stretch;
+    transition: .2s;
+}
+
+#notificationPanel .notification .hidden {
+    opacity: 0;
+}
+
+#notificationPanel .notification .not-title {
+    flex-grow: 0;
+    flex-shrink: 0;
+    align-items: center;
+    padding-left: 10px;
+    padding-right: 5px;
+    color: rgb(143, 173, 255);
+    font-size: 1.2rem
+}
+
+#notificationPanel .notification .not-text {
+    padding-left: 5px;
+    padding-right: 5px;
+    flex-grow: 1;
+    flex-shrink: 1;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.712);
+    font-size: 1.2rem
+}
