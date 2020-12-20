@@ -513,7 +513,7 @@ class GameClass {
         if (sync) {
             const bodyObj = {
                 id: this.dbId,
-                addNewSubclass: this.input.value,
+                addNewSubclass: this.input.value.replace(/\s+/, ' '),
             };
             const bodyJSON = JSON.stringify(bodyObj);
             fetch(`${API_URL}/gameClass`, {
@@ -721,38 +721,40 @@ class GameClassPanel {
 
     async deleteClass(obj) {
         const ind = this.gameClasses.indexOf(obj);
-        //console.log(`deleteClass: ${ind} / ${this.gameClasses.length}`)
         if (ind == -1) {
             console.log(`ERROR: deleteClass: ind == -1 | obj = ${JSON.stringify(obj)}`);
         } else {
             this.gameClasses.splice(ind, 1);
         }
-        //console.log(`deleteClass: ${this.gameClasses.length}`);
     }
 }
 
-const gameClassPanel = new GameClassPanel('classMenu');
-
-class NotificationPanel {
+class NotificationPanel {           // Правая нижняя панель служебных сообщений
     constructor(rootToAppend) {
         this.root = document.getElementById(rootToAppend);
-        this.prerender();
         this.notifications = [];
-        this.notBlock = document.createElement('div');
+        this.noteBlock = this.root;
     }
 
-    alert(obj) {
-        const { msgTitle, msgText, timespan } = obj;
-        const not = document.createElement('div');
-        not.className = 'notification';
-        const notTitle = document.createElement('p');
-        notTitle.className = 'not-title';
-        notTitle.innerText = msgTitle;
-        const notText = document.createElement('p');
-        notText.className = 'not-text';
-        notText.innerText = msgText;
+    alert({ msgTitle, msgText, timespan }) {
+        const note = document.createElement('div');
+        note.className = 'notification';
+        const noteTitle = document.createElement('div');     // Заголовок 
+        noteTitle.className = 'not-title';
+        noteTitle.innerText = msgTitle;
+        const noteText = document.createElement('div');      // Текст сообщения
+        noteText.className = 'not-text';
+        noteText.innerText = msgText;
 
-        this.notBlock.appendChild(not);
+        note.appendChild(noteTitle);
+        note.appendChild(noteText);
+        this.noteBlock.appendChild(note);
+        setTimeout(() => {
+            setTimeout(() => {
+                note.remove();                               // Удалить DIV из дерева DOM
+            }, 500);
+            note.classList.push('hidden');
+        }, timespan)
     }
 };
 
@@ -811,4 +813,6 @@ export {
     getPanelSettings,
     saveLinesSettings,
     getLinesSettings,
+    GameClassPanel,
+    NotificationPanel,
 };

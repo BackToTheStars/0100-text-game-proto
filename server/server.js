@@ -6,7 +6,6 @@ let express = require('express');
 const turnsController = require("./controllers/turns");
 const gameClassesController = require("./controllers/gameClasses");
 const gameController = require("./controllers/game");
-const commentsController = require("./controllers/comments")
 let app = express();
 
 const port = process.env.PORT || 3000;
@@ -22,15 +21,12 @@ app.put("/turns/coordinates", turnsController.updateCoordinates);
 app.get("/gameClasses", gameClassesController.getGameClasses)
 app.post("/gameClass", gameClassesController.saveGameClass);
 app.delete("/gameClass", gameClassesController.deleteGameClass);
-app.post("/gameClass/addSubclass", gameClassesController.gameClassAddSubclass);
+// app.post("/gameClass/addSubclass", gameClassesController.gameClassAddSubclass);
 
 app.post("/updateTurn", jsonParser, turnsController.updateTurn);
 app.post("/saveTurn", jsonParser, turnsController.saveTurn);
 app.delete("/deleteTurn", turnsController.deleteTurn);
 app.get("/getTurns", turnsController.getTurns);
-
-app.post("/saveComment", jsonParser, commentsController.saveComment);
-app.get("/getComments", commentsController.getComments);
 
 app.get("/game", gameController.getItem);
 app.put("/game/red-logic-lines", gameController.updateRedLogicLines);   // camelCase в endpoints не используют

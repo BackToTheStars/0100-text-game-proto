@@ -49,8 +49,10 @@ async function saveGameClass(req, res) {
         }
       }
       if (flag) {
-        it.save();
-        res.status(201);
+        await it.save();
+        res.status(201).send({
+          item: it
+        });
       } else {
         res.status(400);
       }
@@ -111,8 +113,10 @@ async function deleteGameClass(req, res) {
       res.send();
     } else {
       await it.delete();
-      res.status(204);
-      res.send();
+      return res.status(204)
+        .send({
+          success: true // @todo: check it
+        });
     }
   } catch (err) {
     log.warn(err);
