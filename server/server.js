@@ -17,25 +17,17 @@ app.use(cors());
 app.use('/', express.static(__dirname + "/../client/public/"));   // загружает index.html
 app.use(jsonParser);
 
-// app.put("/turns/:id")
-//app.post("/saveTurn", turnsController.saveTurn);
-// app.get("/turns/")
-//app.get("/getTurns", turnsController.getTurns);
 app.put("/turns/coordinates", turnsController.updateCoordinates);
 
 app.get("/gameClasses", gameClassesController.getGameClasses)
 app.post("/gameClass", gameClassesController.saveGameClass);
 app.delete("/gameClass", gameClassesController.deleteGameClass);
-// app.delete("/gameClass", gameClassesController.deleteGameClass);
 app.post("/gameClass/addSubclass", gameClassesController.gameClassAddSubclass);
 
 app.post("/updateTurn", jsonParser, turnsController.updateTurn);
 app.post("/saveTurn", jsonParser, turnsController.saveTurn);
 app.delete("/deleteTurn", turnsController.deleteTurn);
 app.get("/getTurns", turnsController.getTurns);
-
-//app.post("/saveGameClass", jsonParser, gameClassesController.saveGameClass);
-//app.get("/getGameClasses", gameClassesController.getGameClasses);
 
 app.post("/saveComment", jsonParser, commentsController.saveComment);
 app.get("/getComments", commentsController.getComments);
