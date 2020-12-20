@@ -1,0 +1,11 @@
+/package-lock.json
+.DS_Store
+/.idea
+/.idea/*
+.idea
+.idea/*
+/node_modules
+.env
+/server/node_modules
+/server/dist
+

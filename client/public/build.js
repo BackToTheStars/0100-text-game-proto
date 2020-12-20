@@ -38,7 +38,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"API_URL\": () => /* binding */ API_URL\n/* harmony export */ });\nlet API_URL = ''\nif ((typeof process !== 'undefined') && process.env.API_URL) {\n  API_URL = process.env.API_URL\n}\n\n\n\n//# sourceURL=webpack://0100-text-game-proto/./src/config.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"API_URL\": () => /* binding */ API_URL\n/* harmony export */ });\nlet API_URL = ''\r\nif ((typeof process !== 'undefined') && process.env.API_URL) {\r\n  API_URL = process.env.API_URL\r\n}\r\n\r\n\n\n//# sourceURL=webpack://0100-text-game-proto/./src/config.js?");
 
 /***/ }),
 
