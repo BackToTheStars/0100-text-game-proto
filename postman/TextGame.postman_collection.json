@@ -1,0 +1,456 @@
+{
+	"info": {
+		"_postman_id": "6694868b-9f73-40d4-8864-791d4125622f",
+		"name": "TextGame",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Turns",
+			"item": [
+				{
+					"name": "Get Turns",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get Turns\", function() {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"    console.log(`turns count ${jsonData.length}`)\r",
+									"    pm.environment.set('TURNS_COUNT', jsonData.length);\r",
+									"})\r",
+									"\r",
+									"postman.setNextRequest(\"Create Turn\");\r",
+									"// postman.setNextRequest(\"Get GameClasses\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/getTurns",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"getTurns"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Turn",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Create Turn\", function() {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.expect(typeof jsonData === 'object').to.eql(true);\r",
+									"    console.log(`new turn object`,jsonData);\r",
+									"    pm.environment.set('ACTIVE_TURN_ID', jsonData._id);\r",
+									"})\r",
+									"\r",
+									"postman.setNextRequest(\"Update Turn\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"turn\": {\r\n        \"contentType\": \"picture\",\r\n        \"height\": 500,\r\n        \"width\": 500,\r\n        \"x\": 50,\r\n        \"y\": 50,\r\n        \"header\": \"New Turn header\",\r\n        \"date\": \"2020-12-20\",\r\n        \"sourceUrl\": \"https://www.wikipedia.org/\",\r\n        \"imageUrl\": \"https://placekitten.com/600/400\",\r\n        \"videoUrl\": null,\r\n        \"paragraph\": [\r\n            {\r\n                \"insert\": \"New turn text\\n\"\r\n            }\r\n        ],\r\n        \"_id\": null\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/saveTurn",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"saveTurn"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Turn",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Update Turn\", function() {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.expect(typeof jsonData === 'object').to.eql(true);\r",
+									"    pm.expect(jsonData.header).to.eql(\"Updated Turn header\");\r",
+									"})\r",
+									"\r",
+									"postman.setNextRequest(\"Delete Turn\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"turn\": {\r\n        \"contentType\": \"picture\",\r\n        \"height\": 500,\r\n        \"width\": 500,\r\n        \"x\": 50,\r\n        \"y\": 50,\r\n        \"header\": \"Updated Turn header\",\r\n        \"date\": \"2020-12-20\",\r\n        \"sourceUrl\": \"https://www.wikipedia.org/\",\r\n        \"imageUrl\": \"https://placekitten.com/600/400\",\r\n        \"videoUrl\": null,\r\n        \"paragraph\": [\r\n            {\r\n                \"insert\": \"New turn text\\n\"\r\n            }\r\n        ],\r\n        \"_id\": \"{{ACTIVE_TURN_ID}}\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/updateTurn",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"updateTurn"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Turn",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Delete Turn\", function() {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.expect(jsonData._id).to.eql(pm.environment.get('ACTIVE_TURN_ID'));\r",
+									"    pm.environment.set('ACTIVE_TURN_ID', null);\r",
+									"})\r",
+									"\r",
+									"postman.setNextRequest(\"Get Turns 2\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"turn\": {\r\n        \"_id\": \"{{ACTIVE_TURN_ID}}\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/deleteTurn",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"deleteTurn"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Turns 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get Turns\", function() {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"    console.log(`turns count ${jsonData.length}`)\r",
+									"    pm.expect(jsonData.length).to.eql(pm.environment.get('TURNS_COUNT'));\r",
+									"})\r",
+									"\r",
+									"postman.setNextRequest(\"Get GameClasses\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/getTurns",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"getTurns"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "GameClasses",
+			"item": [
+				{
+					"name": "Get GameClasses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get GameClasses\", function() {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"    console.log(`gameClasses count ${jsonData.length}`)\r",
+									"    pm.environment.set('GAME_CLASSES_COUNT', jsonData.length);\r",
+									"})\r",
+									"\r",
+									"\r",
+									"// postman.setNextRequest(null);\r",
+									"postman.setNextRequest(\"Create GameClass\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/gameClasses",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"gameClasses"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create GameClass",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Create Game Class\", function() {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.response.to.have.status(201);\r",
+									"    pm.expect(typeof jsonData === 'object').to.eql(true);\r",
+									"    console.log(`new game class object`,jsonData);\r",
+									"    pm.environment.set('ACTIVE_GAME_CLASS_ID', jsonData._id);\r",
+									"})\r",
+									"\r",
+									"postman.setNextRequest(\"Create GameClass SubClass\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"gameClass\": \"First Class\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/gameClass",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"gameClass"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create GameClass SubClass",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Create GameClass SubClass\", function() {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.response.to.have.status(201);\r",
+									"    pm.expect(typeof jsonData === 'object').to.eql(true);\r",
+									"    var item = jsonData.item;\r",
+									"    pm.expect(item.gameClass).to.eql(\"First Class\");\r",
+									"    pm.expect(item.subClasses.indexOf(\"First SubClass\")).to.eql(0);\r",
+									"    console.log(`new SubClass created`,jsonData);\r",
+									"})\r",
+									"\r",
+									"postman.setNextRequest(\"Delete GameClass\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": \"{{ACTIVE_GAME_CLASS_ID}}\",\r\n    \"addNewSubclass\": \"First SubClass\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/gameClass",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"gameClass"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete GameClass",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Delete Turn\", function() {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.response.to.have.status(204);\r",
+									"    // pm.expect(jsonData.item._id).to.eql(pm.environment.get('ACTIVE_GAME_CLASS_ID'));\r",
+									"    pm.expect(jsonData.success).to.eql(true);\r",
+									"    pm.environment.set('ACTIVE_GAME_CLASS_ID', null);\r",
+									"})\r",
+									"\r",
+									"postman.setNextRequest(\"Get GameClasses 2\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": \"{{ACTIVE_GAME_CLASS_ID}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/gameClass",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"gameClass"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get GameClasses 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get GameClasses 2\", function() {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"    console.log(`turns count ${jsonData.length}`)\r",
+									"    pm.expect(jsonData.length).to.eql(pm.environment.get('GAME_CLASSES_COUNT'));\r",
+									"})\r",
+									"\r",
+									"postman.setNextRequest(null);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/gameClasses",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"gameClasses"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	]
+}
