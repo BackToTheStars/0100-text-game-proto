@@ -5,6 +5,24 @@ const log = bunyan.createLogger({
   level: 'debug',
 });
 
+// @todo: разделить на создание класса и обновление класса (в том числе добавление субкласса)
+const createGameClass = async (req, res, next) => {
+  const {
+    gameClass,
+    gameId, // @todo: решить, передавать ли этот параметр в headers
+  } = req.body;
+  try {
+    const item = new GameClass({ gameClass, gameId});
+    await item.save();
+    res.json({
+      item
+    })
+  } catch (error) {
+    // next(new Error("Какое-то сообщение"))
+    next(error);
+  }
+}
+
 async function saveGameClass(req, res) {
   const { id, gameClass, addNewSubclass, renameSubclass } = req.body; // деструктуризатор
   try {
@@ -125,9 +143,20 @@ async function deleteGameClass(req, res) {
   }
 }
 
-async function getGameClasses(req, res) {
+const getGameClass = async (req, res) => {
+  const { id } = req.params;
+  const gameClass = await GameClass.findById(id);
+  // здесь может быть проверка, есть ли у пользователя доступ к игре
+  res.json({
+    item: gameClass
+  });
+}
+
+const getGameClasses = async (req, res) => {
   const gameClasses = await GameClass.find();
-  res.json(gameClasses);
+  res.json({
+    items: gameClasses
+  });
 }
 
 async function gameClassAddSubclass(req, res) {
@@ -154,7 +183,9 @@ async function gameClassAddSubclass(req, res) {
 }
 
 module.exports = {
+  createGameClass,
   saveGameClass,
+  getGameClass,
   getGameClasses,
   gameClassAddSubclass,
   deleteGameClass,
