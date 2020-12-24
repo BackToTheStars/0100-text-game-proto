@@ -30,7 +30,12 @@ app.delete("/game/red-logic-lines", gameController.deleteRedLogicLines);
 app.get("/game-classes", gameClassesController.getGameClasses);
 app.get("/game-classes/:id", gameClassesController.getGameClass)
 app.post("/game-classes", gameClassesController.createGameClass);
-app.delete("/game-classes", gameClassesController.deleteGameClass);
+app.put("/game-classes/:id", gameClassesController.updateGameClass);
+app.delete("/game-classes/:id", gameClassesController.deleteGameClass);
+
+// app.get("/gameClasses", gameClassesController.getGameClasses)
+// app.post("/gameClass", gameClassesController.saveGameClass);
+// app.delete("/gameClass", gameClassesController.deleteGameClass);
 // app.post("/gameClass/addSubclass", gameClassesController.gameClassAddSubclass);
 
 app.post("/updateTurn", jsonParser, turnsController.updateTurn);
