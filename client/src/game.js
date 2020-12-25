@@ -176,6 +176,11 @@ class Game {
                     this.linesLayer.setClickedQuote(data)
                     break;
                 }
+                case 'TOGGLE_MINIMAP': {   // показывает minimap игрового поля на экране
+                    // this.minimap.renderMiniMap();
+                    console.log('clicked on minimap btn')
+                    break;
+                }
                 // lines and markers
                 // ACTIVATE_MARKER (DEACTIVATE_MARKER) - click on yellow
                 // CONNECT_MARKERS - click on yellow
