@@ -18,6 +18,7 @@ class ToolsPanel {
     this.addTurnBtn = this.el.find('#add-new-box-to-game-btn');
     this.toggleLeftPanelBtn = this.el.find('#toggle-left-panel');
     this.savePositionsBtn = this.el.find('#save-positions-btn');
+    this.showMinimapBtn = this.el.find('#show-minimap-btn')
     this.addEventHandlers();
   }
   
@@ -25,6 +26,7 @@ class ToolsPanel {
     this.addTurnBtn.click(() => this.triggers.dispatch("OPEN_POPUP"));
     this.toggleLeftPanelBtn.click(() => this.triggers.dispatch("TOGGLE_CLASS_PANEL"));
     this.savePositionsBtn.click(() => this.triggers.dispatch("SAVE_FIELD_POSITION"));
+    this.showMinimapBtn.click(() => this.triggers.dispatch("TOGGLE_MINIMAP"));
   }
 }
 

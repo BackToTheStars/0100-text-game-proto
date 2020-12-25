@@ -753,7 +753,7 @@ class NotificationPanel {           // Правая нижняя панель с
             setTimeout(() => {
                 note.remove();                               // Удалить DIV из дерева DOM
             }, 500);
-            note.classList.push('hidden');
+            note.classList.add('hidden');
         }, timespan)
     }
 };
