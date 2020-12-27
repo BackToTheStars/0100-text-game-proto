@@ -25,6 +25,10 @@ const schema = new Schema({
   redLogicLines: {
     type: [redLogicLine],
     default: []
+  },
+  public: {
+    type: Boolean,
+    default: true
   }
 }, {
   timestamps: true

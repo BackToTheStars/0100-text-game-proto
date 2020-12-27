@@ -9,6 +9,10 @@ const hashFunc = (_id) => {
   return (''+_id).slice(-3);
 }
 
+const getHashByGame = (game) => {
+  return hashFunc(game._id);
+}
+
 const getInfo = async (hash) => {
   if(!games) {
     games = await Game.find(); // 
@@ -27,7 +31,8 @@ const getInfo = async (hash) => {
 }
 
 module.exports = {
-  getInfo
+  getInfo,
+  getHashByGame
 }
 
 

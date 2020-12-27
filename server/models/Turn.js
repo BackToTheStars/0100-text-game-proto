@@ -48,7 +48,13 @@ const schema = new Schema({
     videoUrl: {
         type: String,
         required: false
+    },
+    gameId: {
+        type: mongoose.Schema.Types.ObjectId,
+        // required: true,
     }
+}, {
+    timestamps: true
 });
 
 module.exports = mongoose.model('Turn', schema, "turns");

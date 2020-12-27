@@ -29,9 +29,18 @@ const gameMiddleware = async (req, res, next) => {
 
 const rulesCanView = async (req, res, next) => {
   // gameId - могут ли редактировать все
-  console.log(req.gameInfo.rules, User.rules.RULE_VIEW)
   if(req.gameInfo.rules.indexOf(User.rules.RULE_VIEW) === -1) {
     const error = new Error('Просмотр не доступен');
+    error.statusCode = 403;
+    return next(error);
+  }
+  next();
+}
+
+const rulesCanEdit = async (req, res, next) => {
+  // gameId - могут ли редактировать все
+  if(req.gameInfo.rules.indexOf(User.rules.RULE_EDIT) === -1) {
+    const error = new Error('Редактирование не доступно');
     error.statusCode = 403;
     return next(error);
   }
@@ -45,8 +54,9 @@ app.use(jsonParser);
 app.put("/turns/coordinates", turnsController.updateCoordinates);
 
 
-app.get("/games", gameController.getGames); // новые
-app.get("/games/:id", gameController.getGame)
+app.get("/games", gameController.getGames);
+app.post("/games", gameController.createGame);
+app.get("/games/:id", gameController.getGame);
 
 app.get("/game", gameController.getItem);
 app.put("/game/red-logic-lines", gameController.updateRedLogicLines);   // camelCase в endpoints не используют
@@ -55,7 +65,7 @@ app.delete("/game/red-logic-lines", gameController.deleteRedLogicLines);
 
 // 5f7e843151be1669dc611045
 app.get("/game-classes", gameMiddleware, rulesCanView, gameClassesController.getGameClasses);
-app.get("/game-classes/:id", gameClassesController.getGameClass)
+app.get("/game-classes/:id", gameClassesController.getGameClass);
 app.post("/game-classes", gameClassesController.createGameClass);
 app.put("/game-classes/:id", gameClassesController.updateGameClass);
 app.delete("/game-classes/:id", gameClassesController.deleteGameClass);
@@ -65,10 +75,10 @@ app.delete("/game-classes/:id", gameClassesController.deleteGameClass);
 // app.delete("/gameClass", gameClassesController.deleteGameClass);
 // app.post("/gameClass/addSubclass", gameClassesController.gameClassAddSubclass);
 
-app.post("/updateTurn", jsonParser, turnsController.updateTurn);
-app.post("/saveTurn", jsonParser, turnsController.saveTurn);
-app.delete("/deleteTurn", turnsController.deleteTurn);
-app.get("/getTurns", turnsController.getTurns);
+app.get("/turns", gameMiddleware, rulesCanView, turnsController.getTurns);
+app.post("/turns", gameMiddleware, rulesCanEdit, turnsController.saveTurn);
+app.put("/turns/:id", gameMiddleware, rulesCanEdit, turnsController.updateTurn);
+app.delete("/turns/:id", gameMiddleware, rulesCanEdit, turnsController.deleteTurn);
 
 app.use((err, req, res, next) => {
     const { statusCode = 500, message } = err;

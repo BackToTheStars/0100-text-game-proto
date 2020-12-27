@@ -1,5 +1,24 @@
 
 const Game = require("../models/Game");
+const SecurityLayer = require("../services/SecurityLayer")
+
+const createGame = async (req, res) => {
+    const {
+        public,
+        name,
+    } = req.body;
+
+    const game = new Game({
+        public,
+        name,
+    });
+
+    await game.save();
+    res.json({
+        hash: SecurityLayer.getHashByGame(game),
+        item: game
+    })
+}
 
 const getGame = async (req, res) => {
     const { id } = req.params;
@@ -81,6 +100,7 @@ const deleteRedLogicLines = async (req, res) => {
 }
 
 module.exports = {
+    createGame,
     getItem,
     updateRedLogicLines,
     createRedLogicLine,
