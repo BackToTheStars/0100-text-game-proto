@@ -22,6 +22,7 @@ import ClassPanel from './classPanel'
 import LinesLayer from './linesLayer'
 import QuotesPanel from './quotesPanel';
 import { NotificationPanel, GameClassPanel } from './script';
+import { MiniMap } from './minimap';
 
 
 // настраивает компоненты игры,
@@ -45,6 +46,7 @@ class Game {
 
         this.notificationPanel = new NotificationPanel('notificationPanel');
         this.gameClassPanel = new GameClassPanel('classMenu');
+        this.mininap = new MiniMap('minimap');
     }
     async init() {
         this.turnCollection = new TurnCollection({
