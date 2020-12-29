@@ -1,10 +1,13 @@
-import { API_URL } from './config'
+import { API_URL } from './config' 
+
+const urlParams = new URLSearchParams(window.location.search);
+const HASH = urlParams.get('hash');
 
 const getTurns = async () =>
     new Promise((resolve, reject) => {
         $.ajax({
             type: 'GET',
-            url: `${API_URL}/getTurns`,
+            url: `${API_URL}/turns?hash=${HASH}`,
             success: resolve,
             error: reject
         });
@@ -12,7 +15,7 @@ const getTurns = async () =>
 
 const createTurn = async (turnObj) => {
     return new Promise(async (resolve, reject) => {
-        fetch(`${API_URL}/saveTurn`, {
+        fetch(`${API_URL}/turns?hash=${HASH}`, {
             method: 'POST',
             headers: {
                 'content-type': 'application/json',
@@ -36,7 +39,7 @@ const updateTurn = async (turnObj) => {
     return new Promise((resolve, reject) => {
         $.ajax({
             type: 'POST',
-            url: `${API_URL}/updateTurn`,
+            url: `${API_URL}/turns?hash=${HASH}`,
             data: JSON.stringify({
                 turn: turnObj,
             }),
@@ -52,7 +55,7 @@ const deleteTurn = async (turnObj) => {
     return new Promise((resolve, reject) => {
         $.ajax({
             type: 'DELETE',
-            url: `${API_URL}/deleteTurn`,
+            url: `${API_URL}/turns?hash=${HASH}`,
             data: JSON.stringify({
                 turn: turnObj,
             }),
@@ -68,7 +71,7 @@ const turnsUpdateCoordinates = async (turns) =>
     new Promise((resolve, reject) => {
         $.ajax({
             type: 'PUT',
-            url: `${API_URL}/turns/coordinates`,
+            url: `${API_URL}/turns/coordinates?hash=${HASH}`,
             data: JSON.stringify({
                 turns,
             }),

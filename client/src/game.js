@@ -49,8 +49,9 @@ class Game {
         this.mininap = new MiniMap('minimap');
     }
     async init() {
+        const result = await getTurns();
         this.turnCollection = new TurnCollection({
-            turnsData: await getTurns(),
+            turnsData: result.items,
             stageEl: this.stageEl,
         }, this.triggers);
 
@@ -119,7 +120,7 @@ class Game {
                 case 'CREATE_TURN': {
                     createTurn(data).then(res => {
                         // console.log(res);
-                        this.turnCollection.addTurn(res)
+                        this.turnCollection.addTurn(res.item)
                     });
                     break;
                 }

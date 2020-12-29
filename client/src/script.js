@@ -3,7 +3,8 @@ import { API_URL } from './config'
 import { getRedLogicLines, saveTurn, deleteTurn, updateRedLogicLines } from './service';
 // import { openTurnModal } from './modal';
 // import { getPopup } from './popup';
-
+const urlParams = new URLSearchParams(window.location.search);
+const HASH = urlParams.get('hash');
 
 // const popup = getPopup(document.body);
 
@@ -645,10 +646,11 @@ class GameClassPanel {
     }
 
     async load() {
-        const res = await fetch(`${API_URL}/gameClasses`, {
+        const res = await fetch(`${API_URL}/game-classes?hash=${HASH}`, {
             method: 'GET'
         });
-        this.gameClassDescs = await res.json();
+        const data = await res.json();
+        this.gameClassDescs = data.items;
     }
 
     async prerender() {
