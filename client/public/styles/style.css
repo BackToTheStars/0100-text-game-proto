@@ -369,3 +369,17 @@ button{
     color: rgba(255, 255, 255, 0.712);
     font-size: 1.2rem
 }
+
+#minimap {
+    position: fixed;
+    top: 5px;
+    right: 5px;
+    height: 25vh;
+    width: 20vw;
+    z-index: 4;
+}
+
+#minimap video {
+    height: 80%;
+    width: 100%;
+}
