@@ -51,34 +51,26 @@ app.use(cors());
 app.use('/', express.static(__dirname + "/../client/public/"));   // загружает index.html
 app.use(jsonParser);
 
-app.put("/turns/coordinates", turnsController.updateCoordinates);
-
-
 app.get("/games", gameController.getGames);
 app.post("/games", gameController.createGame);
-app.get("/games/:id", gameController.getGame);
+app.get("/game", gameMiddleware, rulesCanView, gameController.getGame);
 
-app.get("/game", gameController.getItem);
-app.put("/game/red-logic-lines", gameController.updateRedLogicLines);   // camelCase в endpoints не используют
-app.post("/game/red-logic-lines", gameController.createRedLogicLine);
-app.delete("/game/red-logic-lines", gameController.deleteRedLogicLines);
+app.put("/game/red-logic-lines", gameMiddleware, rulesCanView, gameController.updateRedLogicLines);   // camelCase в endpoints не используют
+app.post("/game/red-logic-lines", gameMiddleware, rulesCanEdit, gameController.createRedLogicLine);
+app.delete("/game/red-logic-lines", gameMiddleware, rulesCanEdit, gameController.deleteRedLogicLines);
 
-// 5f7e843151be1669dc611045
 app.get("/game-classes", gameMiddleware, rulesCanView, gameClassesController.getGameClasses);
-app.get("/game-classes/:id", gameClassesController.getGameClass);
-app.post("/game-classes", gameClassesController.createGameClass);
-app.put("/game-classes/:id", gameClassesController.updateGameClass);
-app.delete("/game-classes/:id", gameClassesController.deleteGameClass);
-
-// app.get("/gameClasses", gameClassesController.getGameClasses)
-// app.post("/gameClass", gameClassesController.saveGameClass);
-// app.delete("/gameClass", gameClassesController.deleteGameClass);
-// app.post("/gameClass/addSubclass", gameClassesController.gameClassAddSubclass);
+app.get("/game-classes/:id", gameMiddleware, rulesCanEdit, gameClassesController.getGameClass);
+app.post("/game-classes", gameMiddleware, rulesCanEdit, gameClassesController.createGameClass);
+app.put("/game-classes/:id", gameMiddleware, rulesCanEdit, gameClassesController.updateGameClass);
+app.delete("/game-classes/:id", gameMiddleware, rulesCanEdit, gameClassesController.deleteGameClass);
 
 app.get("/turns", gameMiddleware, rulesCanView, turnsController.getTurns);
 app.post("/turns", gameMiddleware, rulesCanEdit, turnsController.saveTurn);
+app.put("/turns/coordinates", gameMiddleware, rulesCanEdit, turnsController.updateCoordinates);
 app.put("/turns/:id", gameMiddleware, rulesCanEdit, turnsController.updateTurn);
 app.delete("/turns/:id", gameMiddleware, rulesCanEdit, turnsController.deleteTurn);
+
 
 app.use((err, req, res, next) => {
     const { statusCode = 500, message } = err;

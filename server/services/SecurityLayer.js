@@ -13,6 +13,8 @@ const getHashByGame = (game) => {
   return hashFunc(game._id);
 }
 
+const clearGamesCache = () => games = null;
+
 const getInfo = async (hash) => {
   if(!games) {
     games = await Game.find(); // 
@@ -32,7 +34,8 @@ const getInfo = async (hash) => {
 
 module.exports = {
   getInfo,
-  getHashByGame
+  getHashByGame,
+  clearGamesCache
 }
 
 

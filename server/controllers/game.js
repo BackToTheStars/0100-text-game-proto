@@ -13,16 +13,23 @@ const createGame = async (req, res) => {
         name,
     });
 
+    SecurityLayer.clearGamesCache();
     await game.save();
     res.json({
         hash: SecurityLayer.getHashByGame(game),
-        item: game
+        item: {
+            name: game.name
+        }
     })
 }
 
 const getGame = async (req, res) => {
-    const { id } = req.params;
-    const game = await Game.findById(id);
+    const { gameId } = req.gameInfo;
+    const game = await Game.findById(gameId, {
+        "_id": false,
+        "name": true,
+        "redLogicLines": true,
+    });
     // здесь может быть проверка, есть ли у пользователя доступ к игре
     res.json({
         item: game
@@ -30,30 +37,36 @@ const getGame = async (req, res) => {
 }
 
 const getGames = async (req, res) => {
-    const games = await Game.find();
+    const games = await Game.find({},{
+        "name": true,
+    });
     res.json({
-        items: games
+        items: games.map(game => ({
+            name: game.name,
+            hash: SecurityLayer.getHashByGame(game),
+        }))
     });
 }
 
 
-const getItem = async (req, res) => {
-    let game = await Game.findOne();
-    // @fixme
-    if (!game) {
-        game = new Game({
-            name: "Dev"
-        })
-        await game.save();
-    }
-    res.json({
-        item: game
-    })
-}
+// const getItem = async (req, res) => {
+//     let game = await Game.findOne();
+//     // @fixme
+//     if (!game) {
+//         game = new Game({
+//             name: "Dev"
+//         })
+//         await game.save();
+//     }
+//     res.json({
+//         item: game
+//     })
+// }
 
 const createRedLogicLine = async (req, res) => {
+    const { gameId } = req.gameInfo;
     const { sourceTurnId, sourceMarker, targetTurnId, targetMarker } = req.body;
-    const game = await Game.findOne();
+    const game = await Game.findById(gameId);
     game.redLogicLines = [
         { sourceTurnId, sourceMarker, targetTurnId, targetMarker },
         ...game.redLogicLines
@@ -63,9 +76,10 @@ const createRedLogicLine = async (req, res) => {
 }
 
 const updateRedLogicLines = async (req, res) => {
+    const { gameId } = req.gameInfo;
     const { redLogicLines } = req.body;
     // console.log(redLogicLines);
-    const game = await Game.findOne();
+    const game = await Game.findById(gameId);
     // @fixme
     // if (!game) {
     //     game = new Game({
@@ -79,9 +93,10 @@ const updateRedLogicLines = async (req, res) => {
 }
 
 const deleteRedLogicLines = async (req, res) => {
+    const { gameId } = req.gameInfo;
     const { redLogicLines } = req.body;
     // console.log(redLogicLines);
-    const game = await Game.findOne();
+    const game = await Game.findById(gameId);
     // @todo: O(n^2) заменить на O(n)
     const length = game.redLogicLines.length
     game.redLogicLines = game.redLogicLines.filter(line => {
@@ -101,7 +116,7 @@ const deleteRedLogicLines = async (req, res) => {
 
 module.exports = {
     createGame,
-    getItem,
+    // getItem,
     updateRedLogicLines,
     createRedLogicLine,
     deleteRedLogicLines,

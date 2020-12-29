@@ -68,6 +68,7 @@ async function getTurns (req, res) {
 };
 
 async function updateCoordinates (req, res) {
+    const { gameId } = req.gameInfo;
     const time = Date.now();
     const { turns = [] } = req.body;
     const items = [];
@@ -80,7 +81,7 @@ async function updateCoordinates (req, res) {
         //     x, y, height, width, contentType, scrollPosition
         // })
 
-        const turnModel = await Turn.findById(id);
+        const turnModel = await Turn.findOne({_id: id, gameId});
         turnModel.x = x;
         turnModel.y = y;
         turnModel.height = height;
@@ -94,7 +95,7 @@ async function updateCoordinates (req, res) {
             id: turnModel._id
         })
     }
-    console.log((Date.now() - time) / 1000);
+    // console.log((Date.now() - time) / 1000);
     res.json({
         success: true,
         items

@@ -6,6 +6,97 @@
 	},
 	"item": [
 		{
+			"name": "Game",
+			"item": [
+				{
+					"name": "Get Games",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/games",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"games"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Game",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Create Game\", function() {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.expect(typeof jsonData.item).to.eql('object');\r",
+									"    console.log(`game hash ${jsonData.hash}`)\r",
+									"    pm.environment.set('GAME_HASH', jsonData.hash);\r",
+									"})\r",
+									"\r",
+									"postman.setNextRequest(\"Get Turns\");\r",
+									"// postman.setNextRequest(\"Get GameClasses\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"public\": false,\r\n    \"name\": \"Private Game\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/games",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"games"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Game",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/game?hash={{GAME_HASH}}",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"game"
+							],
+							"query": [
+								{
+									"key": "hash",
+									"value": "{{GAME_HASH}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Turns",
 			"item": [
 				{
@@ -18,13 +109,13 @@
 									"pm.test(\"Get Turns\", function() {\r",
 									"    var jsonData = pm.response.json();\r",
 									"    pm.response.to.have.status(200);\r",
-									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
-									"    console.log(`turns count ${jsonData.length}`)\r",
-									"    pm.environment.set('TURNS_COUNT', jsonData.length);\r",
+									"    pm.expect(Array.isArray(jsonData.items)).to.eql(true);\r",
+									"    console.log(`turns count ${jsonData.items.length}`)\r",
+									"    pm.environment.set('TURNS_COUNT', jsonData.items.length);\r",
 									"})\r",
 									"\r",
 									"postman.setNextRequest(\"Create Turn\");\r",
-									"// postman.setNextRequest(\"Get GameClasses\");"
+									"// postman.setNextRequest(null);"
 								],
 								"type": "text/javascript"
 							}
@@ -34,12 +125,18 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{API_URL}}/getTurns",
+							"raw": "{{API_URL}}/turns?hash={{GAME_HASH}}",
 							"host": [
 								"{{API_URL}}"
 							],
 							"path": [
-								"getTurns"
+								"turns"
+							],
+							"query": [
+								{
+									"key": "hash",
+									"value": "{{GAME_HASH}}"
+								}
 							]
 						}
 					},
@@ -55,9 +152,9 @@
 									"pm.test(\"Create Turn\", function() {\r",
 									"    var jsonData = pm.response.json();\r",
 									"    pm.response.to.have.status(200);\r",
-									"    pm.expect(typeof jsonData === 'object').to.eql(true);\r",
-									"    console.log(`new turn object`,jsonData);\r",
-									"    pm.environment.set('ACTIVE_TURN_ID', jsonData._id);\r",
+									"    pm.expect(typeof jsonData.item === 'object').to.eql(true);\r",
+									"    console.log(`new turn object`,jsonData.item);\r",
+									"    pm.environment.set('ACTIVE_TURN_ID', jsonData.item._id);\r",
 									"})\r",
 									"\r",
 									"postman.setNextRequest(\"Update Turn\");"
@@ -71,7 +168,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"turn\": {\r\n        \"contentType\": \"picture\",\r\n        \"height\": 500,\r\n        \"width\": 500,\r\n        \"x\": 50,\r\n        \"y\": 50,\r\n        \"header\": \"New Turn header\",\r\n        \"date\": \"2020-12-20\",\r\n        \"sourceUrl\": \"https://www.wikipedia.org/\",\r\n        \"imageUrl\": \"https://placekitten.com/600/400\",\r\n        \"videoUrl\": null,\r\n        \"paragraph\": [\r\n            {\r\n                \"insert\": \"New turn text\\n\"\r\n            }\r\n        ],\r\n        \"_id\": null\r\n    }\r\n}",
+							"raw": "{\r\n    \"contentType\": \"picture\",\r\n    \"height\": 500,\r\n    \"width\": 500,\r\n    \"x\": 50,\r\n    \"y\": 50,\r\n    \"header\": \"New Turn header\",\r\n    \"date\": \"2020-12-20\",\r\n    \"sourceUrl\": \"https://www.wikipedia.org/\",\r\n    \"imageUrl\": \"https://placekitten.com/600/400\",\r\n    \"videoUrl\": null,\r\n    \"paragraph\": [\r\n        {\r\n            \"insert\": \"New turn text\\n\"\r\n        }\r\n    ],\r\n    \"_id\": null\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -79,12 +176,18 @@
 							}
 						},
 						"url": {
-							"raw": "{{API_URL}}/saveTurn",
+							"raw": "{{API_URL}}/turns?hash={{GAME_HASH}}",
 							"host": [
 								"{{API_URL}}"
 							],
 							"path": [
-								"saveTurn"
+								"turns"
+							],
+							"query": [
+								{
+									"key": "hash",
+									"value": "{{GAME_HASH}}"
+								}
 							]
 						}
 					},
@@ -100,8 +203,8 @@
 									"pm.test(\"Update Turn\", function() {\r",
 									"    var jsonData = pm.response.json();\r",
 									"    pm.response.to.have.status(200);\r",
-									"    pm.expect(typeof jsonData === 'object').to.eql(true);\r",
-									"    pm.expect(jsonData.header).to.eql(\"Updated Turn header\");\r",
+									"    pm.expect(typeof jsonData.item === 'object').to.eql(true);\r",
+									"    pm.expect(jsonData.item.header).to.eql(\"Updated Turn header\");\r",
 									"})\r",
 									"\r",
 									"postman.setNextRequest(\"Delete Turn\");"
@@ -111,11 +214,11 @@
 						}
 					],
 					"request": {
-						"method": "POST",
+						"method": "PUT",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"turn\": {\r\n        \"contentType\": \"picture\",\r\n        \"height\": 500,\r\n        \"width\": 500,\r\n        \"x\": 50,\r\n        \"y\": 50,\r\n        \"header\": \"Updated Turn header\",\r\n        \"date\": \"2020-12-20\",\r\n        \"sourceUrl\": \"https://www.wikipedia.org/\",\r\n        \"imageUrl\": \"https://placekitten.com/600/400\",\r\n        \"videoUrl\": null,\r\n        \"paragraph\": [\r\n            {\r\n                \"insert\": \"New turn text\\n\"\r\n            }\r\n        ],\r\n        \"_id\": \"{{ACTIVE_TURN_ID}}\"\r\n    }\r\n}",
+							"raw": "{\r\n    \"contentType\": \"picture\",\r\n    \"height\": 500,\r\n    \"width\": 500,\r\n    \"x\": 50,\r\n    \"y\": 50,\r\n    \"header\": \"Updated Turn header\",\r\n    \"date\": \"2020-12-20\",\r\n    \"sourceUrl\": \"https://www.wikipedia.org/\",\r\n    \"imageUrl\": \"https://placekitten.com/600/400\",\r\n    \"videoUrl\": null,\r\n    \"paragraph\": [\r\n        {\r\n            \"insert\": \"New turn text\\n\"\r\n        }\r\n    ],\r\n    \"_id\": \"{{ACTIVE_TURN_ID}}\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -123,12 +226,19 @@
 							}
 						},
 						"url": {
-							"raw": "{{API_URL}}/updateTurn",
+							"raw": "{{API_URL}}/turns/{{ACTIVE_TURN_ID}}?hash={{GAME_HASH}}",
 							"host": [
 								"{{API_URL}}"
 							],
 							"path": [
-								"updateTurn"
+								"turns",
+								"{{ACTIVE_TURN_ID}}"
+							],
+							"query": [
+								{
+									"key": "hash",
+									"value": "{{GAME_HASH}}"
+								}
 							]
 						}
 					},
@@ -144,7 +254,7 @@
 									"pm.test(\"Delete Turn\", function() {\r",
 									"    var jsonData = pm.response.json();\r",
 									"    pm.response.to.have.status(200);\r",
-									"    pm.expect(jsonData._id).to.eql(pm.environment.get('ACTIVE_TURN_ID'));\r",
+									"    pm.expect(jsonData.item._id).to.eql(pm.environment.get('ACTIVE_TURN_ID'));\r",
 									"    pm.environment.set('ACTIVE_TURN_ID', null);\r",
 									"})\r",
 									"\r",
@@ -159,7 +269,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"turn\": {\r\n        \"_id\": \"{{ACTIVE_TURN_ID}}\"\r\n    }\r\n}",
+							"raw": "",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -167,12 +277,19 @@
 							}
 						},
 						"url": {
-							"raw": "{{API_URL}}/deleteTurn",
+							"raw": "{{API_URL}}/turns/{{ACTIVE_TURN_ID}}?hash={{GAME_HASH}}",
 							"host": [
 								"{{API_URL}}"
 							],
 							"path": [
-								"deleteTurn"
+								"turns",
+								"{{ACTIVE_TURN_ID}}"
+							],
+							"query": [
+								{
+									"key": "hash",
+									"value": "{{GAME_HASH}}"
+								}
 							]
 						}
 					},
@@ -188,12 +305,13 @@
 									"pm.test(\"Get Turns\", function() {\r",
 									"    var jsonData = pm.response.json();\r",
 									"    pm.response.to.have.status(200);\r",
-									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
-									"    console.log(`turns count ${jsonData.length}`)\r",
-									"    pm.expect(jsonData.length).to.eql(pm.environment.get('TURNS_COUNT'));\r",
+									"    pm.expect(Array.isArray(jsonData.items)).to.eql(true);\r",
+									"    console.log(`turns count ${jsonData.items.length}`)\r",
+									"    pm.expect(jsonData.items.length).to.eql(pm.environment.get('TURNS_COUNT'));\r",
 									"})\r",
 									"\r",
-									"postman.setNextRequest(\"Get GameClasses\");"
+									"postman.setNextRequest(\"Get GameClasses\");\r",
+									"// postman.setNextRequest(null);"
 								],
 								"type": "text/javascript"
 							}
@@ -203,12 +321,18 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{API_URL}}/getTurns",
+							"raw": "{{API_URL}}/turns?hash={{GAME_HASH}}",
 							"host": [
 								"{{API_URL}}"
 							],
 							"path": [
-								"getTurns"
+								"turns"
+							],
+							"query": [
+								{
+									"key": "hash",
+									"value": "{{GAME_HASH}}"
+								}
 							]
 						}
 					},
@@ -229,9 +353,9 @@
 									"pm.test(\"Get GameClasses\", function() {\r",
 									"    var jsonData = pm.response.json();\r",
 									"    pm.response.to.have.status(200);\r",
-									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
-									"    console.log(`gameClasses count ${jsonData.length}`)\r",
-									"    pm.environment.set('GAME_CLASSES_COUNT', jsonData.length);\r",
+									"    pm.expect(Array.isArray(jsonData.items)).to.eql(true);\r",
+									"    console.log(`gameClasses count ${jsonData.items.length}`)\r",
+									"    pm.environment.set('GAME_CLASSES_COUNT', jsonData.items.length);\r",
 									"})\r",
 									"\r",
 									"\r",
@@ -246,12 +370,47 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{API_URL}}/gameClasses",
+							"raw": "{{API_URL}}/game-classes?hash={{GAME_HASH}}",
 							"host": [
 								"{{API_URL}}"
 							],
 							"path": [
-								"gameClasses"
+								"game-classes"
+							],
+							"query": [
+								{
+									"key": "hash",
+									"value": "{{GAME_HASH}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get GameClass",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/game-classes/5fdfa097197f5e1b2c547758",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"game-classes",
+								"5fdfa097197f5e1b2c547758"
 							]
 						}
 					},
@@ -264,12 +423,13 @@
 							"listen": "test",
 							"script": {
 								"exec": [
+									"console.log('check');\r",
 									"pm.test(\"Create Game Class\", function() {\r",
 									"    var jsonData = pm.response.json();\r",
-									"    pm.response.to.have.status(201);\r",
-									"    pm.expect(typeof jsonData === 'object').to.eql(true);\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.expect(typeof jsonData.item === 'object').to.eql(true);\r",
 									"    console.log(`new game class object`,jsonData);\r",
-									"    pm.environment.set('ACTIVE_GAME_CLASS_ID', jsonData._id);\r",
+									"    pm.environment.set('ACTIVE_GAME_CLASS_ID', jsonData.item._id);\r",
 									"})\r",
 									"\r",
 									"postman.setNextRequest(\"Create GameClass SubClass\");"
@@ -291,12 +451,18 @@
 							}
 						},
 						"url": {
-							"raw": "{{API_URL}}/gameClass",
+							"raw": "{{API_URL}}/game-classes?hash={{GAME_HASH}}",
 							"host": [
 								"{{API_URL}}"
 							],
 							"path": [
-								"gameClass"
+								"game-classes"
+							],
+							"query": [
+								{
+									"key": "hash",
+									"value": "{{GAME_HASH}}"
+								}
 							]
 						}
 					},
@@ -311,7 +477,7 @@
 								"exec": [
 									"pm.test(\"Create GameClass SubClass\", function() {\r",
 									"    var jsonData = pm.response.json();\r",
-									"    pm.response.to.have.status(201);\r",
+									"    pm.response.to.have.status(200);\r",
 									"    pm.expect(typeof jsonData === 'object').to.eql(true);\r",
 									"    var item = jsonData.item;\r",
 									"    pm.expect(item.gameClass).to.eql(\"First Class\");\r",
@@ -326,11 +492,11 @@
 						}
 					],
 					"request": {
-						"method": "POST",
+						"method": "PUT",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": \"{{ACTIVE_GAME_CLASS_ID}}\",\r\n    \"addNewSubclass\": \"First SubClass\"\r\n}",
+							"raw": "{\r\n    \"addNewSubclass\": \"First SubClass\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -338,12 +504,19 @@
 							}
 						},
 						"url": {
-							"raw": "{{API_URL}}/gameClass",
+							"raw": "{{API_URL}}/game-classes/{{ACTIVE_GAME_CLASS_ID}}?hash={{GAME_HASH}}",
 							"host": [
 								"{{API_URL}}"
 							],
 							"path": [
-								"gameClass"
+								"game-classes",
+								"{{ACTIVE_GAME_CLASS_ID}}"
+							],
+							"query": [
+								{
+									"key": "hash",
+									"value": "{{GAME_HASH}}"
+								}
 							]
 						}
 					},
@@ -356,11 +529,11 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"Delete Turn\", function() {\r",
+									"pm.test(\"Delete GameClass\", function() {\r",
 									"    var jsonData = pm.response.json();\r",
-									"    pm.response.to.have.status(204);\r",
+									"    pm.response.to.have.status(200);\r",
 									"    // pm.expect(jsonData.item._id).to.eql(pm.environment.get('ACTIVE_GAME_CLASS_ID'));\r",
-									"    pm.expect(jsonData.success).to.eql(true);\r",
+									"    pm.expect(jsonData.item._id).to.eql(pm.environment.get('ACTIVE_GAME_CLASS_ID'));\r",
 									"    pm.environment.set('ACTIVE_GAME_CLASS_ID', null);\r",
 									"})\r",
 									"\r",
@@ -383,12 +556,19 @@
 							}
 						},
 						"url": {
-							"raw": "{{API_URL}}/gameClass",
+							"raw": "{{API_URL}}/game-classes/{{ACTIVE_GAME_CLASS_ID}}?hash={{GAME_HASH}}",
 							"host": [
 								"{{API_URL}}"
 							],
 							"path": [
-								"gameClass"
+								"game-classes",
+								"{{ACTIVE_GAME_CLASS_ID}}"
+							],
+							"query": [
+								{
+									"key": "hash",
+									"value": "{{GAME_HASH}}"
+								}
 							]
 						}
 					},
@@ -404,9 +584,9 @@
 									"pm.test(\"Get GameClasses 2\", function() {\r",
 									"    var jsonData = pm.response.json();\r",
 									"    pm.response.to.have.status(200);\r",
-									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
-									"    console.log(`turns count ${jsonData.length}`)\r",
-									"    pm.expect(jsonData.length).to.eql(pm.environment.get('GAME_CLASSES_COUNT'));\r",
+									"    pm.expect(Array.isArray(jsonData.items)).to.eql(true);\r",
+									"    console.log(`turns count ${jsonData.items.length}`)\r",
+									"    pm.expect(jsonData.items.length).to.eql(pm.environment.get('GAME_CLASSES_COUNT'));\r",
 									"})\r",
 									"\r",
 									"postman.setNextRequest(null);"
@@ -419,12 +599,18 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{API_URL}}/gameClasses",
+							"raw": "{{API_URL}}/game-classes?hash={{GAME_HASH}}",
 							"host": [
 								"{{API_URL}}"
 							],
 							"path": [
-								"gameClasses"
+								"game-classes"
+							],
+							"query": [
+								{
+									"key": "hash",
+									"value": "{{GAME_HASH}}"
+								}
 							]
 						}
 					},
