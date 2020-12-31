@@ -43,6 +43,7 @@ const getGames = async (req, res) => {
     res.json({
         items: games.map(game => ({
             name: game.name,
+            _id: game._id,
             hash: SecurityLayer.getHashByGame(game),
         }))
     });

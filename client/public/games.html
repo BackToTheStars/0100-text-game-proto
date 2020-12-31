@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="/quill/quill.snow.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <link rel="stylesheet" href="styles/modal.css">
+    <link rel="stylesheet" href="styles/style.css">
+
+</head>
+
+<body>
+    <div style="width: 100%; display: flex;">
+      <ul class="games-list"></ul>
+    </div>
+    <script>
+      const API_URL = 'http://localhost:3000'
+      fetch(`${API_URL}/games`)
+        .then(res => res.json())
+        .then(data => {
+          const { items } = data;
+          const gamesList = document.querySelector('.games-list');
+          for(let game of items) {
+            const gameEl = document.createElement('li');
+            gameEl.innerHTML = `<a href="/?hash=${game.hash}">${game.name}</a>`;
+            gamesList.appendChild(gameEl);
+          }
+        })
+    </script>
+</body>
+</html>

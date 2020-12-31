@@ -35,24 +35,27 @@ async function deleteTurn (req, res) {
     }); // new true говорит отдать новую модель, а не старую
 }
 
-async function saveTurn (req, res) {         // бусы на нитке - функции в Node все работают с req res
-    const { gameId } = req.gameInfo;
-    log.debug(`Entering ... ${arguments.callee.name}`);
-    let turn = req.body; // деструктуризатор
-    // console.log(JSON.stringify(turn));
-    delete turn._id;
-    const turnModel = new Turn({
-        ...turn,
-        gameId
-    });
-    // @todo: пересмотреть
-    if(turn.contentType === 'comment') {
-        turnModel.header = 'comment';
+async function saveTurn (req, res, next) {         // бусы на нитке - функции в Node все работают с req res
+    try {
+        const { gameId } = req.gameInfo;
+        log.debug(`Entering ... ${arguments.callee.name}`);
+        let turn = req.body; // деструктуризатор
+        delete turn._id;
+        const turnModel = new Turn({
+            ...turn,
+            gameId
+        });
+        // @todo: пересмотреть
+        if(turn.contentType === 'comment') {
+            turnModel.header = 'comment';
+        }
+        await turnModel.save();
+        res.json({                         // json, render, next - один из трёх завершает обработку
+            item: turnModel
+        });
+    } catch (error) {
+        next(error);
     }
-    await turnModel.save();
-    res.json({
-        item: turnModel
-    });
 };
 
 async function getTurns (req, res) {

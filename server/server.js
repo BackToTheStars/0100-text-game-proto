@@ -72,6 +72,12 @@ app.put("/turns/:id", gameMiddleware, rulesCanEdit, turnsController.updateTurn);
 app.delete("/turns/:id", gameMiddleware, rulesCanEdit, turnsController.deleteTurn);
 
 
+app.use("*", (req, res) => {
+  res.status(404).json({
+    message: "404 Not Found"
+  })
+})
+
 app.use((err, req, res, next) => {
     const { statusCode = 500, message } = err;
     console.log({err})

@@ -15,17 +15,21 @@ const getTurns = async () =>
 
 const createTurn = async (turnObj) => {
     return new Promise(async (resolve, reject) => {
-        fetch(`${API_URL}/turns?hash=${HASH}`, {
+        fetch(`${API_URL}/turns?hash=${HASH}`, {             // @todo: лучше везде делать fetch()
             method: 'POST',
             headers: {
                 'content-type': 'application/json',
             },
-            body: JSON.stringify({ turn: turnObj }),
+            body: JSON.stringify(turnObj),
         }).then((data) => {
-            // @todo: Проверить, не нужен ли data.json()
             return data.json();
         }).then(res => {
-            resolve(res);
+            const { message='Произошла ошибка', item } = res;
+            if(item) {
+                resolve(res);
+            } else {
+                alert(message);
+            }
         })
             .catch((err) => {
                 console.log(err);
@@ -38,11 +42,9 @@ const createTurn = async (turnObj) => {
 const updateTurn = async (turnObj) => {
     return new Promise((resolve, reject) => {
         $.ajax({
-            type: 'POST',
-            url: `${API_URL}/turns?hash=${HASH}`,
-            data: JSON.stringify({
-                turn: turnObj,
-            }),
+            type: 'PUT',
+            url: `${API_URL}/turns/${turnObj._id}?hash=${HASH}`,
+            data: JSON.stringify(turnObj),
             dataType: 'json',
             contentType: 'application/json',
             success: resolve,
@@ -55,10 +57,7 @@ const deleteTurn = async (turnObj) => {
     return new Promise((resolve, reject) => {
         $.ajax({
             type: 'DELETE',
-            url: `${API_URL}/turns?hash=${HASH}`,
-            data: JSON.stringify({
-                turn: turnObj,
-            }),
+            url: `${API_URL}/turns/${turnObj._id}?hash=${HASH}`,
             dataType: 'json',
             contentType: 'application/json',
             success: resolve,
@@ -87,7 +86,7 @@ const getRedLogicLines = async () =>
     new Promise((resolve, reject) => {
         $.ajax({
             type: 'GET',
-            url: `${API_URL}/game`,
+            url: `${API_URL}/game?hash=${HASH}`,
             success: resolve,
             error: reject
         });
@@ -97,7 +96,7 @@ const updateRedLogicLines = async (redLogicLines) =>
     new Promise((resolve, reject) => {
         $.ajax({
             type: 'PUT',
-            url: `${API_URL}/game/red-logic-lines`,
+            url: `${API_URL}/game/red-logic-lines?hash=${HASH}`,
             data: JSON.stringify({
                 redLogicLines,
             }),
@@ -112,7 +111,7 @@ const createRedLogicLine = async (line) =>
     new Promise((resolve, reject) => {
         $.ajax({
             type: 'POST',
-            url: `${API_URL}/game/red-logic-lines`,
+            url: `${API_URL}/game/red-logic-lines?hash=${HASH}`,
             data: JSON.stringify(line),
             dataType: 'json',
             contentType: 'application/json',
@@ -125,7 +124,7 @@ const deleteLines = async (redLogicLines) => {
     new Promise((resolve, reject) => {
         $.ajax({
             type: 'DELETE',
-            url: `${API_URL}/game/red-logic-lines`,
+            url: `${API_URL}/game/red-logic-lines?hash=${HASH}`,
             data: JSON.stringify({
                 redLogicLines,
             }),

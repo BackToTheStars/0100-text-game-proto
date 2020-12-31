@@ -302,13 +302,12 @@ class GameClass {
         this.rootToAppend = rootToAppend;
         this.subClassNames = subClasses || [];
         this.sync = sync;                   // говорит что этот класс нужно отправить на сервер
-        //console.log(`GameClass: constructor: obj = ${JSON.stringify(obj)}`);
         if (sync) {
             const body = {
                 gameClass: name
             };
             const bodyJSON = JSON.stringify(body);
-            fetch(`${API_URL}/gameClass`, {
+            fetch(`${API_URL}/game-classes?hash=${HASH}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -362,10 +361,9 @@ class GameClass {
         this.titleNameInput.className = 'title-name-input';
         this.titleNameInput.addEventListener('keyup', (ev) => {
             ev.preventDefault();
-            if (ev.keyCode === 13) {
+            if (ev.keyCode === 13) {    // @todo: change deprecated 'keyCode'
                 const val = this.titleNameInput.value;
                 if (val.trim() != '') {
-                    //console.log(`${val} key enter`);
                     const bodyObj = {
                         id: this.dbId,
                         gameClass: val.trim()
@@ -373,7 +371,7 @@ class GameClass {
                     this.titleName.innerHTML = '';
                     this.titleName.innerText = this.name;
                     const bodyJSON = JSON.stringify(bodyObj);
-                    fetch(`${API_URL}/gameClass`, {
+                    fetch(`${API_URL}/game-classes?hash=${HASH}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -382,7 +380,7 @@ class GameClass {
                         body: bodyJSON
                     })
                         .then((res) => {
-                            if (res.status == 201) {
+                            if (res.status == 200) {
                                 this.name = bodyObj.gameClass;
                                 this.titleName.innerHTML = '';
                                 this.titleName.innerText = this.name;
@@ -480,17 +478,11 @@ class GameClass {
     }
 
     async delete() {
-        const bodyObj = {
-            id: this.dbId,
-        };
-        const bodyJSON = JSON.stringify(bodyObj);
-        fetch(`${API_URL}/gameClass`, {
+        fetch(`${API_URL}/game-classes/${this.dbId}?hash=${HASH}`, {
             method: 'DELETE',
             headers: {
-                'Content-Type': 'application/json',
-                'Content-Length': bodyJSON.length
-            },
-            body: bodyJSON
+                'Content-Type': 'application/json'
+            }
         })
             .then((res) => {
                 if (res.status == 204) {
@@ -517,8 +509,8 @@ class GameClass {
                 addNewSubclass: this.input.value.replace(/\s+/, ' '),
             };
             const bodyJSON = JSON.stringify(bodyObj);
-            fetch(`${API_URL}/gameClass`, {
-                method: 'POST',
+            fetch(`${API_URL}/game-classes/${this.dbId}?hash=${HASH}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Content-Length': bodyJSON.length,
@@ -566,8 +558,8 @@ class GameClass {
                         }
                     };
                     const bodyJSON = JSON.stringify(bodyObj);
-                    fetch(`${API_URL}/gameClass`, {
-                        method: 'POST',
+                    fetch(`${API_URL}/game-classes/${this.dbId}?hash=${HASH}`, {
+                        method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
                             'Content-Length': bodyJSON.length
@@ -575,7 +567,7 @@ class GameClass {
                         body: bodyJSON
                     })
                         .then((res) => {
-                            if (res.status == 201) {
+                            if (res.status == 200) {
                                 liName.innerText = val;
                             } else {
                                 console.log(`res.status == ${res.status}`);
@@ -592,8 +584,8 @@ class GameClass {
                 subClassToDelete: liName.innerText
             };
             const bodyJSON = JSON.stringify(bodyObj);
-            fetch('/gameClass', {
-                method: 'DELETE',
+            fetch(`/game-classes/${this.dbId}?hash=${HASH}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Content-Length': bodyJSON.length

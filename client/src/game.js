@@ -37,7 +37,7 @@ class Game {
 
         this.toolsPanel = new ToolsPanel({}, this.triggers);
         this.classPanel = new ClassPanel({}, this.triggers);
-        
+
         this.popup = getPopup(document.body, this.triggers);
         this.linesLayer = new LinesLayer({
             stageEl,
@@ -55,8 +55,6 @@ class Game {
             stageEl: this.stageEl,
         }, this.triggers);
 
-        this.gameField.handleLoadImages();
-
         const { item: { redLogicLines } } = await getRedLogicLines();
         this.linesLayer.quotesCollection = new QuotesCollection(this.turnCollection.getTurns(), this.triggers)
         this.linesLayer.linesCollection = new LinesCollection(redLogicLines, {
@@ -71,7 +69,7 @@ class Game {
                     const turns = await this.turnCollection.getTurns();
                     const payload = this.gameField.saveTurnPositions(turns);
                     await turnsUpdateCoordinates(payload);
-                    this.notificationPanel.alert({msgTitle: 'Info:', msgText: 'Field has been saved', timespan: 1500});
+                    this.notificationPanel.alert({ msgTitle: 'Info:', msgText: 'Field has been saved', timespan: 1500 });
                     console.log('Positions of all turns re-saved.');
                     break;
                 }
@@ -93,7 +91,7 @@ class Game {
                     }).then((res) => {
                         const { item } = res;
                         // добавить в коллекцию линий
-                        this.linesLayer.linesCollection.addLine(item); 
+                        this.linesLayer.linesCollection.addLine(item);
                         // отрисовать линии
                         this.linesLayer.render();
                     })
@@ -108,7 +106,7 @@ class Game {
                     this.linesLayer.checkIfRedBorderNeeded(line.sourceQuote)
                     this.linesLayer.checkIfRedBorderNeeded(line.targetQuote)
                     // удалить линию из нижней панели
-                        // при необходимости - закрыть
+                    // при необходимости - закрыть
                     this.linesLayer.removeActiveQuote();
                     // отправить запрос на бэкенд
                     updateRedLogicLines(
@@ -135,15 +133,15 @@ class Game {
                     this.turnCollection.removeTurn(data);
                     const linesToRemove = this.linesLayer.linesCollection.getLines()
                         .filter((line) => {
-                            if(line.sourceQuote.data.turnId === data._id) {
+                            if (line.sourceQuote.data.turnId === data._id) {
                                 return true
                             }
-                            if(line.targetQuote.data.turnId === data._id) {
+                            if (line.targetQuote.data.turnId === data._id) {
                                 return true
                             }
                             return false
                         })
-                    for(let lineToRemove of linesToRemove) {
+                    for (let lineToRemove of linesToRemove) {
                         this.linesLayer.linesCollection.removeLine(lineToRemove)
                     }
                     this.linesLayer.render();
@@ -199,6 +197,8 @@ class Game {
                 case 'FLY_TO_MINIMAP': { break; }
             }
         }
+
+        this.gameField.handleLoadImages();
     }
     addEventListeners() {
 
