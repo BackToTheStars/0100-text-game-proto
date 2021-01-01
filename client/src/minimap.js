@@ -1,4 +1,7 @@
-export class MiniMap {                             // захватываем область экрана и делаем её скриншот
+
+// удалить этот файл?
+
+export class MiniMap {                                     // захватываем область экрана и делаем её скриншот
     constructor(rootToAppend) {
         this.rootToAppend = document.getElementById(rootToAppend);
         this.videoEl = document.createElement('video');
@@ -11,9 +14,9 @@ export class MiniMap {                             // захватываем о�
         this.btnStart.addEventListener('click', () => { this.startCapturing() }, false);
         this.btnStop.addEventListener('click', () => { this.stopCapturing() }, false);
 
-        this.rootToAppend.appendChild(this.videoEl);
-        this.rootToAppend.appendChild(this.btnStart);
-        this.rootToAppend.appendChild(this.btnStop);
+        // this.rootToAppend.appendChild(this.videoEl);
+        // this.rootToAppend.appendChild(this.btnStart);
+        // this.rootToAppend.appendChild(this.btnStop);
     }
 
     async startCapturing() {

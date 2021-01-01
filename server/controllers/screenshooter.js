@@ -2,7 +2,7 @@ const selenium = require('selenium-webdriver');
 const fs = require('fs');
 
 const seleniumCapabilities = {
-    'os_version': '10'
+    'os_version': '10',
     'resolution': '1920x1080',
     'browserName': 'Chrome',
     'os': 'Windows',
