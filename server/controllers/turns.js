@@ -1,4 +1,5 @@
 const Turn = require("../models/Turn");
+const screenshooter = require('./screenshooter');
 const bunyan = require('bunyan');
 const log = bunyan.createLogger({name: 'turns', level: 'info'});
 
@@ -19,6 +20,7 @@ async function updateTurn (req, res) {
     res.json({
         item: turnModel
     }); // new true говорит отдать новую модель, а не старую
+    screenshooter.getScreenshot();
 }
 
 async function deleteTurn (req, res) {
