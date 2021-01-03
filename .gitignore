@@ -4,8 +4,13 @@
 /.idea/*
 .idea
 .idea/*
-/node_modules
+/node_modules/*
 .env
-/backend/node_modules
+/backend/node_modules/*
 /backend/dist
 .gitignore
+/client/node_modules/*
+/server/node_modules/*
+/next/.next/*
+/next/node_modules/*
+
