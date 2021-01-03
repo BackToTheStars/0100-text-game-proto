@@ -46,7 +46,7 @@ class Game {
 
         this.notificationPanel = new NotificationPanel('notificationPanel');
         this.gameClassPanel = new GameClassPanel('classMenu');
-        this.mininap = new MiniMap('minimap');
+        this.minimap = new MiniMap('minimap');
     }
     async init() {
         const result = await getTurns();
