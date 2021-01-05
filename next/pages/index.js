@@ -4,6 +4,7 @@ import GameDetails from '../components/GameDetails'
 import CreateGameForm from '../components/CreateGameForm'
 
 const API_URL = 'http://localhost:3000'
+const PREV_FRONT_URL = 'http://localhost:3000'
 
 const IndexPage = () => {
 
@@ -28,6 +29,29 @@ const IndexPage = () => {
             });
     }
 
+    const createGame = ({ name, gameIsPublic }) => {   // добавить description, players
+        fetch(`${API_URL}/games`, {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json',
+            },
+            body: JSON.stringify({
+                name,
+                public: gameIsPublic
+            })})
+            .then(res => res.json())                // вернёт Promise
+            .then(data => {
+                const { item, hash } = data;
+                console.log(item);
+                window.location.replace(`${PREV_FRONT_URL}/?hash=${hash}`)
+            })
+            .catch(err => {
+                console.log(err);
+            });
+        
+        // console.log({name, gameIsPublic})
+    }
+
     return (
         <div className="container">
             <div className="row">
@@ -37,13 +61,16 @@ const IndexPage = () => {
                         <div className="col-6">
                             {
                                 !toggleCreateForm && (
-                                        <button className="btn btn-success"
-                                            onClick={() => { setToggleCreateForm(true) }}
-                                        >Create New Game</button>
-                                    )
+                                    <button className="btn btn-success"
+                                        onClick={() => { setToggleCreateForm(true) }}
+                                    >Create New Game</button>
+                                )
                             }
                             <hr />
-                            {toggleCreateForm && <CreateGameForm setToggleCreateForm={setToggleCreateForm} />}
+                            {toggleCreateForm && (<CreateGameForm
+                                setToggleCreateForm={setToggleCreateForm}
+                                createGame={createGame}
+                            />)}
                         </div>
                     </div>
                 </div>
