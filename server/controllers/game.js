@@ -36,8 +36,33 @@ const getGame = async (req, res) => {
     });
 }
 
+const editGame = async (req, res) => {
+    try {
+        const { gameId } = req.gameInfo;
+        const { name } = req.body;
+        const game = await Game.findById(gameId);
+        if (name) {
+            game.name = name;
+        }
+        await game.save();
+        return {
+            item: game
+        }
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function deleteGame (req, res, next) {
+    const { gameId } = req.gameInfo;
+    // @todo
+    const error = new Error('Функционал удаления временно недоступен');
+    error.statusCode = 403;
+    next(error);
+}
+
 const getGames = async (req, res) => {
-    const games = await Game.find({},{
+    const games = await Game.find({}, {
         "name": true,
     });
     res.json({
@@ -122,7 +147,9 @@ module.exports = {
     createRedLogicLine,
     deleteRedLogicLines,
     getGame,
-    getGames
+    getGames,
+    editGame,
+    deleteGame
 };
 
 

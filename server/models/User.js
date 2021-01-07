@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+const USER_MODE_ADMIN = 1;
+const USER_MODE_VISITOR = 2;
+
 const RULE_VIEW = 1;
 const RULE_EDIT = 2;  // остаётся вопрос, можно ли удалять чужие ходы (по идее, нельзя)
 
@@ -20,6 +23,10 @@ schema.statics = {
   rules: {
     RULE_VIEW,
     RULE_EDIT
+  },
+  user_modes: {
+    USER_MODE_ADMIN,
+    USER_MODE_VISITOR
   }
 }
 

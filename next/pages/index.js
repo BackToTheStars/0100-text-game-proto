@@ -6,7 +6,7 @@ import CreateGameForm from '../components/CreateGameForm'
 const API_URL = 'http://localhost:3000'
 const PREV_FRONT_URL = 'http://localhost:3000'
 
-const IndexPage = () => {
+const IndexPage = ({ mode = 'visitor' }) => {
 
     const [games, setGames] = useState([]);
     const [gameClicked, setGameClicked] = useState(null);
@@ -38,7 +38,8 @@ const IndexPage = () => {
             body: JSON.stringify({
                 name,
                 public: gameIsPublic
-            })})
+            })
+        })
             .then(res => res.json())                // вернёт Promise
             .then(data => {
                 const { item, hash } = data;
@@ -48,12 +49,34 @@ const IndexPage = () => {
             .catch(err => {
                 console.log(err);
             });
-        
+
         // console.log({name, gameIsPublic})
+    }
+
+    const deleteGame = (game) => {
+        fetch(`${API_URL}/game?hash=${game.hash}`, {
+            method: 'DELETE',
+            headers: {
+                'content-type': 'application/json',
+            }
+        })
+            .then(res => res.json())                // вернёт Promise
+            .then(data => {
+                const { item, message } = data;
+                if (item) {
+                    console.log({ item });
+                } else {
+                    console.log({ message })
+                }
+            })
+            .catch(err => {
+                console.log(err);
+            });
     }
 
     return (
         <div className="container">
+            <h4>User mode: {mode}</h4>
             <div className="row">
                 <div className="col-8">
                     <GameTable games={games} onItemClick={onItemClick} />
@@ -75,7 +98,7 @@ const IndexPage = () => {
                     </div>
                 </div>
                 <div className="col-4">
-                    <GameDetails game={gameClicked} />
+                    <GameDetails game={gameClicked} mode={mode} deleteGame={deleteGame} />
 
                 </div>
             </div>
