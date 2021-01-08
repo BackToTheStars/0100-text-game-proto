@@ -2,6 +2,7 @@
 // const chrome = require('selenium-webdriver/chrome');
 // const chromedriver = require('chromedriver');
 // const fs = require('fs');
+// const path = require('path');
 
 // chrome.setDefaultService(new chrome.ServiceBuilder(chromedriver.path).build());
 
@@ -16,24 +17,39 @@
 //     'browserstack.key': 'TOCKEN',
 // };
 
-// function getScreenshot() {
+// async function sleep(time) {
+//     return new Promise((res, rej) => {
+//         setTimeout(res, time);
+//     })
+// }
+
+// async function getScreenshot() {
 //     const driver = new selenium.Builder()
 //         .withCapabilities(selenium.Capabilities.chrome())
 //         .build();
 
-//     driver.get('http://localhost:3000/?hash=045')
-//         .then(() => {
-//             setTimeout(5000, () => {
-//                 driver.takeScreenshot()
-//                     .then((data) => {
-//                         const base64Data = data.replace(/^data:image\/png;base64,/, "");
-//                         fs.writeFile("out.png", base64Data, 'base64', (err) => {
-//                             if (err) console.error(err);
-//                         })
-//                         console.log(`PWD: ${process.env.PWD}`);
-//                     }, (err) => { console.error(err) })
+//     try {
+//         await driver.get('http://localhost:3000/?hash=045');
+//         await sleep(5000);
+//         // await driver.wait(async function() {
+//         //     const state = await driver.executeScript('return document.readyState');
+//         //     console.log(state);
+//         //     return state == 'complete';
+//         // }, 30000);
+//         const data = await driver.takeScreenshot();
+//         const base64Data = data.replace(/^data:image\/png;base64,/, "");
+//         await (async function () {
+//             new Promise((res, rej) => {
+//                 fs.writeFile(path.join(__dirname, "..", "..", "client", "public", "out.png"), base64Data, 'base64', (err) => { rej(err) });
 //             });
-//         }, (err) => { console.error(err) });
+//         })()
+//         console.log(`PWD: ${process.env.PWD}`);
+//         console.log(`path to img: ${path.resolve(path.join(__dirname, "..", "..", "client", "public", "out.png"))}`);
+//         driver.quit();
+//     } catch (err) {
+//         console.error(err);
+//         driver.quit();
+//     }
 // }
 
 // module.exports = {

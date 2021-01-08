@@ -30,7 +30,7 @@ const fixFunc = async () => {
     //       await turn.save();
     //     }
     //   }
-    process.exit(1);
+    // process.exit(1);
 }
 
 fixFunc();
