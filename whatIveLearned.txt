@@ -1,4 +1,8 @@
 
+http://localhost:3001/admin
+
+
+
 Query (filter) MongoDB Compass Community by id:
 {"_id": ObjectId("5ff3adfb78d0410023eaeed6")} 
 

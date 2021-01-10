@@ -28,6 +28,7 @@ const getGame = async (req, res) => {
     const game = await Game.findById(gameId, {
         "_id": false,
         "name": true,
+        "public": true,
         "redLogicLines": true,
     });
     // здесь может быть проверка, есть ли у пользователя доступ к игре
@@ -36,7 +37,7 @@ const getGame = async (req, res) => {
     });
 }
 
-const editGame = async (req, res) => {
+const editGame = async (req, res, next) => {
     try {
         const { gameId } = req.gameInfo;
         const { name } = req.body;
@@ -45,15 +46,15 @@ const editGame = async (req, res) => {
             game.name = name;
         }
         await game.save();
-        return {
+        res.json({
             item: game
-        }
+        })
     } catch (error) {
         next(error);
     }
 }
 
-async function deleteGame (req, res, next) {
+async function deleteGame(req, res, next) {
     const { gameId } = req.gameInfo;
     // @todo
     const error = new Error('Функционал удаления временно недоступен');
@@ -64,11 +65,13 @@ async function deleteGame (req, res, next) {
 const getGames = async (req, res) => {
     const games = await Game.find({}, {
         "name": true,
+        "public": true
     });
     res.json({
         items: games.map(game => ({
             name: game.name,
             _id: game._id,
+            public: game.public,
             hash: SecurityLayer.getHashByGame(game),
         }))
     });

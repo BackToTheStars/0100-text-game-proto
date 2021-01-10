@@ -7,9 +7,11 @@
     "devDependencies": {},
     "scripts": {
         "postinstall": "npm install --prefix ./server",
-        "server": "npm run start --prefix ./server",
-        "dev": "npm run dev --prefix ./server",
-        "client": "npm run webpack --prefix ./client"
+        "start": "npm run start --prefix ./server",
+        
+        "server": "npm run dev --prefix ./server",
+        "client": "npm run webpack --prefix ./client",
+        "next": "npm run dev --prefix ./next"
     },
     "repository": {
         "type": "git",

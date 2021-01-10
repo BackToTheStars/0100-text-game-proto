@@ -58,7 +58,7 @@ app.use(jsonParser);
 
 app.get("/games", gameController.getGames);
 app.post("/games", gameController.createGame);
-if (mode === USER_MODE_ADMIN) {
+if (mode == USER_MODE_ADMIN) {
     app.put("/game", gameMiddleware, gameController.editGame);       // требует privilege elevation
     app.delete("/game", gameMiddleware, gameController.deleteGame);  // требует privilege elevation
 }
