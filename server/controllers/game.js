@@ -33,21 +33,33 @@ const getGame = async (req, res) => {
     });
     // здесь может быть проверка, есть ли у пользователя доступ к игре
     res.json({
-        item: game
+        item: game,
     });
 }
 
 const editGame = async (req, res, next) => {
     try {
         const { gameId } = req.gameInfo;
-        const { name } = req.body;
+        const { name, description, public } = req.body;
         const game = await Game.findById(gameId);
         if (name) {
             game.name = name;
         }
+        if (description) {
+            game.description = description;
+        }
+        if (typeof public !== 'undefined') {
+            game.public = public;
+        }
         await game.save();
         res.json({
-            item: game
+            item: {
+                name: game.name,
+                _id: game._id,
+                public: game.public,
+                description: game.description,
+                hash: SecurityLayer.getHashByGame(game)
+            }
         })
     } catch (error) {
         next(error);
@@ -65,13 +77,15 @@ async function deleteGame(req, res, next) {
 const getGames = async (req, res) => {
     const games = await Game.find({}, {
         "name": true,
-        "public": true
+        "public": true,
+        "description": true
     });
     res.json({
         items: games.map(game => ({
             name: game.name,
             _id: game._id,
             public: game.public,
+            description: game.description,
             hash: SecurityLayer.getHashByGame(game),
         }))
     });

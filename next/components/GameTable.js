@@ -13,8 +13,7 @@ const GameTable = ({ games, onItemClick }) => {
             <thead>
                 <tr className="games-list__header">
                     <th>Name</th>
-                    <th></th>
-                    <th></th>
+                    <th>Visibility</th>
                 </tr>
             </thead>
             <tbody>
@@ -23,19 +22,14 @@ const GameTable = ({ games, onItemClick }) => {
                         <tr
                             className="games-list__item"
                             key={el.hash}
+                            onClick={(e) => {
+                                // e.preventDefault(); // не даёт нажать на # и улететь наверх страницы
+                                onItemClick(el.hash)
+                            }}
                         >
                             <td>{el.name}</td>
                             <td>
-                                <a href={`${PREV_FRONT_URL}/?hash=${el.hash}`}>Open</a>
-                            </td>
-                            <td>
-                                <a
-                                    onClick={(e) => {
-                                        // e.preventDefault(); // не даёт нажать на # и улететь наверх страницы
-                                        onItemClick(el.hash)
-                                    }}
-                                    href="#"
-                                >Show Details</a>
+                                {el.public ? "Public" : "Private"}
                             </td>
                         </tr>
                     );

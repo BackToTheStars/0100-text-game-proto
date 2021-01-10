@@ -8,7 +8,6 @@ const API_URL = 'http://localhost:3000'
 const PREV_FRONT_URL = 'http://localhost:3000'
 
 const IndexPage = ({ mode = 'visitor' }) => {
-
     const [games, setGames] = useState([]);
     const [gameClicked, setGameClicked] = useState(null);
     const [toggleCreateForm, setToggleCreateForm] = useState(false);
@@ -17,6 +16,12 @@ const IndexPage = ({ mode = 'visitor' }) => {
     useEffect(() => {
         getGames();
     }, []);
+
+    useEffect(() => {
+        if (!games.length) return;
+        if (gameClicked) return;
+        setGameClicked(games[0]);
+    }, [games]);
 
     const onItemClick = (hash) => {
         setGameClicked(games.find((game) => game.hash === hash));
@@ -61,7 +66,12 @@ const IndexPage = ({ mode = 'visitor' }) => {
         // console.log({name, gameIsPublic})
     }
 
-    const editGame = ({ name, gameIsPublic, hash }) => { // description, players - добавить
+    const editGame = ({
+        name,
+        gameIsPublic,
+        description,
+        hash
+    }) => { // description, players - добавить
         fetch(`${API_URL}/game?hash=${hash}`, {
             method: 'PUT',
             headers: {
@@ -69,16 +79,18 @@ const IndexPage = ({ mode = 'visitor' }) => {
             },
             body: JSON.stringify({
                 name,
-                public: gameIsPublic
+                public: gameIsPublic,
+                description
             })
         })
             .then(res => res.json())                     // вернёт Promise
             .then(data => {
-                const { item, hash } = data;
+                const { item } = data;
                 const newGames = [...games];
                 const mutatedIndex = newGames.findIndex(game => game.hash === hash)
                 newGames[mutatedIndex] = item;
                 setGames(newGames);
+                setGameClicked(item);
                 setToggleEditForm(false);
             })
             .catch(err => {
@@ -108,7 +120,7 @@ const IndexPage = ({ mode = 'visitor' }) => {
     }
 
     return (
-        <div className="container">
+        <div className="container-fluid">
             <h4>User mode: {mode}</h4>
             <div className="row">
                 <div className="col-8">

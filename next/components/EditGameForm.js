@@ -3,10 +3,16 @@ import { useState } from 'react';
 const EditGameForm = ({ setToggleEditForm, game, editGame }) => {
     const [name, setName] = useState(game.name)
     const [gameIsPublic, setGameIsPublic] = useState(game.public)
+    const [description, setDescription] = useState(game.description);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        editGame({ name, gameIsPublic, hash: game.hash});
+        editGame({
+            name,
+            gameIsPublic,
+            hash: game.hash,
+            description
+        });
     }
 
     return (
@@ -32,6 +38,15 @@ const EditGameForm = ({ setToggleEditForm, game, editGame }) => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                 />
+            </div>
+            <div className="form-group">
+                <label>Description</label>
+                <textarea
+                    className="form-control"
+                    rows="3"
+                    onChange={(e) => setDescription(e.target.value)}
+                    defaultValue={description}
+                ></textarea>
             </div>
             <button type="submit" className="btn btn-primary">Save</button>
             <button className="btn btn-link"
