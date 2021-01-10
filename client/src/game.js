@@ -24,7 +24,6 @@ import QuotesPanel from './quotesPanel';
 import { NotificationPanel, GameClassPanel } from './script';
 import { MiniMap } from './minimap';
 
-
 // настраивает компоненты игры,
 // обеспечивает передачу данных между компонентами
 class Game {

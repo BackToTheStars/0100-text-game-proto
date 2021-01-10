@@ -43,22 +43,36 @@ class GameField {
 
     handleLoadImages() {
         const images = $('img');
-        let counter = images.length;
+        let onlooker = {};       // позволяет привязать события к изменению переменной _counter 
+        let _counter = images.length;
+        let MyIsLoaded = Symbol.for('MyIsLoaded');
+        window[MyIsLoaded] = false;
+        Object.defineProperty(onlooker, 'counter', {
+            set: (v) => {
+                //if (v == 0) window[MyIsLoaded] = true;
+                console.log(`handleLoadImages: v = ${v} | ${window[MyIsLoaded]}`);
+                window[MyIsLoaded] = v;
+                return _counter = v;
+            },
+            get: () => {
+                return _counter;
+            }
+        })
         images.toArray().forEach((el) => {
             if ($(el).get(0).complete) {
-                counter = counter - 1;
+                onlooker.counter = onlooker.counter - 1;
             } else {
                 $(el).one('load', () => {
-                    counter = counter - 1;
-                    // console.log(counter); // можно сделать Progress Bar
-                    if (counter === 0) {
+                    onlooker.counter = onlooker.counter - 1;
+                    // console.log(onlooker.counter); // @todo: можно сделать Progress Bar
+                    if (onlooker.counter === 0) {
                         this.triggers.dispatch('DRAW_LINES');
                     }
                 });
                 $(el).one('error', () => {
-                    counter = counter - 1;
+                    onlooker.counter = onlooker.counter - 1;
                     console.log(`Failed to load image ${$(el).attr('src')}`); // можно сделать Progress Bar
-                    if (counter === 0) {
+                    if (onlooker.counter === 0) {
                         this.triggers.dispatch('DRAW_LINES');
                     }
                 });
