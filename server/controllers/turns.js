@@ -16,11 +16,11 @@ async function updateTurn (req, res) {
         _id: id,
         gameId
     }, { new: true });   //функция ищет по ид и апдейтит
-    log.debug(`Ending ... ${arguments.callee.name}`);
+    // log.debug(`Ending ... ${arguments.callee.name}`);
     res.json({
         item: turnModel
     }); // new true говорит отдать новую модель, а не старую
-    await screenshooter.getScreenshot();                               // selenium снимок экрана
+    // await screenshooter.getScreenshot();                           // selenium снимок экрана
 }
 
 async function deleteTurn (req, res) {

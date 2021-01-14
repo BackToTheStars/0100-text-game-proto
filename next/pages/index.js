@@ -120,7 +120,7 @@ const IndexPage = ({ mode = 'visitor' }) => {
     }
 
     return (
-        <div className="container-fluid">
+        <div className="container-fluid col-10">
             <h4>User mode: {mode}</h4>
             <div className="row">
                 <div className="col-8">

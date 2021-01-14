@@ -1,4 +1,9 @@
 
+
+mongodump
+npm run dump
+Compass => export collections as json => connect to TextGame => add data to collections from jsons => change id through sctipt with game_id
+
 http://localhost:3001/admin
 
 

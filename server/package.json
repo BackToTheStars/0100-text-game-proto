@@ -16,7 +16,8 @@
   "devDependencies": {},
   "scripts": {
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "dump": "node ./scripts/db_dump.js"
   },
   "keywords": [],
   "author": "",

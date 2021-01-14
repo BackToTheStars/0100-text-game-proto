@@ -8,4 +8,5 @@
 .env
 /server/node_modules
 /server/dist
+/dumps
 
