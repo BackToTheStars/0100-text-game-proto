@@ -1,43 +1,48 @@
-const Turn = require("../models/Turn");
+const Turn = require('../models/Turn');
 const screenshooter = require('./screenshooter');
 const bunyan = require('bunyan');
-const log = bunyan.createLogger({name: 'turns', level: 'info'});
+const log = bunyan.createLogger({ name: 'turns', level: 'info' });
 
-async function updateTurn (req, res) {
+async function updateTurn(req, res) {
     log.debug(`Entering ... ${arguments.callee.name}`);
     const { id } = req.params;
     const { gameId } = req.gameInfo;
     const turn = req.body;
-    const turnModel = await Turn.findOneAndUpdate({
-        gameId,
-        _id: id
-    }, {
-        ...turn,
-        _id: id,
-        gameId
-    }, { new: true });   //функция ищет по ид и апдейтит
+    const turnModel = await Turn.findOneAndUpdate(
+        {
+            gameId,
+            _id: id,
+        },
+        {
+            ...turn,
+            _id: id,
+            gameId,
+        },
+        { new: true }
+    ); //функция ищет по ид и апдейтит
     // log.debug(`Ending ... ${arguments.callee.name}`);
     res.json({
-        item: turnModel
+        item: turnModel,
     }); // new true говорит отдать новую модель, а не старую
-    // await screenshooter.getScreenshot();                           // selenium снимок экрана
+    await screenshooter.getScreenshot(); // selenium снимок экрана
 }
 
-async function deleteTurn (req, res) {
+async function deleteTurn(req, res) {
     log.debug(`Entering ... ${arguments.callee.name}`);
     const { gameId } = req.gameInfo;
     const { id } = req.params;
     const turnModel = await Turn.findOneAndRemove({
         _id: id,
-        gameId
-    });   //функция ищет по ид и удаляет
+        gameId,
+    }); //функция ищет по ид и удаляет
     // log.debug(`Ending ... ${arguments.callee.name}`);
     res.json({
-        item: turnModel
+        item: turnModel,
     }); // new true говорит отдать новую модель, а не старую
 }
 
-async function saveTurn (req, res, next) {         // бусы на нитке - функции в Node все работают с req res
+async function saveTurn(req, res, next) {
+    // бусы на нитке - функции в Node все работают с req res
     try {
         const { gameId } = req.gameInfo;
         log.debug(`Entering ... ${arguments.callee.name}`);
@@ -45,34 +50,35 @@ async function saveTurn (req, res, next) {         // бусы на нитке -
         delete turn._id;
         const turnModel = new Turn({
             ...turn,
-            gameId
+            gameId,
         });
         // @todo: пересмотреть
-        if(turn.contentType === 'comment') {
+        if (turn.contentType === 'comment') {
             turnModel.header = 'comment';
         }
         await turnModel.save();
-        res.json({                         // json, render, next - один из трёх завершает обработку
-            item: turnModel
+        res.json({
+            // json, render, next - один из трёх завершает обработку
+            item: turnModel,
         });
     } catch (error) {
         next(error);
     }
-};
+}
 
-async function getTurns (req, res) {
+async function getTurns(req, res) {
     const { gameId } = req.gameInfo;
     // log.debug(`Entering ... ${arguments.callee.name}`);
     const turns = await Turn.find({
-        gameId
+        gameId,
     });
     // log.debug(`Ending ... ${arguments.callee.name}`);
     res.json({
-        items: turns
+        items: turns,
     });
-};
+}
 
-async function updateCoordinates (req, res) {
+async function updateCoordinates(req, res) {
     const { gameId } = req.gameInfo;
     const time = Date.now();
     const { turns = [] } = req.body;
@@ -86,7 +92,7 @@ async function updateCoordinates (req, res) {
         //     x, y, height, width, contentType, scrollPosition
         // })
 
-        const turnModel = await Turn.findOne({_id: id, gameId});
+        const turnModel = await Turn.findOne({ _id: id, gameId });
         turnModel.x = x;
         turnModel.y = y;
         turnModel.height = height;
@@ -97,13 +103,13 @@ async function updateCoordinates (req, res) {
         turnModel.save();
 
         items.push({
-            id: turnModel._id
-        })
+            id: turnModel._id,
+        });
     }
     // console.log((Date.now() - time) / 1000);
     res.json({
         success: true,
-        items
+        items,
     });
 }
 
@@ -112,5 +118,5 @@ module.exports = {
     getTurns,
     updateCoordinates,
     updateTurn,
-    deleteTurn
+    deleteTurn,
 };

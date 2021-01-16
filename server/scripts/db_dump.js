@@ -15,7 +15,6 @@ const files = fs.readdirSync(dumpsDir);
 for (let i = 1; i < files.length + 2; i++) {
     if (files.indexOf(`${folderName}${i}`) === -1) {
         folderName = `${folderName}${i}`;
-
         break;
     }
 }
