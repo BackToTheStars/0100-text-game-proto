@@ -6,6 +6,7 @@ let express = require('express');
 const turnsController = require('./controllers/turns');
 const gameClassesController = require('./controllers/gameClasses');
 const gameController = require('./controllers/game');
+const authController = require('./controllers/auth');
 const User = require('./models/User');
 const SecurityLayer = require('./services/SecurityLayer');
 let app = express();
@@ -52,6 +53,8 @@ const rulesCanEdit = async (req, res, next) => {
 app.use(cors());
 // app.use('/', express.static(__dirname + "/../client/public/"));   // загружает index.html
 app.use(jsonParser);
+
+app.post('/login', authController.login);
 
 app.get('/games', gameController.getGames);
 app.post('/games', gameController.createGame);
