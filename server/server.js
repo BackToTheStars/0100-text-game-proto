@@ -1,6 +1,7 @@
 require('dotenv').config();
 require('./models/db');
 const cors = require('cors');
+const path = require('path');
 
 let express = require('express');
 const turnsController = require('./controllers/turns');
@@ -51,7 +52,8 @@ const rulesCanEdit = async (req, res, next) => {
 };
 
 app.use(cors());
-// app.use('/', express.static(__dirname + "/../client/public/"));   // загружает index.html
+app.use('/public', express.static(path.join(__dirname, 'public'))); // загружает index.html
+// нужна для скриншотов minimap
 app.use(jsonParser);
 
 app.post('/login', authController.login);
