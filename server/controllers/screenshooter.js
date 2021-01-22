@@ -4,7 +4,18 @@ const chromedriver = require('chromedriver');
 const fs = require('fs').promises;
 const path = require('path');
 
-chrome.setDefaultService(new chrome.ServiceBuilder(chromedriver.path).build());
+const chromeOpts = new chrome.Options();
+chromeOpts.addArguments(
+  `user-data-dir=${path.resolve(
+    path.join(__dirname, '..', 'selenium', 'cache')
+  )}`
+);
+
+console.log(chromeOpts);
+
+chrome.setDefaultService(
+  new chrome.ServiceBuilder(chromedriver.path, chromeOpts).build()
+);
 
 const seleniumCapabilities = {
   os_version: '10',
@@ -25,6 +36,8 @@ async function sleep(time) {
 
 async function getScreenshot() {
   const driver = new selenium.Builder()
+    .forBrowser('chrome')
+    .setChromeOptions(chromeOpts.headless())
     .withCapabilities(selenium.Capabilities.chrome())
     .build();
 
@@ -39,9 +52,17 @@ async function getScreenshot() {
         return false;
       }
     });
-    await driver.executeScript(
-      `document.body.style.zoom = '10%'; document.getElementsByClassName('gameFieldWrapper')[0].style.height = '1000vh'`
-    );
+    await driver.wait(async function () {
+      await driver.executeScript(`document.body.style.zoom = '10%';`);
+      const gfw = await driver.executeScript(
+        `return document.getElementsByClassName('gameFieldWrapper').length`
+      );
+      if (!gfw) return gfw;
+      await driver.executeScript(
+        `document.getElementsByClassName('gameFieldWrapper')[0].style.height = '1000vh'`
+      );
+      return true;
+    });
     await driver.wait(async function () {
       const state = await driver.executeScript(
         `return window[Symbol.for('MyIsLoaded')]`
@@ -54,7 +75,7 @@ async function getScreenshot() {
         console.log('qwer');
       }.toString()
     );
-    const func2hidOverflow = () => {
+    const func2hideOverflow = () => {
       return [...document.getElementsByClassName('paragraphText')]
         .map((it, i) => {
           if (it) {
@@ -67,7 +88,7 @@ async function getScreenshot() {
         .filter((it) => it);
     };
     const divs_with_errors = await driver.executeScript(
-      `return (${func2hidOverflow.toString()})()`
+      `return (${func2hideOverflow.toString()})()`
     );
     console.error(`divs_with_errors = ${JSON.stringify(divs_with_errors)}`);
     await driver.executeScript(
@@ -81,9 +102,9 @@ async function getScreenshot() {
     await fs.writeFile(path4img, base64Data, 'base64');
     console.log(`PWD: ${process.env.PWD}`);
     console.log(`path to img: ${path4img}`);
-    setTimeout(() => {
-      driver.quit();
-    }, 30000);
+    //setTimeout(() => {
+    driver.quit();
+    //}, 30000);
   } catch (err) {
     console.error(err);
     driver.quit();
