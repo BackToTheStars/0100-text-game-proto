@@ -52,6 +52,11 @@ const rulesCanEdit = async (req, res, next) => {
 };
 
 app.use(cors());
+app.use((req, res, next) => {
+  console.log('check requrest');
+  next();
+});
+
 app.use('/public', express.static(path.join(__dirname, 'public'))); // загружает index.html
 // нужна для скриншотов minimap
 app.use(jsonParser);
@@ -60,10 +65,10 @@ app.post('/login', authController.login);
 
 app.get('/games', gameController.getGames);
 app.post('/games', gameController.createGame);
-if (mode == USER_MODE_ADMIN) {
-  app.put('/game', gameMiddleware, gameController.editGame); // требует privilege elevation
-  app.delete('/game', gameMiddleware, gameController.deleteGame); // требует privilege elevation
-}
+// if (mode == USER_MODE_ADMIN) {
+app.put('/game', gameMiddleware, gameController.editGame); // требует privilege elevation
+app.delete('/game', gameMiddleware, gameController.deleteGame); // требует privilege elevation
+// }
 
 app.get('/game', gameMiddleware, rulesCanView, gameController.getGame);
 

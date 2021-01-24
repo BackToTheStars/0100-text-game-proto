@@ -24,7 +24,7 @@ async function updateTurn(req, res) {
   res.json({
     item: turnModel,
   }); // new true говорит отдать новую модель, а не старую
-  await screenshooter.getScreenshot(); // selenium снимок экрана
+  // await screenshooter.getScreenshot(); // selenium снимок экрана
 }
 
 async function deleteTurn(req, res) {
