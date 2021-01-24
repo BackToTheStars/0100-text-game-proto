@@ -42,6 +42,23 @@ const login = async (req, res, next) => {
   });
 };
 
+const adminMiddleware = (req, res, next) => {
+  // проверяем админский token
+  const { authorization } = req.headers;
+  let token;
+  if (authorization && authorization.split(' ')[0] === 'Bearer') {
+    token = authorization.split(' ')[1];
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (!err) {
+      req.adminId = decoded.data.id;
+    }
+    next();
+  });
+};
+
 module.exports = {
   login,
+  adminMiddleware,
 };

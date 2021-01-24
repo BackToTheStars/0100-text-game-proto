@@ -11,7 +11,7 @@ chromeOpts.addArguments(
   )}`
 );
 
-console.log(chromeOpts);
+// console.log(chromeOpts);
 
 chrome.setDefaultService(
   new chrome.ServiceBuilder(chromedriver.path, chromeOpts).build()
@@ -67,12 +67,12 @@ async function getScreenshot() {
       const state = await driver.executeScript(
         `return window[Symbol.for('MyIsLoaded')]`
       );
-      console.log(state);
+      // console.log(state);
       return state === 0;
     }, 30000);
     console.log(
       function () {
-        console.log('qwer');
+        // console.log('qwer');
       }.toString()
     );
     const func2hideOverflow = () => {

@@ -53,7 +53,7 @@ const rulesCanEdit = async (req, res, next) => {
 
 app.use(cors());
 app.use((req, res, next) => {
-  console.log('check requrest');
+  console.log('request checked server.js line:56');
   next();
 });
 
@@ -66,8 +66,18 @@ app.post('/login', authController.login);
 app.get('/games', gameController.getGames);
 app.post('/games', gameController.createGame);
 // if (mode == USER_MODE_ADMIN) {
-app.put('/game', gameMiddleware, gameController.editGame); // требует privilege elevation
-app.delete('/game', gameMiddleware, gameController.deleteGame); // требует privilege elevation
+app.put(
+  '/game',
+  gameMiddleware,
+  authController.adminMiddleware,
+  gameController.editGame
+); // требует privilege elevation
+app.delete(
+  '/game',
+  gameMiddleware,
+  authController.adminMiddleware,
+  gameController.deleteGame
+); // требует privilege elevation
 // }
 
 app.get('/game', gameMiddleware, rulesCanView, gameController.getGame);
@@ -89,6 +99,13 @@ app.delete(
   gameMiddleware,
   rulesCanEdit,
   gameController.deleteRedLogicLines
+);
+
+app.post(
+  '/codes',
+  gameMiddleware,
+  authController.adminMiddleware,
+  gameController.addCode
 );
 
 app.get(
