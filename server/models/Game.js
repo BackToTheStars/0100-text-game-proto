@@ -17,14 +17,41 @@ const redLogicLine = new Schema({
   },
 })
 
+const roleSchema = new Schema({
+  role: {
+    type: Number,
+    required: true,
+  },
+  hash: {
+    type: String,
+    required: true,
+  }
+})
+
 const schema = new Schema({
   name: {
     type: String,
-    required: true
+    required: true,
+    trim: true,
+  },
+  description: {
+    type: String,
+    trim: true,
+  },
+  image: {
+    type: String
+  },
+  codes: {
+    type: [roleSchema],
+    default: []
   },
   redLogicLines: {
     type: [redLogicLine],
     default: []
+  },
+  public: {
+    type: Boolean,
+    default: true
   }
 }, {
   timestamps: true

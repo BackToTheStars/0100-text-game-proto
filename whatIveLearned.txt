@@ -1,4 +1,19 @@
 
+https://prettier.io/docs/en/options.html
+
+mongodump
+npm run dump
+Compass => export collections as json => connect to TextGame => add data to collections from jsons => change id through sctipt with game_id
+
+http://localhost:3001/admin
+
+
+
+Query (filter) MongoDB Compass Community by id:
+{"_id": ObjectId("5ff3adfb78d0410023eaeed6")} 
+
+------------------------------------------------------------------------------------
+Redis - система для базы данных в RAM
 SOLID - принципы проектирования программ
 Шардирование - разбиение базы данных на несколько 
 
