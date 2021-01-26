@@ -52,10 +52,6 @@ const rulesCanEdit = async (req, res, next) => {
 };
 
 app.use(cors());
-app.use((req, res, next) => {
-  console.log('request checked server.js line:56');
-  next();
-});
 
 app.use('/public', express.static(path.join(__dirname, 'public'))); // загружает index.html
 // нужна для скриншотов minimap
@@ -63,13 +59,14 @@ app.use(jsonParser);
 
 app.post('/login', authController.login);
 
-app.get('/games', gameController.getGames);
+app.get('/games', authController.adminMiddleware, gameController.getGames);
+
 app.post('/games', gameController.createGame);
 // if (mode == USER_MODE_ADMIN) {
 app.put(
   '/game',
-  gameMiddleware,
-  authController.adminMiddleware,
+  gameMiddleware, // проверяет что в адресе есть hash, находит игру и права юзера и права в этой игре
+  authController.adminMiddleware, // проверяет является ли юзер superAdmin
   gameController.editGame
 ); // требует privilege elevation
 app.delete(

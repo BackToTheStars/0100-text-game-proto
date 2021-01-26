@@ -27,7 +27,7 @@ const getGame = async (req, res) => {
     name: true,
     public: true,
     redLogicLines: true,
-    codes: true,
+    // codes: !!req.adminId, // есть ли у него права superAdmin?
   });
   // здесь может быть проверка, есть ли у пользователя доступ к игре
   res.json({
@@ -38,7 +38,7 @@ const getGame = async (req, res) => {
 const editGame = async (req, res, next) => {
   try {
     if (!req.adminId) {
-      const err = new Error('Access denied. game.js line: 39');
+      const err = new Error('Access denied. game.js line: 41');
       err.statusCode = 403;
       return next(err);
     }
@@ -77,24 +77,27 @@ async function deleteGame(req, res, next) {
   next(error);
 }
 
-const getGames = async (req, res) => {
-  const games = await Game.find(
-    {},
-    {
+const getGames = async (req, res, next) => {
+  try {
+    const fields = {
       name: true,
       public: true,
       description: true,
+    };
+    if (!!req.adminId) {
+      // есть ли у него права superAdmin?
+      fields.codes = true;
     }
-  );
-  res.json({
-    items: games.map((game) => ({
-      name: game.name,
-      _id: game._id,
-      public: game.public,
-      description: game.description,
-      hash: SecurityLayer.getHashByGame(game),
-    })),
-  });
+    const games = await Game.find({}, fields);
+    res.json({
+      items: games.map((game) => ({
+        ...game.toObject(),
+        hash: SecurityLayer.getHashByGame(game),
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 // const getItem = async (req, res) => {
@@ -166,7 +169,7 @@ const addCode = async (req, res, next) => {
   try {
     // добавляет в игру объект прав пользователя
     if (!req.adminId) {
-      const err = new Error('Access denied. game.js line: 166');
+      const err = new Error('Access denied. game.js line: 169');
       err.statusCode = 403;
       return next(err);
     }
@@ -174,7 +177,7 @@ const addCode = async (req, res, next) => {
     const { gameId } = req.gameInfo;
 
     const code = {
-      role: User.rules.RULE_EDIT,
+      role: User.roles.ROLE_EDIT,
       hash: SecurityLayer.hashFunc(gameId, 3),
     };
 
