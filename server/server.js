@@ -20,20 +20,20 @@ let jsonParser = express.json();
 
 const gameMiddleware = async (req, res, next) => {
   const { hash } = req.query;
-  const { gameId, userId, rules } = await SecurityLayer.getInfo(hash);
+  const { gameId, userId, roles } = await SecurityLayer.getInfo(hash);
   if (!gameId) {
     // @todo: вынести в отдельный тип ошибок
     const error = new Error('Игра не найдена');
     error.statusCode = 404;
     return next(error);
   }
-  req.gameInfo = { gameId, userId, rules };
+  req.gameInfo = { gameId, userId, roles };
   next(); // пропускаем в следующий слой
 };
 
 const rulesCanView = async (req, res, next) => {
   // gameId - могут ли редактировать все
-  if (req.gameInfo.rules.indexOf(User.rules.RULE_VIEW) === -1) {
+  if (req.gameInfo.roles.indexOf(User.roles.ROLE_VIEW) === -1) {
     const error = new Error('Просмотр не доступен');
     error.statusCode = 403;
     return next(error);
@@ -43,7 +43,7 @@ const rulesCanView = async (req, res, next) => {
 
 const rulesCanEdit = async (req, res, next) => {
   // gameId - могут ли редактировать все
-  if (req.gameInfo.rules.indexOf(User.rules.RULE_EDIT) === -1) {
+  if (req.gameInfo.roles.indexOf(User.roles.ROLE_EDIT) === -1) {
     const error = new Error('Редактирование не доступно');
     error.statusCode = 403;
     return next(error);
