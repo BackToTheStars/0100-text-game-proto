@@ -33,7 +33,11 @@ const gameMiddleware = async (req, res, next) => {
 
 const rulesCanView = async (req, res, next) => {
   // gameId - могут ли редактировать все
-  if (req.gameInfo.rules.indexOf(User.rules.RULE_VIEW) === -1) {
+  if (
+    req.gameInfo &&
+    req.gameInfo.rules &&
+    req.gameInfo.rules.indexOf(User.rules.RULE_VIEW) === -1
+  ) {
     const error = new Error('Просмотр не доступен');
     error.statusCode = 403;
     return next(error);
