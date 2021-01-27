@@ -178,7 +178,7 @@ const addCode = async (req, res, next) => {
 
     const code = {
       role: User.roles.ROLE_EDIT,
-      hash: SecurityLayer.hashFunc(gameId, 3),
+      hash: SecurityLayer.hashFunc(gameId, process.env.GAME_ID_HASH_LENGTH),
     };
 
     const game = await Game.findById(gameId);

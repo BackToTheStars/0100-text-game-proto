@@ -3,6 +3,7 @@ const chrome = require('selenium-webdriver/chrome');
 const chromedriver = require('chromedriver');
 const fs = require('fs').promises;
 const path = require('path');
+const SecurityLayer = require('../services/SecurityLayer');
 
 const chromeOpts = new chrome.Options();
 chromeOpts.addArguments(
@@ -34,7 +35,7 @@ async function sleep(time) {
   });
 }
 
-async function getScreenshot() {
+async function getScreenshot(gameId) {
   const driver = new selenium.Builder()
     .forBrowser('chrome')
     .setChromeOptions(chromeOpts.headless())
@@ -42,7 +43,13 @@ async function getScreenshot() {
     .build();
 
   try {
-    await driver.get('http://localhost:3001/game?hash=045');
+    const gameHash = SecurityLayer.hashFunc(
+      gameId,
+      process.env.GAME_ID_HASH_LENGTH
+    );
+    const gameUrl = `http://localhost:3001/game?hash=${gameHash}`;
+    console.log(gameUrl);
+    await driver.get(gameUrl);
     //await sleep(5000);
     await driver.wait(async function () {
       const state = await driver.executeScript('return document.readyState');
@@ -70,11 +77,6 @@ async function getScreenshot() {
       // console.log(state);
       return state === 0;
     }, 30000);
-    console.log(
-      function () {
-        // console.log('qwer');
-      }.toString()
-    );
     const func2hideOverflow = () => {
       return [...document.getElementsByClassName('paragraphText')]
         .map((it, i) => {
@@ -94,6 +96,33 @@ async function getScreenshot() {
     await driver.executeScript(
       `const gf = window[Symbol.for('MyGame')].gameField; const settings = gf.getFieldSettings(); gf.saveFieldSettings({...settings, left: settings.left - 100, top: settings.top - 100}); gf.triggers.dispatch('RECALCULATE_FIELD'); gf.triggers.dispatch('DRAW_LINES');`
     );
+
+    const funcRunOverGameField = function () {
+      const turns = window[Symbol.for('MyGame')].turnCollection.getTurns();
+      const mapSize = turns.reduce((acc, it) => {
+        const pos = it.getPrositionInfo();
+        if (!acc) {
+          acc = {
+            left: pos.x,
+            right: pos.x + pos.width,
+            top: pos.y,
+            bottom: pos.y + pos.height,
+          };
+        } else {
+          acc.left = acc.left < pos.x ? acc.left : pos.x;
+          acc.top = acc.top < pos.y ? acc.top : pos.y;
+          acc.right =
+            acc.right > pos.x + pos.width ? acc.right : pos.x + pos.width;
+          acc.bottom =
+            acc.bottom > pos.y + pos.height ? acc.bottom : pos.y + pos.height;
+        }
+      });
+      return mapSize;
+    };
+    // const mapSize = await driver.executeScript(
+    //   `return (${funcRunOverGameField.toString()})()`
+    // );
+    // console.log(`mapSize: ${mapSize}`);
     const data = await driver.takeScreenshot();
     const base64Data = data.replace(/^data:image\/png;base64,/, '');
     const path4img = path.resolve(
