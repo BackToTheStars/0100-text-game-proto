@@ -19,7 +19,7 @@ const mode = process.env.USER_MODE || USER_MODE_VISITOR; // может быть 
 let jsonParser = express.json();
 
 const gameMiddleware = async (req, res, next) => {
-  const { hash } = req.query;
+  const { hash } = req.query; // после request?...
   const { gameId, userId, roles } = await SecurityLayer.getInfo(hash);
   if (!gameId) {
     // @todo: вынести в отдельный тип ошибок
@@ -58,6 +58,7 @@ app.use('/public', express.static(path.join(__dirname, 'public'))); // загр�
 app.use(jsonParser);
 
 app.post('/login', authController.login);
+app.get('/codes/login/:hash', authController.codeLogin);
 
 app.get('/games', authController.adminMiddleware, gameController.getGames);
 
