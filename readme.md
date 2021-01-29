@@ -26,7 +26,12 @@ This system allows us to do exactly that.
 
 
 Launch:
-1) Switch to the branch «webpack» 
-2) npm i (install dependencies)
-3) npm run dev (1st terminal)
-4) npm run webpack (2nd terminal)
+1) Switch to the branch «master» 
+2) cd server 
+3) npm i (install dependencies for server)
+4) cd .., cd client
+5) npm i (install dependencies for client)
+6) cd ..
+7) insert .env file into the root directory, with a connection string to Mongo Atlas database
+8) npm run dev (1st terminal, starts server)
+9) npm run webpack (2nd terminal, starts client)
