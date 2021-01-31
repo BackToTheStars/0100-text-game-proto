@@ -8,13 +8,12 @@
     "scripts": {
         "postinstall": "npm install --prefix ./server",
         "start": "npm run start --prefix ./server",
-        
         "server": "npm run dev --prefix ./server",
         "dump": "npm run dump --prefix ./server",
         "client": "npm run webpack --prefix ./client",
         "next": "npm run dev --prefix ./next"
     },
-        "repository": {
+    "repository": {
         "type": "git",
         "url": "git+https://github.com/BackToTheStars/0100-text-game-proto.git"
     },

@@ -47,7 +47,7 @@ async function getScreenshot(gameId) {
       gameId,
       process.env.GAME_ID_HASH_LENGTH
     );
-    const gameUrl = `http://localhost:3001/game?hash=${gameHash}`;
+    const gameUrl = `http://localhost:3001/game?hash=${gameHash.substr(0,3)}`;
     console.log(gameUrl);
     await driver.get(gameUrl);
     //await sleep(5000);
@@ -97,32 +97,56 @@ async function getScreenshot(gameId) {
       `const gf = window[Symbol.for('MyGame')].gameField; const settings = gf.getFieldSettings(); gf.saveFieldSettings({...settings, left: settings.left - 100, top: settings.top - 100}); gf.triggers.dispatch('RECALCULATE_FIELD'); gf.triggers.dispatch('DRAW_LINES');`
     );
 
-    const funcRunOverGameField = function () {
+    const funcGetFieldSize = function () {
       const turns = window[Symbol.for('MyGame')].turnCollection.getTurns();
       const mapSize = turns.reduce((acc, it) => {
-        const pos = it.getPrositionInfo();
+        const pos = it.getPositionInfo();
         if (!acc) {
-          acc = {
+          return {
             left: pos.x,
             right: pos.x + pos.width,
             top: pos.y,
             bottom: pos.y + pos.height,
           };
         } else {
-          acc.left = acc.left < pos.x ? acc.left : pos.x;
-          acc.top = acc.top < pos.y ? acc.top : pos.y;
-          acc.right =
-            acc.right > pos.x + pos.width ? acc.right : pos.x + pos.width;
-          acc.bottom =
-            acc.bottom > pos.y + pos.height ? acc.bottom : pos.y + pos.height;
+          return {
+            left: acc.left < pos.x ? acc.left : pos.x,
+            top: acc.top < pos.y ? acc.top : pos.y,
+            right:
+              acc.right > pos.x + pos.width ? acc.right : pos.x + pos.width,
+            bottom:
+              acc.bottom > pos.y + pos.height ? acc.bottom : pos.y + pos.height,
+          };
         }
       });
       return mapSize;
     };
-    // const mapSize = await driver.executeScript(
-    //   `return (${funcRunOverGameField.toString()})()`
-    // );
-    // console.log(`mapSize: ${mapSize}`);
+    const mapSize = await driver.executeScript(
+      `return (${funcGetFieldSize.toString()})()`
+    );
+    console.log(`mapSize: ${JSON.stringify(mapSize)}`);
+    const windowSize = await driver.executeScript(
+      `const cstyle = window.getComputedStyle(document.getElementsByClassName('gameFieldWrapper')[0]);
+        return {
+          'block-size': cstyle['block-size'],
+          'inline-size': cstyle['inline-size']
+        };
+      `
+    );
+    console.log(`windowSize: ${JSON.stringify(windowSize)}`);
+
+    const funcRunOverTheField = function(left, top) {
+        const gf = window[Symbol.for('MyGame')].gameField;
+        gf.saveFieldSettings({
+          left,
+          top,
+          height: 1000,
+          width: 1000,
+        });
+        gf.triggers.dispatch('RECALCULATE_FIELD');
+        gf.triggers.dispatch('DRAW_LINES');
+    };
+
     const data = await driver.takeScreenshot();
     const base64Data = data.replace(/^data:image\/png;base64,/, '');
     const path4img = path.resolve(
