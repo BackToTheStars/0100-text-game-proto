@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 
 let express = require('express');
+const jwt = require('jsonwebtoken');
 const turnsController = require('./controllers/turns');
 const gameClassesController = require('./controllers/gameClasses');
 const gameController = require('./controllers/game');
@@ -20,6 +21,7 @@ let jsonParser = express.json();
 
 const gameMiddleware = async (req, res, next) => {
   const { hash } = req.query; // после request?...
+  const gameToken = req.headers['game-token'];
   const { gameId, userId, roles } = await SecurityLayer.getInfo(hash);
   if (!gameId) {
     // @todo: вынести в отдельный тип ошибок
@@ -27,8 +29,20 @@ const gameMiddleware = async (req, res, next) => {
     error.statusCode = 404;
     return next(error);
   }
-  req.gameInfo = { gameId, userId, roles };
-  next(); // пропускаем в следующий слой
+
+  if (gameToken) {
+    jwt.verify(gameToken, process.env.JWT_SECRET, (err, decoded) => {
+      if (!err) {
+        req.gameInfo = { gameId, userId, roles: [...roles, decoded.data.role] };
+      } else {
+        req.gameInfo = { gameId, userId, roles };
+      }
+      next();
+    });
+  } else {
+    req.gameInfo = { gameId, userId, roles };
+    next(); // пропускаем в следующий слой
+  }
 };
 
 const rulesCanView = async (req, res, next) => {
