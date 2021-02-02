@@ -72,6 +72,7 @@ app.use('/public', express.static(path.join(__dirname, 'public'))); // загр�
 app.use(jsonParser);
 
 app.post('/login', authController.login);
+
 app.get('/codes/login/:hash', authController.codeLogin);
 
 app.get('/games', authController.adminMiddleware, gameController.getGames);

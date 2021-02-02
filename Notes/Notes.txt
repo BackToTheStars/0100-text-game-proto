@@ -1,0 +1,34 @@
+1.
+Авторизация суперадмина
+localhost/admin
+admin 123, сервер присылает токен
+сохраняем токен в localstorage
+client token.js
+Для superadmin нет роли, он работает по-другому
+server  auth.js  authController.adminMiddleware
+
+
+2. ROLE_EDIT   (в settings.js)
+Вторая авторизация - код для редактирования и nickname
+(codeEnterForm.js)
+Сервер присылает токен
+сохраняем токен в localstorage (в другом поле)
+client  code.js
+        gameToken.js
+        service.js    getGameInfo
+        settings.js
+        user.info (роль)
+server  auth.js
+        server.js rulesCanEdit, gameToken
+
+ 
+3. ROLE_VIEW
+Hash в адресной строке - просмотр игры
+Его можно скопировать и поделиться 
+server  auth.js
+        server.js rulesCanView
+
+
+JSON.stringify(object) - превращает объект в строку
+JSON.parse('...') - превращает строку в объект
+Запросы: axios (библиотека), fetch (встроенный в браузер), $.ajax (jQuery)
