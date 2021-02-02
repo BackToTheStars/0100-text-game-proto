@@ -36,7 +36,7 @@ const getInfo = async (hash) => {
         gameId,
         roles: [
           User.roles.ROLE_VIEW,
-          User.roles.ROLE_EDIT, // @todo: remove
+          // User.roles.ROLE_EDIT, // @todo: remove
         ],
       };
     }
