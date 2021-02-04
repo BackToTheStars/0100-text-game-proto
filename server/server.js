@@ -130,7 +130,7 @@ app.get(
 app.get(
   '/game-classes/:id',
   gameMiddleware,
-  rulesCanEdit,
+  rulesCanView,
   gameClassesController.getGameClass
 );
 app.post(
