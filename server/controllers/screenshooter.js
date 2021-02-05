@@ -43,7 +43,7 @@ async function getScreenshot(gameId) {
   try {
     const driver = new selenium.Builder()
       .forBrowser('chrome')
-      .setChromeOptions(chromeOpts/*.headless()*/)
+      .setChromeOptions(chromeOpts.headless())
       .withCapabilities(selenium.Capabilities.chrome())
       .build();
     try {
@@ -150,16 +150,18 @@ async function getScreenshot(gameId) {
       }
 
       const funcRunOverTheField = async function({left, top, right, bottom}, winsize) {
-          const funcMoveField = function(left, top) {
+          const funcMoveField = async function(left, top) {
               const gf = window[Symbol.for('MyGame')].gameField;
+              gf.stageEl.css('left', `${-left}px`);
+              gf.stageEl.css('top', `${-top}px`);
               gf.saveFieldSettings({
                 left,
                 top,
                 height: 1000,
                 width: 1000,
               });
-              gf.triggers.dispatch('RECALCULATE_FIELD');
-              gf.triggers.dispatch('DRAW_LINES');
+              await gf.triggers.dispatch('RECALCULATE_FIELD');
+              await gf.triggers.dispatch('DRAW_LINES');
           };
           let i = 0;
           let wstep = winsize['inline-size'];
@@ -169,7 +171,9 @@ async function getScreenshot(gameId) {
           for (let w = left; w < right; w += wstep) {
               let j = 0;
               for (let h = top; h < bottom; h += hstep) {
-                  await driver.executeScript(`(${funcMoveField.toString()})(${w},${h});`)
+                  console.log(`before executeAsyncScript: { w: ${w}, h: ${h}, wstep: ${wstep}, hstep: ${hstep} }`);
+                  await driver.executeScript(`console.log('executeAsyncScript'); {const func = ${funcMoveField.toString()}; console.log('before'); await func(${w},${h}); console.log('exit');}`);
+                  console.log('after executeAsyncScript');
                   const data = await driver.takeScreenshot();
                   const base64Data = data.replace(/^data:image\/png;base64,/, '');
                   const path4img = path.resolve(
