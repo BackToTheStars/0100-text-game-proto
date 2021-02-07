@@ -2,22 +2,36 @@ const Game = require('../models/Game');
 const User = require('../models/User');
 const SecurityLayer = require('../services/SecurityLayer');
 
-const createGame = async (req, res) => {
-  const { public, name } = req.body;
+const createGame = async (req, res, next) => {
+  try {
+    const { public, name } = req.body;
 
-  const game = new Game({
-    public,
-    name,
-  });
+    const game = new Game({
+      public,
+      name,
+    });
 
-  SecurityLayer.clearGamesCache();
-  await game.save();
-  res.json({
-    hash: SecurityLayer.getHashByGame(game),
-    item: {
-      name: game.name,
-    },
-  });
+    SecurityLayer.clearGamesCache();
+    await game.save();
+
+    const code = {
+      role: User.roles.ROLE_EDIT, // @todo: check if need to use role hash
+      hash: SecurityLayer.hashFunc(game._id, process.env.GAME_ID_HASH_LENGTH),
+    };
+
+    game.codes.push(code);
+    await game.save();
+
+    res.json({
+      hash: SecurityLayer.getHashByGame(game),
+      item: {
+        name: game.name,
+        code,
+      },
+    });
+  } catch (e) {
+    next(e);
+  }
 };
 
 const getGame = async (req, res) => {
