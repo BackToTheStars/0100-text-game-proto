@@ -47,7 +47,7 @@ const gameMiddleware = async (req, res, next) => {
 
 const rulesCanView = async (req, res, next) => {
   // gameId - могут ли редактировать все
-  if (req.gameInfo.roles.indexOf(User.roles.ROLE_VIEW) === -1) {
+  if (req.gameInfo.roles.indexOf(User.roles.ROLE_GAME_VISITOR) === -1) {
     const error = new Error('Просмотр не доступен');
     error.statusCode = 403;
     return next(error);
@@ -57,12 +57,25 @@ const rulesCanView = async (req, res, next) => {
 
 const rulesCanEdit = async (req, res, next) => {
   // gameId - могут ли редактировать все
-  if (req.gameInfo.roles.indexOf(User.roles.ROLE_EDIT) === -1) {
+  if (req.gameInfo.roles.indexOf(User.roles.ROLE_GAME_PLAYER) === -1) {
     const error = new Error('Редактирование не доступно');
     error.statusCode = 403;
     return next(error);
   }
   next();
+};
+
+const rulesEndpoint = (ruleName) => async (req, res, next) => {
+  for (let role of req.gameInfo.roles) {
+    if (User.ROLES[role].rules.indexOf(ruleName) !== -1) {
+      // если он там есть
+      return next();
+    }
+  }
+
+  const error = new Error('Недостаточно прав доступа.');
+  error.statusCode = 403;
+  return next(error);
 };
 
 app.use(cors());
@@ -153,7 +166,13 @@ app.delete(
 );
 
 app.get('/turns', gameMiddleware, rulesCanView, turnsController.getTurns);
-app.post('/turns', gameMiddleware, rulesCanEdit, turnsController.saveTurn);
+app.post(
+  '/turns',
+  gameMiddleware,
+  rulesCanEdit,
+  // rulesEndpoint(User.rules.RULE_GAME_EDIT),
+  turnsController.saveTurn
+);
 app.put(
   '/turns/coordinates',
   gameMiddleware,

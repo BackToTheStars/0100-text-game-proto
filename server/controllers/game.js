@@ -15,7 +15,7 @@ const createGame = async (req, res, next) => {
     await game.save();
 
     const code = {
-      role: User.roles.ROLE_EDIT, // @todo: check if need to use role hash
+      role: User.roles.ROLE_GAME_OWNER, // @todo: check if need to use role hash
       hash: SecurityLayer.hashFunc(game._id, process.env.GAME_ID_HASH_LENGTH),
     };
 
@@ -191,7 +191,7 @@ const addCode = async (req, res, next) => {
     const { gameId } = req.gameInfo;
 
     const code = {
-      role: User.roles.ROLE_EDIT,
+      role: User.roles.ROLE_GAME_PLAYER,
       hash: SecurityLayer.hashFunc(gameId, process.env.GAME_ID_HASH_LENGTH),
     };
 
