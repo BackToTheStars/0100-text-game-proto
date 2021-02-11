@@ -34,12 +34,12 @@ server  auth.js
         server.js rulesCanView
 
 
-Javascript
+JAVASCRIPT
 
 JSON.stringify(object) - превращает объект в строку
 JSON.parse('...') - превращает строку в объект
 Запросы: axios (библиотека), fetch (встроенный в браузер), $.ajax (jQuery)
 !!hash - двойное отрицание приводит к булевому значению,
 но для массивов ![] = false (проверить)
-дуструктуризатор {code: editCode} - прилетит code, переименуется в editCode
+деструктуризатор {code: editCode} - прилетит code, переименуется в editCode
 
