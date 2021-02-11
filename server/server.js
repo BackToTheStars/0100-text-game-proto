@@ -169,14 +169,16 @@ app.get('/turns', gameMiddleware, rulesCanView, turnsController.getTurns);
 app.post(
   '/turns',
   gameMiddleware,
-  rulesCanEdit,
-  // rulesEndpoint(User.rules.RULE_GAME_EDIT),
+  // rulesCanEdit,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   turnsController.saveTurn
 );
 app.put(
   '/turns/coordinates',
   gameMiddleware,
-  rulesCanEdit,
+  //rulesCanEdit,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
+
   turnsController.updateCoordinates
 );
 app.put('/turns/:id', gameMiddleware, rulesCanEdit, turnsController.updateTurn);
