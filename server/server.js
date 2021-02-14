@@ -117,13 +117,13 @@ app.put(
 app.post(
   '/game/red-logic-lines',
   gameMiddleware,
-  rulesCanEdit,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameController.createRedLogicLine
 );
 app.delete(
   '/game/red-logic-lines',
   gameMiddleware,
-  rulesCanEdit,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameController.deleteRedLogicLines
 );
 
@@ -149,19 +149,19 @@ app.get(
 app.post(
   '/game-classes',
   gameMiddleware,
-  rulesCanEdit,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameClassesController.createGameClass
 );
 app.put(
   '/game-classes/:id',
   gameMiddleware,
-  rulesCanEdit,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameClassesController.updateGameClass
 );
 app.delete(
   '/game-classes/:id',
   gameMiddleware,
-  rulesCanEdit,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameClassesController.deleteGameClass
 );
 
@@ -181,11 +181,16 @@ app.put(
 
   turnsController.updateCoordinates
 );
-app.put('/turns/:id', gameMiddleware, rulesCanEdit, turnsController.updateTurn);
+app.put(
+  '/turns/:id',
+  gameMiddleware,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
+  turnsController.updateTurn
+);
 app.delete(
   '/turns/:id',
   gameMiddleware,
-  rulesCanEdit,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   turnsController.deleteTurn
 );
 
