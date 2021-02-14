@@ -150,41 +150,59 @@ async function getScreenshot(gameId) {
       }
 
       const funcRunOverTheField = async function({left, top, right, bottom}, winsize) {
-          const funcMoveField = async function(left, top) {
-              const gf = window[Symbol.for('MyGame')].gameField;
-              gf.stageEl.css('left', `${-left}px`);
-              gf.stageEl.css('top', `${-top}px`);
-              gf.saveFieldSettings({
-                left,
-                top,
-                height: 1000,
-                width: 1000,
-              });
-              await gf.triggers.dispatch('RECALCULATE_FIELD');
-              await gf.triggers.dispatch('DRAW_LINES');
-          };
-          let i = 0;
-          let wstep = winsize['inline-size'];
-          wstep = +wstep.substr(0, wstep.length -2);
-          let hstep = winsize['block-size'];
-          wstep = +hstep.substr(0, hstep.length -2);
-          for (let w = left; w < right; w += wstep) {
-              let j = 0;
-              for (let h = top; h < bottom; h += hstep) {
-                  console.log(`before executeAsyncScript: { w: ${w}, h: ${h}, wstep: ${wstep}, hstep: ${hstep} }`);
-                  await driver.executeScript(`console.log('executeAsyncScript'); {const func = ${funcMoveField.toString()}; console.log('before'); await func(${w},${h}); console.log('exit');}`);
-                  console.log('after executeAsyncScript');
-                  const data = await driver.takeScreenshot();
-                  const base64Data = data.replace(/^data:image\/png;base64,/, '');
-                  const path4img = path.resolve(
-                    path.join(PATH4SCREENS, `out_${i}_${j}.png`)
-                  );
-                  await fs.writeFile(path4img, base64Data, 'base64');
-                  console.log(`i: ${i}, j: ${j}: done`);
-                  j++;
-              }
-              i++;
+        const funcMoveField = async function(left, top) {
+          const gf = window[Symbol.for('MyGame')].gameField;
+          gf.stageEl.css('left', `${-left}px`);
+          gf.stageEl.css('top', `${-top}px`);
+          gf.saveFieldSettings({
+            left,
+            top,
+            height: 1000,
+            width: 1000,
+          });
+          await gf.triggers.dispatch('RECALCULATE_FIELD');
+          await gf.triggers.dispatch('DRAW_LINES');
+        };
+        const funcTakeScreen = async function(i,j) {
+          const fieldCoords = await driver.executeScript(`return await (${funcGetFieldSize.toString()})();`);
+          console.log(`funcTakeScreen: fieldCoords: ${JSON.stringify(fieldCoords)}`);
+          const data = await driver.takeScreenshot();
+          const base64Data = data.replace(/^data:image\/png;base64,/, '');
+          const path4img = path.resolve(
+            path.join(PATH4SCREENS, `out_${i}_${j}.png`)
+          );
+          await fs.writeFile(path4img, base64Data, 'base64');
+          console.log(`i: ${i}, j: ${j}: done`);
+        };
+        await driver.executeScript(`await (${funcMoveField.toString()})(${mapSize.left}, ${mapSize.top});`);
+        console.log("after the first move");
+        let xAim = mapSize.right - mapSize.left;
+        let yAim = mapSize.bottom - mapSize.top;
+        console.log(`xAim: ${xAim}, yAim: ${yAim}`);
+        let i = 0;
+        let wstep = winsize['inline-size'];
+        wstep = +wstep.substr(0, wstep.length -2);
+        let hstep = winsize['block-size'];
+        hstep = +hstep.substr(0, hstep.length -2);
+        console.log(`{wstep: ${wstep}, hstep: ${hstep}}`);
+        let h = 0;
+        let w = 0;
+        for (; h < yAim; h += hstep) {
+          let j = 0;
+          w = 0;
+          await funcTakeScreen(i,j);
+          w += wstep;
+          j++;
+          for (; w < xAim; w += wstep) {
+            await driver.executeScript(`await (${funcMoveField.toString()})(${wstep},0)`);
+            await funcTakeScreen(i,j)
+            j++;
           }
+          await driver.executeScript(`await (${funcMoveField.toString()})(${-(w-wstep)},${hstep})`);
+          i++;
+          console.log(`after a cycle: h: ${h}, w: ${w}`);
+        }
+        console.log(`after all: h: ${h}, w: ${w}`);
       };
 
       await funcRunOverTheField(mapSize, windowSize);
