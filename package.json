@@ -3,7 +3,9 @@
     "version": "1.0.0",
     "description": "This is the \"Beads Game\", a game of associations, described by H. Hesse in 1943, for which he got a Nobel Prize for literature in 1946.",
     "main": "фрагменты.js",
-    "dependencies": {},
+    "dependencies": {
+        "images": "^3.2.3"
+    },
     "devDependencies": {},
     "scripts": {
         "postinstall": "npm install --prefix ./server",
