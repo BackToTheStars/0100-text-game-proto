@@ -106,7 +106,12 @@ app.delete(
 ); // требует privilege elevation
 // }
 
-app.get('/game', gameMiddleware, rulesCanView, gameController.getGame);
+app.get(
+  '/game',
+  gameMiddleware,
+  rulesEndpoint(User.rules.RULE_VIEW),
+  gameController.getGame
+);
 
 app.put(
   '/game/red-logic-lines',

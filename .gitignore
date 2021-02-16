@@ -6,7 +6,6 @@
 .idea/*
 /node_modules
 .env
-/backend/node_modules
-/backend/dist
-/server/selenium
-*.swp
+/dumps
+/selenium
+/dist
