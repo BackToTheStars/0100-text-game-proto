@@ -35,17 +35,27 @@ const createGame = async (req, res, next) => {
 };
 
 const getGame = async (req, res) => {
-  const { gameId } = req.gameInfo;
-  const game = await Game.findById(gameId, {
-    _id: false,
+  const { gameId, roles } = req.gameInfo;
+  const fields = {
+    // _id: false,
+    hash: true,
     name: true,
     public: true,
     redLogicLines: true,
+    description: true,
+    image: true,
     // codes: !!req.adminId, // есть ли у него права superAdmin?
-  });
+  };
+  if (roles.indexOf(User.roles.ROLE_GAME_OWNER) != -1) fields.codes = true;
+  const game = await Game.findById(gameId, fields);
   // здесь может быть проверка, есть ли у пользователя доступ к игре
+  const gameObj = game.toObject();
+  delete gameObj._id;
   res.json({
-    item: game,
+    item: {
+      ...gameObj,
+      hash: SecurityLayer.getHashByGame(game),
+    },
   });
 };
 
@@ -181,14 +191,14 @@ const deleteRedLogicLines = async (req, res) => {
 
 const addCode = async (req, res, next) => {
   try {
+    const { gameId, roles } = req.gameInfo;
+
     // добавляет в игру объект прав пользователя
-    if (!req.adminId) {
+    if (!req.adminId && roles.indexOf(User.roles.ROLE_GAME_OWNER) == -1) {
       const err = new Error('Access denied. game.js line: 169');
       err.statusCode = 403;
       return next(err);
     }
-
-    const { gameId } = req.gameInfo;
 
     const code = {
       role: User.roles.ROLE_GAME_PLAYER,
