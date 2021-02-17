@@ -7,6 +7,7 @@ const path = require('path');
 const SecurityLayer = require('../services/SecurityLayer');
 
 const images = require('images');
+//const sharp = require('sharp');
 
 const chromeOpts = new chrome.Options();
 chromeOpts.addArguments(
@@ -118,25 +119,40 @@ async function getScreenshot(gameId) {
       if (!(maxi >= 1 && maxj >= 1)) {
         throw new Error(`${JSON.stringify({maxi, maxj})}`);
       }
-      const imgArr = new Array(maxi).fill(new Array(maxj).fill({}));
-      for (const img of imgPaths) {
-        imgArr[img.i][img.j] = {path: img.path4img};
+      const imgArr = [];
+      for (let i = 0; i <= maxi; i++) {
+        const arr = imgPaths.filter(it => it.i == i);
+        imgArr.push(arr);
       }
-      for (let i = 0; i < maxi; i++) {
-        for (let j = 0; j < maxj; j++) {
-          const img =  images(imgArr[i][j].path);
+      imgArr.sort((a,b) => (a[0].i < b[0].i));
+
+      console.log(imgArr);
+      for (let i = 0; i <= maxi; i++) {
+        for (let j = 0; j <= maxj; j++) {
+          const path = imgArr[i][j].path4img;
+          console.log(`trying to process: ${path}`);
+          const img =  await images(path);
+//          console.log(await img.size());
           imgArr[i][j] = {...(imgArr[i][j]), img, w: img.width(), h: img.height()};
         }
       }
 
-      const mmSize = imgArr[0].reduce((acc, it) => ({w: acc.w + it.w, h: acc.h + it.h}), {w: 0, h: 0});
+      const mmSize = imgArr.reduce((acc, it) => {
+        const subSize = it.reduce((acc2, it2) => ({w: acc2.w + it2.w, h: Math.max(acc2.h, it2.h)}), {w: 0, h: 0});
+        return {w: Math.max(acc.w, subSize.w), h: acc.h + subSize.h};
+      }, {w: 0, h: 0});
 
-      const mm = images(minimap.w, minimap.h);
+      console.log(`${JSON.stringify(mmSize)}`);
+
+      const mm = images(mmSize.w, mmSize.h);
       let curY = 0;
       for (const row of imgArr) {
+        console.log(`curY: ${curY}`);
         let curX = 0;
         let maxY = 0;
         for (const imgDsc of row) {
+          console.log(`curX: ${curX}`);
+          console.log(imgDsc);
           mm.draw(imgDsc.img, curX, curY);
           curX += imgDsc.w;
           maxY = (maxY > imgDsc.h ? maxY : imgDsc.h);
@@ -144,6 +160,7 @@ async function getScreenshot(gameId) {
         curY += maxY;
       }
 
+      console.log('going to save ...');
       mm.save(path.join(PATH4SCREENS, `output.png`));
         
 
@@ -243,6 +260,12 @@ function funcGetFieldSize() {
 };
 
 function func2hideOverflow() {
+  const buttonPanels = document.getElementsByClassName('actions');
+  if (buttonPanels && buttonPanels.length == 1) {
+    buttonPanels[0].style.display = 'none';
+  } else {
+    console.log(`buttonPanel not found`);
+  }
   return [...document.getElementsByClassName('paragraphText')]
     .map((it, i) => {
       if (it) {
