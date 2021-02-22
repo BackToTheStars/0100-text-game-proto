@@ -67,13 +67,16 @@ const editGame = async (req, res, next) => {
       return next(err);
     }
     const { gameId } = req.gameInfo;
-    const { name, description, public } = req.body;
+    const { name, description, public, image } = req.body;
     const game = await Game.findById(gameId);
     if (name) {
       game.name = name;
     }
     if (description) {
       game.description = description;
+    }
+    if (image) {
+      game.image = image;
     }
     if (typeof public !== 'undefined') {
       game.public = public;
@@ -86,6 +89,7 @@ const editGame = async (req, res, next) => {
         public: game.public,
         description: game.description,
         hash: SecurityLayer.getHashByGame(game),
+        image: game.image,
       },
     });
   } catch (error) {
@@ -107,6 +111,7 @@ const getGames = async (req, res, next) => {
       name: true,
       public: true,
       description: true,
+      image: true,
     };
     if (!!req.adminId) {
       // есть ли у него права superAdmin?
