@@ -116,9 +116,9 @@ async function getScreenshot(gameId) {
       
       const maxi = imgPaths.reduce((acc, it) => {return (acc > it.i ? acc : it.i);}, 0);
       const maxj = imgPaths.reduce((acc, it) => {return (acc > it.j ? acc : it.j);}, 0);
-      if (!(maxi >= 1 && maxj >= 1)) {
-        throw new Error(`${JSON.stringify({maxi, maxj})}`);
-      }
+//      if (!(maxi >= 1 && maxj >= 1)) {
+//        throw new Error(`${JSON.stringify({maxi, maxj})}`);
+//      }
       const imgArr = [];
       for (let i = 0; i <= maxi; i++) {
         const arr = imgPaths.filter(it => it.i == i);
@@ -214,6 +214,14 @@ async function funcRunOverTheField (driver, {left, top, right, bottom}, winsize)
   console.log(`{wstep: ${wstep}, hstep: ${hstep}}`);
   let h = 0;
   let w = 0;
+
+  let gapX = Math.ceil(xAim/wstep)*wstep - xAim;
+  let gapY = Math.ceil(yAim/hstep)*hstep - yAim;
+  
+  await driver.executeScript(`await (${funcMoveField.toString()})(${-gapX/2}, ${-gapY/2});`);
+
+  console.log({gapX, gapY, xAim, yAim, winsize, wstep, hstep});
+
   for (; h < yAim; h += hstep) {
     let j = 0;
     w = 0;
@@ -238,7 +246,7 @@ function funcGetFieldSize() {
   const turns = window[Symbol.for('MyGame')].turnCollection.getTurns();
   const mapSize = turns.reduce((acc, it) => {
     const pos = it.getPositionInfo();
-    if (!acc) {
+    if (acc.uninit) {
       return {
         left: pos.x,
         right: pos.x + pos.width,
@@ -255,7 +263,7 @@ function funcGetFieldSize() {
           acc.bottom > pos.y + pos.height ? acc.bottom : pos.y + pos.height,
       };
     }
-  });
+  }, {uninit: true});
   return mapSize;
 };
 
