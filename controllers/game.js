@@ -61,12 +61,15 @@ const getGame = async (req, res) => {
 
 const editGame = async (req, res, next) => {
   try {
-    if (!req.adminId) {
-      const err = new Error('Access denied. game.js line: 41');
+    const { gameId, roles } = req.gameInfo;
+
+    // добавляет в игру объект прав пользователя
+    if (!req.adminId && roles.indexOf(User.roles.ROLE_GAME_OWNER) == -1) {
+      const err = new Error('Access denied. game.js line: 68');
       err.statusCode = 403;
       return next(err);
     }
-    const { gameId } = req.gameInfo;
+
     const { name, description, public, image } = req.body;
     const game = await Game.findById(gameId);
     if (name) {
