@@ -80,7 +80,9 @@ const rulesEndpoint = (ruleName) => async (req, res, next) => {
 
 app.use(cors());
 
-app.use('/public', express.static(path.join(__dirname, 'public'))); // загружает index.html
+// app.use('/public', express.static(path.join(__dirname, 'public'))); // загружает index.html
+app.use(express.static('public'));
+
 // нужна для скриншотов minimap
 app.use(jsonParser);
 
