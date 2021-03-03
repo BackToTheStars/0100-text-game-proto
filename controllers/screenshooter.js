@@ -13,7 +13,8 @@ const chromeOpts = new chrome.Options();
 chromeOpts.addArguments(
   `user-data-dir=${path.resolve(
     path.join(__dirname, '..', 'selenium', 'cache')
-  )}`
+  )}`,
+  'use-fake-ui-for-media-stream'
 );
 
 // console.log(chromeOpts);
@@ -77,7 +78,9 @@ async function getScreenshot(gameId) {
         );
         if (!gfw) return gfw;
         await driver.executeScript(
-          `document.getElementsByClassName('gameFieldWrapper')[0].style.height = '${100*ZOOM_FACTOR}vh'`
+          `document.getElementsByClassName('gameFieldWrapper')[0].style.height = '${100*ZOOM_FACTOR}vh';
+           document.getElementById('gameBox').style.height = '${100*ZOOM_FACTOR}vh';
+           document.getElementById('gameBox').style.width = '${100*ZOOM_FACTOR}vw';`
         );
         return true;
       });
