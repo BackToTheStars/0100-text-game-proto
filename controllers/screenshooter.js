@@ -13,7 +13,8 @@ const chromeOpts = new chrome.Options();
 chromeOpts.addArguments(
   `user-data-dir=${path.resolve(
     path.join(__dirname, '..', 'selenium', 'cache')
-  )}`
+  )}`,
+  'use-fake-ui-for-media-stream'
 );
 
 // console.log(chromeOpts);
@@ -51,14 +52,17 @@ async function getScreenshot(gameId) {
       .build();
     try {
       if (!_fs.existsSync(PATH4SCREENS)) {
-        await fs.mkdir(PATH4SCREENS, {recursive: true})
+        await fs.mkdir(PATH4SCREENS, { recursive: true });
       }
 
       const gameHash = SecurityLayer.hashFunc(
         gameId,
         process.env.GAME_ID_HASH_LENGTH
       );
-      const gameUrl = `http://localhost:3001/game?hash=${gameHash.substr(0,3)}`;
+      const gameUrl = `http://localhost:3001/game?hash=${gameHash.substr(
+        0,
+        3
+      )}`;
       console.log(gameUrl);
       await driver.get(gameUrl);
       //await sleep(5000);
@@ -71,13 +75,23 @@ async function getScreenshot(gameId) {
         }
       });
       await driver.wait(async function () {
-        await driver.executeScript(`document.body.style.zoom = '${100/ZOOM_FACTOR}%';`);
+        await driver.executeScript(
+          `document.body.style.zoom = '${100 / ZOOM_FACTOR}%';`
+        );
         const gfw = await driver.executeScript(
           `return document.getElementsByClassName('gameFieldWrapper').length`
         );
         if (!gfw) return gfw;
         await driver.executeScript(
-          `document.getElementsByClassName('gameFieldWrapper')[0].style.height = '${100*ZOOM_FACTOR}vh'`
+          `document.getElementsByClassName('gameFieldWrapper')[0].style.height = '${
+            100 * ZOOM_FACTOR
+          }vh';
+            document.getElementById('gameBox').style.height = '${
+              100 * ZOOM_FACTOR
+            }vh';
+            document.getElementById('gameBox').style.width = '${
+              100 * ZOOM_FACTOR
+            }vw';`
         );
         return true;
       });
@@ -113,34 +127,49 @@ async function getScreenshot(gameId) {
       }
 
       const imgPaths = await funcRunOverTheField(driver, mapSize, windowSize);
-      
-      const maxi = imgPaths.reduce((acc, it) => {return (acc > it.i ? acc : it.i);}, 0);
-      const maxj = imgPaths.reduce((acc, it) => {return (acc > it.j ? acc : it.j);}, 0);
-//      if (!(maxi >= 1 && maxj >= 1)) {
-//        throw new Error(`${JSON.stringify({maxi, maxj})}`);
-//      }
+
+      const maxi = imgPaths.reduce((acc, it) => {
+        return acc > it.i ? acc : it.i;
+      }, 0);
+      const maxj = imgPaths.reduce((acc, it) => {
+        return acc > it.j ? acc : it.j;
+      }, 0);
+      //      if (!(maxi >= 1 && maxj >= 1)) {
+      //        throw new Error(`${JSON.stringify({maxi, maxj})}`);
+      //      }
       const imgArr = [];
       for (let i = 0; i <= maxi; i++) {
-        const arr = imgPaths.filter(it => it.i == i);
+        const arr = imgPaths.filter((it) => it.i == i);
         imgArr.push(arr);
       }
-      imgArr.sort((a,b) => (a[0].i < b[0].i));
+      imgArr.sort((a, b) => a[0].i < b[0].i);
 
       console.log(imgArr);
       for (let i = 0; i <= maxi; i++) {
         for (let j = 0; j <= maxj; j++) {
           const path = imgArr[i][j].path4img;
           console.log(`trying to process: ${path}`);
-          const img =  await images(path);
-//          console.log(await img.size());
-          imgArr[i][j] = {...(imgArr[i][j]), img, w: img.width(), h: img.height()};
+          const img = await images(path);
+          //          console.log(await img.size());
+          imgArr[i][j] = {
+            ...imgArr[i][j],
+            img,
+            w: img.width(),
+            h: img.height(),
+          };
         }
       }
 
-      const mmSize = imgArr.reduce((acc, it) => {
-        const subSize = it.reduce((acc2, it2) => ({w: acc2.w + it2.w, h: Math.max(acc2.h, it2.h)}), {w: 0, h: 0});
-        return {w: Math.max(acc.w, subSize.w), h: acc.h + subSize.h};
-      }, {w: 0, h: 0});
+      const mmSize = imgArr.reduce(
+        (acc, it) => {
+          const subSize = it.reduce(
+            (acc2, it2) => ({ w: acc2.w + it2.w, h: Math.max(acc2.h, it2.h) }),
+            { w: 0, h: 0 }
+          );
+          return { w: Math.max(acc.w, subSize.w), h: acc.h + subSize.h };
+        },
+        { w: 0, h: 0 }
+      );
 
       console.log(`${JSON.stringify(mmSize)}`);
 
@@ -155,14 +184,13 @@ async function getScreenshot(gameId) {
           console.log(imgDsc);
           mm.draw(imgDsc.img, curX, curY);
           curX += imgDsc.w;
-          maxY = (maxY > imgDsc.h ? maxY : imgDsc.h);
+          maxY = maxY > imgDsc.h ? maxY : imgDsc.h;
         }
         curY += maxY;
       }
 
       console.log('going to save ...');
       mm.save(path.join(PATH4SCREENS, `output.png`));
-        
 
       driver.quit();
     } catch (err) {
@@ -174,8 +202,12 @@ async function getScreenshot(gameId) {
   }
 }
 
-async function funcRunOverTheField (driver, {left, top, right, bottom}, winsize) {
-  const funcMoveField = async function(left, top) {
+async function funcRunOverTheField(
+  driver,
+  { left, top, right, bottom },
+  winsize
+) {
+  const funcMoveField = async function (left, top) {
     const gf = window[Symbol.for('MyGame')].gameField;
     gf.stageEl.css('left', `${-left}px`);
     gf.stageEl.css('top', `${-top}px`);
@@ -188,84 +220,93 @@ async function funcRunOverTheField (driver, {left, top, right, bottom}, winsize)
     await gf.triggers.dispatch('RECALCULATE_FIELD');
     await gf.triggers.dispatch('DRAW_LINES');
   };
-  const funcTakeScreen = async function(i,j) {
-    const fieldCoords = await driver.executeScript(`return await (${funcGetFieldSize.toString()})();`);
+  const funcTakeScreen = async function (i, j) {
+    const fieldCoords = await driver.executeScript(
+      `return await (${funcGetFieldSize.toString()})();`
+    );
     console.log(`funcTakeScreen: fieldCoords: ${JSON.stringify(fieldCoords)}`);
     const data = await driver.takeScreenshot();
     const base64Data = data.replace(/^data:image\/png;base64,/, '');
-    const path4img = path.resolve(
-      path.join(PATH4SCREENS, `out_${i}_${j}.png`)
-    );
+    const path4img = path.resolve(path.join(PATH4SCREENS, `out_${i}_${j}.png`));
     await fs.writeFile(path4img, base64Data, 'base64');
     console.log(`i: ${i}, j: ${j}: done`);
-    return {i, j, path4img};
+    return { i, j, path4img };
   };
   const imgPaths = [];
-  await driver.executeScript(`await (${funcMoveField.toString()})(${left}, ${top});`);
-  console.log("after the first move");
+  await driver.executeScript(
+    `await (${funcMoveField.toString()})(${left}, ${top});`
+  );
+  console.log('after the first move');
   let xAim = right - left;
   let yAim = bottom - top;
   console.log(`xAim: ${xAim}, yAim: ${yAim}`);
   let i = 0;
   let wstep = winsize['inline-size'];
-  wstep = +wstep.substr(0, wstep.length -2);
+  wstep = +wstep.substr(0, wstep.length - 2);
   let hstep = winsize['block-size'];
-  hstep = +hstep.substr(0, hstep.length -2);
+  hstep = +hstep.substr(0, hstep.length - 2);
   console.log(`{wstep: ${wstep}, hstep: ${hstep}}`);
   let h = 0;
   let w = 0;
 
-  let gapX = Math.ceil(xAim/wstep)*wstep - xAim;
-  let gapY = Math.ceil(yAim/hstep)*hstep - yAim;
-  
-  await driver.executeScript(`await (${funcMoveField.toString()})(${-gapX/2}, ${-gapY/2});`);
+  let gapX = Math.ceil(xAim / wstep) * wstep - xAim;
+  let gapY = Math.ceil(yAim / hstep) * hstep - yAim;
 
-  console.log({gapX, gapY, xAim, yAim, winsize, wstep, hstep});
+  await driver.executeScript(
+    `await (${funcMoveField.toString()})(${-gapX / 2}, ${-gapY / 2});`
+  );
+
+  console.log({ gapX, gapY, xAim, yAim, winsize, wstep, hstep });
 
   for (; h < yAim; h += hstep) {
     let j = 0;
     w = 0;
-    imgPaths.push(await funcTakeScreen(i,j));
+    imgPaths.push(await funcTakeScreen(i, j));
     w += wstep;
     j++;
     for (; w < xAim; w += wstep) {
-      await driver.executeScript(`await (${funcMoveField.toString()})(${wstep},0)`);
-      imgPaths.push(await funcTakeScreen(i,j));
+      await driver.executeScript(
+        `await (${funcMoveField.toString()})(${wstep},0)`
+      );
+      imgPaths.push(await funcTakeScreen(i, j));
       j++;
     }
-    await driver.executeScript(`await (${funcMoveField.toString()})(${-(w-wstep)},${hstep})`);
+    await driver.executeScript(
+      `await (${funcMoveField.toString()})(${-(w - wstep)},${hstep})`
+    );
     i++;
     console.log(`after a cycle: h: ${h}, w: ${w}`);
   }
   console.log(`after all: h: ${h}, w: ${w}`);
   return imgPaths;
-};
-
+}
 
 function funcGetFieldSize() {
   const turns = window[Symbol.for('MyGame')].turnCollection.getTurns();
-  const mapSize = turns.reduce((acc, it) => {
-    const pos = it.getPositionInfo();
-    if (acc.uninit) {
-      return {
-        left: pos.x,
-        right: pos.x + pos.width,
-        top: pos.y,
-        bottom: pos.y + pos.height,
-      };
-    } else {
-      return {
-        left: acc.left < pos.x ? acc.left : pos.x,
-        top: acc.top < pos.y ? acc.top : pos.y,
-        right:
-          acc.right > pos.x + pos.width ? acc.right : pos.x + pos.width,
-        bottom:
-          acc.bottom > pos.y + pos.height ? acc.bottom : pos.y + pos.height,
-      };
-    }
-  }, {uninit: true});
+  const mapSize = turns.reduce(
+    (acc, it) => {
+      const pos = it.getPositionInfo();
+      if (acc.uninit) {
+        return {
+          left: pos.x,
+          right: pos.x + pos.width,
+          top: pos.y,
+          bottom: pos.y + pos.height,
+        };
+      } else {
+        return {
+          left: acc.left < pos.x ? acc.left : pos.x,
+          top: acc.top < pos.y ? acc.top : pos.y,
+          right: acc.right > pos.x + pos.width ? acc.right : pos.x + pos.width,
+          bottom:
+            acc.bottom > pos.y + pos.height ? acc.bottom : pos.y + pos.height,
+        };
+      }
+    },
+    { uninit: true }
+  );
   return mapSize;
-};
+}
 
 function func2hideOverflow() {
   const buttonPanels = document.getElementsByClassName('actions');
@@ -284,8 +325,7 @@ function func2hideOverflow() {
       }
     })
     .filter((it) => it);
-};
-
+}
 
 module.exports = {
   getScreenshot,
