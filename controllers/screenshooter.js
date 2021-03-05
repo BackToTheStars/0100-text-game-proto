@@ -123,7 +123,7 @@ async function getScreenshot(gameId) {
       const files = await fs.readdir(path.join(PATH4SCREENS));
       console.log(files);
       for (const ent of files) {
-        await fs.rm(path.join(PATH4SCREENS, ent));
+        await fs.unlink(path.join(PATH4SCREENS, ent));
       }
 
       const imgPaths = await funcRunOverTheField(driver, mapSize, windowSize);
