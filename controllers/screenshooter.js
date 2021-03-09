@@ -51,14 +51,19 @@ async function getScreenshot(gameId) {
       .withCapabilities(selenium.Capabilities.chrome())
       .build();
     try {
-      if (!_fs.existsSync(PATH4SCREENS)) {
-        await fs.mkdir(PATH4SCREENS, { recursive: true });
-      }
-
       const gameHash = SecurityLayer.hashFunc(
         gameId,
         process.env.GAME_ID_HASH_LENGTH
       );
+
+      const PATH4GAMESCREENS = path.join(
+        PATH4SCREENS,
+        `./${gameHash.substr(0, 3)}`
+      );
+
+      if (!_fs.existsSync(PATH4GAMESCREENS)) {
+        await fs.mkdir(PATH4GAMESCREENS, { recursive: true });
+      }
       const gameUrl = `http://localhost:3001/game?hash=${gameHash.substr(
         0,
         3
@@ -120,13 +125,18 @@ async function getScreenshot(gameId) {
       );
       console.log(`windowSize: ${JSON.stringify(windowSize)}`);
 
-      const files = await fs.readdir(path.join(PATH4SCREENS));
+      const files = await fs.readdir(path.join(PATH4GAMESCREENS));
       console.log(files);
       for (const ent of files) {
-        await fs.unlink(path.join(PATH4SCREENS, ent));
+        await fs.unlink(path.join(PATH4GAMESCREENS, ent));
       }
 
-      const imgPaths = await funcRunOverTheField(driver, mapSize, windowSize);
+      const imgPaths = await funcRunOverTheField(
+        driver,
+        mapSize,
+        windowSize,
+        PATH4GAMESCREENS
+      );
 
       const maxi = imgPaths.reduce((acc, it) => {
         return acc > it.i ? acc : it.i;
@@ -190,9 +200,10 @@ async function getScreenshot(gameId) {
       }
 
       console.log('going to save ...');
-      mm.save(path.join(PATH4SCREENS, `output.png`));
+      mm.save(path.join(PATH4GAMESCREENS, `output.png`));
 
       driver.quit();
+      return `/${gameHash.substr(0, 3)}/output.png`;
     } catch (err) {
       console.error(err);
       driver.quit();
@@ -205,7 +216,8 @@ async function getScreenshot(gameId) {
 async function funcRunOverTheField(
   driver,
   { left, top, right, bottom },
-  winsize
+  winsize,
+  path4GameScreen
 ) {
   const funcMoveField = async function (left, top) {
     const gf = window[Symbol.for('MyGame')].gameField;
@@ -227,7 +239,9 @@ async function funcRunOverTheField(
     console.log(`funcTakeScreen: fieldCoords: ${JSON.stringify(fieldCoords)}`);
     const data = await driver.takeScreenshot();
     const base64Data = data.replace(/^data:image\/png;base64,/, '');
-    const path4img = path.resolve(path.join(PATH4SCREENS, `out_${i}_${j}.png`));
+    const path4img = path.resolve(
+      path.join(path4GameScreen, `out_${i}_${j}.png`)
+    );
     await fs.writeFile(path4img, base64Data, 'base64');
     console.log(`i: ${i}, j: ${j}: done`);
     return { i, j, path4img };
