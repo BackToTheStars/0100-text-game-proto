@@ -131,11 +131,19 @@ async function getScreenshot(gameId) {
         await fs.unlink(path.join(PATH4GAMESCREENS, ent));
       }
 
+      const extraSpaceReturnArgument = {
+        left: null,
+        right: null,
+        top: null,
+        bottom: null,
+      };
+
       const imgPaths = await funcRunOverTheField(
         driver,
         mapSize,
         windowSize,
-        PATH4GAMESCREENS
+        PATH4GAMESCREENS,
+        extraSpaceReturnArgument
       );
 
       const maxi = imgPaths.reduce((acc, it) => {
@@ -199,8 +207,40 @@ async function getScreenshot(gameId) {
         curY += maxY;
       }
 
-      console.log('going to save ...');
-      mm.save(path.join(PATH4GAMESCREENS, `output.png`));
+      console.log('going to cut borders off ...');
+      /*
+      const mmCut = images(
+        mmSize.w -
+          extraSpaceReturnArgument.left -
+          extraSpaceReturnArgument.right,
+        mmSize.h -
+          extraSpaceReturnArgument.top -
+          extraSpaceReturnArgument.bottom
+      );
+      mmCut.draw(
+        mm,
+        -extraSpaceReturnArgument.left,
+        -extraSpaceReturnArgument.top
+      );
+      */
+
+      const mmCut = images(
+        mm,
+        extraSpaceReturnArgument.left / ZOOM_FACTOR,
+        extraSpaceReturnArgument.top / ZOOM_FACTOR,
+        mmSize.w -
+          (extraSpaceReturnArgument.left + extraSpaceReturnArgument.right) /
+            ZOOM_FACTOR,
+        mmSize.h -
+          (extraSpaceReturnArgument.top + extraSpaceReturnArgument.bottom) /
+            ZOOM_FACTOR
+      );
+
+      console.log('saving screenshot...');
+      await mmCut.save(path.join(PATH4GAMESCREENS, `output.png`));
+      console.log('saved.');
+
+      //      console.log(`images.getUsedMemory(): `, images.getUsedMemory());
 
       driver.quit();
       return `/${gameHash.substr(0, 3)}/output.png`;
@@ -217,7 +257,8 @@ async function funcRunOverTheField(
   driver,
   { left, top, right, bottom },
   winsize,
-  path4GameScreen
+  path4GameScreen,
+  extraSpaceReturnArgument
 ) {
   const funcMoveField = async function (left, top) {
     const gf = window[Symbol.for('MyGame')].gameField;
@@ -265,6 +306,15 @@ async function funcRunOverTheField(
 
   let gapX = Math.ceil(xAim / wstep) * wstep - xAim;
   let gapY = Math.ceil(yAim / hstep) * hstep - yAim;
+
+  extraSpaceReturnArgument.left = gapX / 2;
+  extraSpaceReturnArgument.right = gapX / 2;
+  extraSpaceReturnArgument.top = gapY / 2;
+  extraSpaceReturnArgument.bottom = gapY / 2;
+
+  console.log(
+    `extraSpaceReturnArgument: ${JSON.stringify(extraSpaceReturnArgument)}`
+  );
 
   await driver.executeScript(
     `await (${funcMoveField.toString()})(${-gapX / 2}, ${-gapY / 2});`
@@ -328,6 +378,36 @@ function func2hideOverflow() {
     buttonPanels[0].style.display = 'none';
   } else {
     console.log(`buttonPanel not found`);
+  }
+  const minimapPanels = document.getElementsByClassName('minimap-panel');
+  if (minimapPanels && minimapPanels.length == 1) {
+    minimapPanels[0].style.display = 'none';
+  } else {
+    console.log(`minimapPanels not found`);
+  }
+  const gameInfoPanel = document.getElementById('gameInfoPanel');
+  if (gameInfoPanel) {
+    gameInfoPanel.style.display = 'none';
+  } else {
+    console.log(`gameInfoPanel not found`);
+  }
+  const leftBottomLabels = document.getElementsByClassName('left-bottom-label');
+  if (leftBottomLabels) {
+    [...leftBottomLabels].forEach((it) => {
+      it.style.display = 'none';
+    });
+  } else {
+    console.log(`leftBottomLabels not found`);
+  }
+  const rightBottomLabels = document.getElementsByClassName(
+    'right-bottom-label'
+  );
+  if (rightBottomLabels) {
+    [...rightBottomLabels].forEach((it) => {
+      it.style.display = 'none';
+    });
+  } else {
+    console.log(`rightBottomLabels not found`);
   }
   return [...document.getElementsByClassName('paragraphText')]
     .map((it, i) => {
