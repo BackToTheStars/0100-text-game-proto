@@ -237,16 +237,18 @@ async function getScreenshot(gameId) {
       );
 
       console.log('saving screenshot...');
-      await mmCut.save(path.join(PATH4GAMESCREENS, `output.png`));
-      console.log('saved.');
+
+      // await mmCut.save(path.join(PATH4GAMESCREENS, `output.png`));
+      // console.log('saved.');
 
       //      console.log(`images.getUsedMemory(): `, images.getUsedMemory());
 
-      driver.quit();
-      return `/${gameHash.substr(0, 3)}/output.png`;
+      await driver.quit();
+      // return `/${gameHash.substr(0, 3)}/output.png`;
+      return mmCut.encode('png');
     } catch (err) {
       console.error(err);
-      driver.quit();
+      await driver.quit();
     }
   } catch (err) {
     console.error(err);

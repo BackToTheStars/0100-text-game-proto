@@ -90,6 +90,7 @@ app.post('/login', authController.login);
 
 app.get('/codes/login/:hash', authController.codeLogin);
 
+app.get('/games/screenshot', gameMiddleware, gameController.getScreenshot);
 app.get('/games', authController.adminMiddleware, gameController.getGames);
 
 app.post('/games', gameController.createGame);
