@@ -1,4 +1,5 @@
 const Game = require('../models/Game');
+const Screenshot = require('../models/Screenshot');
 const User = require('../models/User');
 const SecurityLayer = require('../services/SecurityLayer');
 
@@ -227,6 +228,22 @@ const addCode = async (req, res, next) => {
   }
 };
 
+const getScreenshot = async (req, res, next) => {
+  try {
+    const { gameId } = req.gameInfo;
+    const screenshot = await Screenshot.findById(gameId);
+
+    if (screenshot.data) {
+      res.set('Content-Type', screenshot.contentType);
+      res.send(screenshot.data);
+    } else {
+      res.status(404).send('Image not found');
+    }
+  } catch (e) {
+    next(e);
+  }
+};
+
 module.exports = {
   createGame,
   // getItem,
@@ -238,4 +255,5 @@ module.exports = {
   editGame,
   deleteGame,
   addCode,
+  getScreenshot,
 };
