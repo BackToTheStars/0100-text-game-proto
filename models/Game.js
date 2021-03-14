@@ -54,10 +54,12 @@ const schema = new Schema(
       default: true,
     },
     lastScreenshotTime: {
+      // последний из сделанных на текущий момент
       type: Date,
       default: Date.now,
     },
     dueScreenshotTime: {
+      // актуальный скриншот
       type: Date,
       default: Date.now,
     },

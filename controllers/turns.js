@@ -1,4 +1,5 @@
 const Turn = require('../models/Turn');
+const Game = require('../models/Game');
 const screenshooter = require('./screenshooter');
 const bunyan = require('bunyan');
 const log = bunyan.createLogger({ name: 'turns', level: 'info' });
@@ -24,7 +25,22 @@ async function updateTurn(req, res) {
   res.json({
     item: turnModel,
   }); // new true говорит отдать новую модель, а не старую
-  await screenshooter.getScreenshot(gameId); // selenium снимок экрана
+  const game = await Game.findOneAndUpdate(
+    {
+      _id: gameId,
+    },
+    {
+      dueScreenshotTime: new Date(),
+    },
+    { new: true } // третий аргумент, вернёт то, что сделал в базе - вернёт Game
+  );
+  console.log({
+    gameId: game._id,
+    gameName: game.name,
+    dueScreenshotTime: game.dueScreenshotTime,
+    lastScreenshotTime: game.lastScreenshotTime,
+  });
+  // await screenshooter.getScreenshot(gameId); // selenium снимок экрана
 }
 
 async function deleteTurn(req, res) {
