@@ -4,59 +4,53 @@ const screenshooter = require('./screenshooter');
 const bunyan = require('bunyan');
 const log = bunyan.createLogger({ name: 'turns', level: 'info' });
 
-async function updateTurn(req, res) {
-  log.debug(`Entering ... ${arguments.callee.name}`);
-  const { id } = req.params;
-  const { gameId } = req.gameInfo;
-  const turn = req.body;
-  const turnModel = await Turn.findOneAndUpdate(
-    {
-      gameId,
-      _id: id,
-    },
-    {
-      ...turn,
-      _id: id,
-      gameId,
-    },
-    { new: true }
-  ); //функция ищет по ид и апдейтит
-  // log.debug(`Ending ... ${arguments.callee.name}`);
-  res.json({
-    item: turnModel,
-  }); // new true говорит отдать новую модель, а не старую
-  const game = await Game.findOneAndUpdate(
-    {
-      _id: gameId,
-    },
-    {
-      dueScreenshotTime: new Date(),
-    },
-    { new: true } // третий аргумент, вернёт то, что сделал в базе - вернёт Game
-  );
-  console.log({
-    gameId: game._id,
-    gameName: game.name,
-    dueScreenshotTime: game.dueScreenshotTime,
-    lastScreenshotTime: game.lastScreenshotTime,
-  });
-  // await screenshooter.getScreenshot(gameId); // selenium снимок экрана
+async function updateTurn(req, res, next) {
+  try {
+    log.debug(`Entering ... ${arguments.callee.name}`);
+    const { id } = req.params;
+    const { gameId } = req.gameInfo;
+    const turn = req.body;
+    const turnModel = await Turn.findOneAndUpdate(
+      {
+        gameId,
+        _id: id,
+      },
+      {
+        ...turn,
+        _id: id,
+        gameId,
+      },
+      { new: true }
+    ); //функция ищет по ид и апдейтит
+    // log.debug(`Ending ... ${arguments.callee.name}`);
+    res.json({
+      item: turnModel,
+    }); // new true говорит отдать новую модель, а не старую
+
+    Game.updateScreenshotTime(gameId);
+  } catch (error) {
+    next(error);
+  }
 }
 
-async function deleteTurn(req, res) {
-  log.debug(`Entering ... ${arguments.callee.name}`);
-  const { gameId } = req.gameInfo;
-  const { id } = req.params;
-  const turnModel = await Turn.findOneAndRemove({
-    _id: id,
-    gameId,
-  }); //функция ищет по ид и удаляет
-  // log.debug(`Ending ... ${arguments.callee.name}`);
-  res.json({
-    item: turnModel,
-  }); // new true говорит отдать новую модель, а не старую
+async function deleteTurn(req, res, next) {
+  try {
+    log.debug(`Entering ... ${arguments.callee.name}`);
+    const { gameId } = req.gameInfo;
+    const { id } = req.params;
+    const turnModel = await Turn.findOneAndRemove({
+      _id: id,
+      gameId,
+    }); //функция ищет по ид и удаляет
+    // log.debug(`Ending ... ${arguments.callee.name}`);
+    res.json({
+      item: turnModel,
+    }); // new true говорит отдать новую модель, а не старую
+    Game.updateScreenshotTime(gameId);
+  } catch (error) {
+    next(error);
+  }
 }
-
 async function saveTurn(req, res, next) {
   // бусы на нитке - функции в Node все работают с req res
   try {
@@ -77,6 +71,7 @@ async function saveTurn(req, res, next) {
       // json, render, next - один из трёх завершает обработку
       item: turnModel,
     });
+    Game.updateScreenshotTime(gameId);
   } catch (error) {
     next(error);
   }
@@ -94,39 +89,44 @@ async function getTurns(req, res) {
   });
 }
 
-async function updateCoordinates(req, res) {
-  const { gameId } = req.gameInfo;
-  const time = Date.now();
-  const { turns = [] } = req.body;
-  const items = [];
-  for (let turn of turns) {
-    const { id, x, y, height, width, contentType, scrollPosition } = turn;
+async function updateCoordinates(req, res, next) {
+  try {
+    const { gameId } = req.gameInfo;
+    const time = Date.now();
+    const { turns = [] } = req.body;
+    const items = [];
+    for (let turn of turns) {
+      const { id, x, y, height, width, contentType, scrollPosition } = turn;
 
-    // Turn.findOneAndUpdate({
-    //     _id: id
-    // }, {
-    //     x, y, height, width, contentType, scrollPosition
-    // })
+      // Turn.findOneAndUpdate({
+      //     _id: id
+      // }, {
+      //     x, y, height, width, contentType, scrollPosition
+      // })
 
-    const turnModel = await Turn.findOne({ _id: id, gameId });
-    turnModel.x = x;
-    turnModel.y = y;
-    turnModel.height = height;
-    turnModel.width = width;
-    turnModel.contentType = contentType; // @todo: delete
-    turnModel.scrollPosition = scrollPosition;
+      const turnModel = await Turn.findOne({ _id: id, gameId });
+      turnModel.x = x;
+      turnModel.y = y;
+      turnModel.height = height;
+      turnModel.width = width;
+      turnModel.contentType = contentType; // @todo: delete
+      turnModel.scrollPosition = scrollPosition;
 
-    turnModel.save();
+      turnModel.save();
 
-    items.push({
-      id: turnModel._id,
+      items.push({
+        id: turnModel._id,
+      });
+    }
+    // console.log((Date.now() - time) / 1000);
+    res.json({
+      success: true,
+      items,
     });
+    Game.updateScreenshotTime(gameId);
+  } catch (error) {
+    next(error);
   }
-  // console.log((Date.now() - time) / 1000);
-  res.json({
-    success: true,
-    items,
-  });
 }
 
 module.exports = {

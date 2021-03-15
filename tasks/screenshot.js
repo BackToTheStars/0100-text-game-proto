@@ -64,12 +64,12 @@ const checkScreenshots = async () => {
     const game = gamesToScreenshot[0];
     game.lastScreenshotTime = game.dueScreenshotTime = new Date(); // a = b = c, b = c, a = b
     // @todo: check if error occured
+    await game.save();
     await screenshotGame(game);
     console.log({
       dueScreenshotTime: game.dueScreenshotTime,
       lastScreenshotTime: game.lastScreenshotTime,
     });
-    await game.save();
     // }
   }
 

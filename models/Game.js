@@ -69,4 +69,23 @@ const schema = new Schema(
   }
 );
 
+schema.statics = {
+  updateScreenshotTime: async function (gameId) {
+    let game;
+    try {
+      game = await this.findOneAndUpdate(
+        {
+          _id: gameId,
+        },
+        {
+          dueScreenshotTime: new Date(),
+        },
+        { new: true } // третий аргумент, вернёт то, что сделал в базе - вернёт Game
+      );
+      return game;
+    } catch (err) {
+      console.log({ err });
+    }
+  },
+};
 module.exports = mongoose.model('Game', schema, 'games');
