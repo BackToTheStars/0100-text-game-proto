@@ -9,6 +9,7 @@ const BACKEND_URL = 'http://localhost:3000';
 const screenshooter = require('../controllers/screenshooter');
 
 const bunyan = require('bunyan');
+
 const log = bunyan.createLogger({ name: 'turns', level: 'info' });
 
 const job = new CronJob(
