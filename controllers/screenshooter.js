@@ -17,10 +17,19 @@ chromeOpts.addArguments(
   'use-fake-ui-for-media-stream'
 );
 
-// console.log(chromeOpts);
+console.log(chromeOpts);
+
+console.log(`chromedriver.path: `, chromedriver.path);
 
 chrome.setDefaultService(
-  new chrome.ServiceBuilder(chromedriver.path, chromeOpts).build()
+  new chrome.ServiceBuilder(
+    /*path.join(
+      __dirname,
+      'chrome-driver',
+      'chromedriver.exe'
+    )*/ chromedriver.path,
+    chromeOpts
+  ).build()
 );
 
 const seleniumCapabilities = {
