@@ -6,7 +6,7 @@
   "dependencies": {
     "bcrypt": "^5.0.1",
     "bunyan": "^1.8.15",
-    "chromedriver": "^87.0.7",
+    "chromedriver": "^89.0.0",
     "cors": "^2.8.5",
     "cron": "^1.8.2",
     "dotenv": "^8.2.0",

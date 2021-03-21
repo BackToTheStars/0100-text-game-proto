@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const Turn = require('./Turn');
 
 const redLogicLine = new Schema({
   sourceTurnId: {
@@ -87,5 +88,27 @@ schema.statics = {
       console.log({ err });
     }
   },
+  addZeroPointTurn: async function (gameId) {
+    const existedTurn = await Turn.findOne({
+      gameId,
+      contentType: 'zero-point',
+    });
+    if (existedTurn) {
+      console.log('Zero Point already exists');
+    } else {
+      const newTurn = new Turn({
+        header: 'zero-point',
+        gameId,
+        contentType: 'zero-point',
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+        paragraph: '',
+      });
+      await newTurn.save();
+    }
+  },
 };
+
 module.exports = mongoose.model('Game', schema, 'games');
