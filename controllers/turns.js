@@ -1,6 +1,6 @@
 const Turn = require('../models/Turn');
 const Game = require('../models/Game');
-const screenshooter = require('./screenshooter');
+// const screenshooter = require('./screenshooter');
 const bunyan = require('bunyan');
 const log = bunyan.createLogger({ name: 'turns', level: 'info' });
 

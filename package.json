@@ -6,7 +6,6 @@
   "dependencies": {
     "bcrypt": "^5.0.1",
     "bunyan": "^1.8.15",
-    "chromedriver": "^89.0.0",
     "cors": "^2.8.5",
     "cron": "^1.8.2",
     "dotenv": "^8.2.0",
@@ -14,16 +13,13 @@
     "images": "^3.2.3",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.12.0",
-    "nodemon": "^2.0.7",
-    "selenium-webdriver": "^4.0.0-beta.2",
-    "sharp": "^0.27.1"
+    "nodemon": "^2.0.7"
   },
   "devDependencies": {},
   "scripts": {
     "server": "nodemon server.js",
     "start": "node server.js",
-    "dump": "node ./scripts/db_dump.js",
-    "screenshot": "node ./tasks/screenshot.js"
+    "dump": "node ./scripts/db_dump.js"
   },
   "keywords": [],
   "author": "",
