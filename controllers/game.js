@@ -22,6 +22,7 @@ const createGame = async (req, res, next) => {
 
     game.codes.push(code);
     await game.save();
+    await Game.addZeroPointTurn(game._id);
 
     res.json({
       hash: SecurityLayer.getHashByGame(game),
@@ -233,7 +234,7 @@ const getScreenshot = async (req, res, next) => {
     const { gameId } = req.gameInfo;
     const screenshot = await Screenshot.findById(gameId);
 
-    if (screenshot.data) {
+    if (screenshot && screenshot.data) {
       res.set('Content-Type', screenshot.contentType);
       res.send(screenshot.data);
     } else {

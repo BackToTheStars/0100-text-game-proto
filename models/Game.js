@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const Turn = require('./Turn');
 
 const redLogicLine = new Schema({
   sourceTurnId: {
@@ -54,10 +55,12 @@ const schema = new Schema(
       default: true,
     },
     lastScreenshotTime: {
+      // последний из сделанных на текущий момент
       type: Date,
       default: Date.now,
     },
     dueScreenshotTime: {
+      // актуальный скриншот
       type: Date,
       default: Date.now,
     },
@@ -66,5 +69,46 @@ const schema = new Schema(
     timestamps: true,
   }
 );
+
+schema.statics = {
+  updateScreenshotTime: async function (gameId) {
+    let game;
+    try {
+      game = await this.findOneAndUpdate(
+        {
+          _id: gameId,
+        },
+        {
+          dueScreenshotTime: new Date(),
+        },
+        { new: true } // третий аргумент, вернёт то, что сделал в базе - вернёт Game
+      );
+      return game;
+    } catch (err) {
+      console.log({ err });
+    }
+  },
+  addZeroPointTurn: async function (gameId) {
+    const existedTurn = await Turn.findOne({
+      gameId,
+      contentType: 'zero-point',
+    });
+    if (existedTurn) {
+      console.log('Zero Point already exists');
+    } else {
+      const newTurn = new Turn({
+        header: 'zero-point',
+        gameId,
+        contentType: 'zero-point',
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+        paragraph: '',
+      });
+      await newTurn.save();
+    }
+  },
+};
 
 module.exports = mongoose.model('Game', schema, 'games');

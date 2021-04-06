@@ -17,10 +17,19 @@ chromeOpts.addArguments(
   'use-fake-ui-for-media-stream'
 );
 
-// console.log(chromeOpts);
+console.log(chromeOpts);
+
+console.log(`chromedriver.path: `, chromedriver.path);
 
 chrome.setDefaultService(
-  new chrome.ServiceBuilder(chromedriver.path, chromeOpts).build()
+  new chrome.ServiceBuilder(
+    /*path.join(
+      __dirname,
+      'chrome-driver',
+      'chromedriver.exe'
+    )*/ chromedriver.path,
+    chromeOpts
+  ).build()
 );
 
 const seleniumCapabilities = {
@@ -189,17 +198,17 @@ async function getScreenshot(gameId) {
         { w: 0, h: 0 }
       );
 
-      console.log(`${JSON.stringify(mmSize)}`);
+      //   console.log(`${JSON.stringify(mmSize)}`);
 
       const mm = images(mmSize.w, mmSize.h);
       let curY = 0;
       for (const row of imgArr) {
-        console.log(`curY: ${curY}`);
+        // console.log(`curY: ${curY}`);
         let curX = 0;
         let maxY = 0;
         for (const imgDsc of row) {
-          console.log(`curX: ${curX}`);
-          console.log(imgDsc);
+          //   console.log(`curX: ${curX}`);
+          //   console.log(imgDsc);
           mm.draw(imgDsc.img, curX, curY);
           curX += imgDsc.w;
           maxY = maxY > imgDsc.h ? maxY : imgDsc.h;
