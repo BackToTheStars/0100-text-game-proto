@@ -26,6 +26,16 @@ const roleSchema = new Schema({
     type: String,
     required: true,
   },
+  viewportPointX: {
+    type: Number,
+    default: 0,
+    required: false,
+  },
+  viewportPointY: {
+    type: Number,
+    default: 0,
+    required: false,
+  },
 });
 
 const schema = new Schema(
@@ -107,6 +117,18 @@ schema.statics = {
         paragraph: '',
       });
       await newTurn.save();
+    }
+  },
+
+  adjustZeroPointTurnToZeroZero: async function (gameId) {
+    const existedTurn = await Turn.findOne({
+      gameId,
+      contentType: 'zero-point',
+    });
+    if (existedTurn) {
+      existedTurn.x = 0;
+      existedTurn.y = 0;
+      await existedTurn.save();
     }
   },
 };

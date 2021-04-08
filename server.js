@@ -30,17 +30,33 @@ const gameMiddleware = async (req, res, next) => {
     return next(error);
   }
 
+  const viewPortPoint = {
+    viewportPointX: 0,
+    viewportPointY: 0,
+  };
   if (gameToken) {
     jwt.verify(gameToken, process.env.JWT_SECRET, (err, decoded) => {
       if (!err) {
-        req.gameInfo = { gameId, userId, roles: [...roles, decoded.data.role] };
+        if (
+          decoded.data.role.viewportPointX &&
+          decoded.data.role.viewportPointY
+        ) {
+          viewPortPoint.viewportPointX = decoded.data.role.viewportPointX;
+          viewPortPoint.viewportPointY = decoded.data.role.viewportPointY;
+        }
+        req.gameInfo = {
+          gameId,
+          userId,
+          roles: [...roles, decoded.data.role],
+          ...viewPortPoint,
+        };
       } else {
-        req.gameInfo = { gameId, userId, roles };
+        req.gameInfo = { gameId, userId, roles, ...viewPortPoint };
       }
       next();
     });
   } else {
-    req.gameInfo = { gameId, userId, roles };
+    req.gameInfo = { gameId, userId, roles, ...viewPortPoint };
     next(); // пропускаем в следующий слой
   }
 };

@@ -37,7 +37,7 @@ const createGame = async (req, res, next) => {
 };
 
 const getGame = async (req, res) => {
-  const { gameId, roles } = req.gameInfo;
+  const { gameId, roles, viewportPointX, viewportPointY } = req.gameInfo;
   const fields = {
     // _id: false,
     hash: true,
@@ -57,6 +57,8 @@ const getGame = async (req, res) => {
     item: {
       ...gameObj,
       hash: SecurityLayer.getHashByGame(game),
+      viewportPointX,
+      viewportPointY,
     },
   });
 };
