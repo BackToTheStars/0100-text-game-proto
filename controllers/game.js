@@ -37,7 +37,7 @@ const createGame = async (req, res, next) => {
 };
 
 const getGame = async (req, res) => {
-  const { gameId, roles, viewportPointX, viewportPointY } = req.gameInfo;
+  const { gameId, roles } = req.gameInfo;
   const fields = {
     // _id: false,
     hash: true,
@@ -46,13 +46,22 @@ const getGame = async (req, res) => {
     redLogicLines: true,
     description: true,
     image: true,
-    // codes: !!req.adminId, // есть ли у него права superAdmin?
+    codes: true, // есть ли у него права superAdmin?
   };
-  if (roles.indexOf(User.roles.ROLE_GAME_OWNER) != -1) fields.codes = true;
   const game = await Game.findById(gameId, fields);
+
   // здесь может быть проверка, есть ли у пользователя доступ к игре
   const gameObj = game.toObject();
+  const roleId = roles[roles.length - 1];
+  const code =
+    game.codes.find((nextCode) => {
+      return nextCode.role == roleId;
+    }) || {};
+  const { viewportPointX = 0, viewportPointY = 0 } = code;
   delete gameObj._id;
+  if (roles.indexOf(User.roles.ROLE_GAME_OWNER) === -1) {
+    delete gameObj.codes;
+  }
   res.json({
     item: {
       ...gameObj,
@@ -102,6 +111,25 @@ const editGame = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+const updateViewPort = async (req, res, next) => {
+  const { gameId, roles } = req.gameInfo;
+  const { x: viewportPointX, y: viewportPointY } = req.body;
+  const roleId = roles[roles.length - 1];
+
+  const game = await Game.findById(gameId);
+  for (let i = 0; i < game.codes.length; i++) {
+    if (game.codes[i].role == roleId) {
+      game.codes[i].viewportPointX = viewportPointX;
+      game.codes[i].viewportPointY = viewportPointY;
+    }
+  }
+  await game.save();
+
+  res.json({
+    success: true,
+  });
 };
 
 async function deleteGame(req, res, next) {
@@ -256,6 +284,7 @@ module.exports = {
   getGame,
   getGames,
   editGame,
+  updateViewPort,
   deleteGame,
   addCode,
   getScreenshot,
