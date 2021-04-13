@@ -124,7 +124,7 @@ app.get(
 app.put(
   '/game/red-logic-lines',
   gameMiddleware,
-  rulesCanView,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameController.updateRedLogicLines
 ); // camelCase в endpoints не используют
 app.post(

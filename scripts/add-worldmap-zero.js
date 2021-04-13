@@ -25,7 +25,7 @@ const Turn = require('../models/Turn');
 
 // const resetZeroPoints = async () => {
 //   const game = await Game.findOne({
-//     name: 'Тестовая игра 1',
+//     name: 'Game for interface demonstration',
 //   });
 //   try {
 //     await Game.adjustZeroPointTurnToZeroZero(game._id);
@@ -36,29 +36,41 @@ const Turn = require('../models/Turn');
 //   process.exit(0);
 // };
 
-// resetZeroPoints(); // закомментировали для безопасности при случайном запуске
-// resetZeroPoints();
-
-const tmp = async () => {
-  const game = await Game.findOne({
-    name: 'Тестовая игра 1',
-  });
-  try {
-    const codes = [];
-    for (let code of game.codes) {
-      codes.push({
-        ...code.toObject(),
-        viewportPointX: 500,
-        viewportPointY: 500,
-      });
+const resetZeroPointsInAllGames = async () => {
+  const games = await Game.find();
+  for (let game of games) {
+    try {
+      await Game.adjustZeroPointTurnToZeroZero(game._id);
+    } catch (err) {
+      console.log({ err });
     }
-    game.codes = codes;
-    game.markModified('codes');
-    await game.save();
-  } catch (err) {
-    console.log({ err });
   }
-
   process.exit(0);
 };
-tmp();
+
+// resetZeroPoints(); // закомментировали для безопасности при случайном запуске
+resetZeroPointsInAllGames();
+
+// const tmp = async () => {
+//   const game = await Game.findOne({
+//     name: 'Тестовая игра 1',
+//   });
+//   try {
+//     const codes = [];
+//     for (let code of game.codes) {
+//       codes.push({
+//         ...code.toObject(),
+//         viewportPointX: 500,
+//         viewportPointY: 500,
+//       });
+//     }
+//     game.codes = codes;
+//     game.markModified('codes');
+//     await game.save();
+//   } catch (err) {
+//     console.log({ err });
+//   }
+
+//   process.exit(0);
+// };
+// tmp();
