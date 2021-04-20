@@ -21,7 +21,7 @@ const Turn = require('../models/Turn');
 //   process.exit(0);
 // };
 
-// addWorldMapZeroPoint();    // закомментировали для безопасности при случайном запуске
+// addWorldMapZeroPoint(); // закомментировали для безопасности при случайном запуске
 
 // const resetZeroPoints = async () => {
 //   const game = await Game.findOne({
@@ -36,11 +36,37 @@ const Turn = require('../models/Turn');
 //   process.exit(0);
 // };
 
-const resetZeroPointsInAllGames = async () => {
+// const resetZeroPointsInAllGames = async () => {
+//   const games = await Game.find();
+//   for (let game of games) {
+//     try {
+//       await Game.adjustZeroPointTurnToZeroZero(game._id);
+//     } catch (err) {
+//       console.log({ err });
+//     }
+//   }
+//   process.exit(0);
+// };
+
+// resetZeroPointsInAllGames();
+
+const checkZeroPointsInAllGames = async () => {
   const games = await Game.find();
   for (let game of games) {
     try {
-      await Game.adjustZeroPointTurnToZeroZero(game._id);
+      const existedTurn = await Turn.findOne({
+        gameId: game._id,
+        contentType: 'zero-point',
+      });
+      if (existedTurn) {
+        if (existedTurn.x !== 0 || existedTurn.y !== 0) {
+          console.log(
+            `В игре ${game._id} некорректные координаты: ${existedTurn.x} ${existedTurn.y}`
+          );
+        }
+      } else {
+        console.log(`В игре ${game._id} отсутствует zero point`);
+      }
     } catch (err) {
       console.log({ err });
     }
@@ -48,8 +74,7 @@ const resetZeroPointsInAllGames = async () => {
   process.exit(0);
 };
 
-// resetZeroPoints(); // закомментировали для безопасности при случайном запуске
-resetZeroPointsInAllGames();
+checkZeroPointsInAllGames();
 
 // const tmp = async () => {
 //   const game = await Game.findOne({
