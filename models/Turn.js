@@ -1,61 +1,62 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const schema = new Schema({
+const schema = new Schema(
+  {
     header: {
-        trim: true,
-        type: String,
-        required: true,
+      trim: true,
+      type: String,
     },
     date: {
-        type: Date
+      type: Date,
     },
     sourceUrl: {
-        type: String
+      type: String,
     },
     paragraph: {
-        type: [mongoose.Schema.Types.Mixed],
-        required: true
+      type: [mongoose.Schema.Types.Mixed],
+      required: true,
     },
     x: {
-        type: Number,
-        default: 0,
+      type: Number,
+      default: 0,
     },
     y: {
-        type: Number,
-        default: 0,
+      type: Number,
+      default: 0,
     },
     height: {
-        type: Number,
-        required: true,
+      type: Number,
+      required: true,
     },
     width: {
-        type: Number,
-        required: true,
+      type: Number,
+      required: true,
     },
     scrollPosition: {
-        type: Number,
-        required: false    // temp bug
+      type: Number,
+      required: false, // temp bug
     },
     contentType: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     imageUrl: {
-        type: String,
-        required: false,
+      type: String,
+      required: false,
     },
     videoUrl: {
-        type: String,
-        required: false
+      type: String,
+      required: false,
     },
     gameId: {
-        type: mongoose.Schema.Types.ObjectId,
-        // required: true,
-    }
-}, {
-    timestamps: true
-});
+      type: mongoose.Schema.Types.ObjectId,
+      // required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-module.exports = mongoose.model('Turn', schema, "turns");
-
+module.exports = mongoose.model('Turn', schema, 'turns');
