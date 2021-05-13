@@ -96,7 +96,7 @@ async function updateCoordinates(req, res, next) {
     const { turns = [] } = req.body;
     const items = [];
     for (let turn of turns) {
-      const { id, x, y, height, width, contentType, scrollPosition } = turn;
+      const { _id, x, y, height, width, contentType, scrollPosition } = turn;
 
       // Turn.findOneAndUpdate({
       //     _id: id
@@ -104,7 +104,7 @@ async function updateCoordinates(req, res, next) {
       //     x, y, height, width, contentType, scrollPosition
       // })
 
-      const turnModel = await Turn.findOne({ _id: id, gameId });
+      const turnModel = await Turn.findOne({ _id, gameId });
       turnModel.x = x;
       turnModel.y = y;
       turnModel.height = height;
@@ -115,7 +115,7 @@ async function updateCoordinates(req, res, next) {
       turnModel.save();
 
       items.push({
-        id: turnModel._id,
+        _id: turnModel._id,
       });
     }
     // console.log((Date.now() - time) / 1000);
