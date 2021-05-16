@@ -129,6 +129,10 @@ const updateViewPort = async (req, res, next) => {
 
   res.json({
     success: true,
+    item: {
+      x: viewportPointX,
+      y: viewportPointY,
+    },
   });
 };
 
