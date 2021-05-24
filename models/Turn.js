@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+const QUOTE_TYPE_TEXT = 'text';
+
 const schema = new Schema(
   {
     header: {
@@ -53,6 +55,15 @@ const schema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       // required: true,
     },
+    quotes: [
+      {
+        id: String,
+        type: {
+          type: String,
+          default: QUOTE_TYPE_TEXT,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
