@@ -37,6 +37,7 @@ const gameMiddleware = async (req, res, next) => {
           gameId,
           userId,
           roles: [...roles, decoded.data.role],
+          nickname: decoded.data.nickname || 'Unknown',
         };
       } else {
         req.gameInfo = { gameId, userId, roles };

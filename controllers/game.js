@@ -1,6 +1,7 @@
 const Game = require('../models/Game');
 const Screenshot = require('../models/Screenshot');
 const User = require('../models/User');
+const Line = require('../models/Line');
 const SecurityLayer = require('../services/SecurityLayer');
 
 const createGame = async (req, res, next) => {
@@ -182,6 +183,26 @@ const getGames = async (req, res, next) => {
 //     })
 // }
 
+const createRedLogicLine2 = async (req, res, next) => {
+  try {
+    const { gameId, nickname } = req.gameInfo;
+    const { sourceTurnId, sourceMarker, targetTurnId, targetMarker } = req.body;
+    const line = new Line({
+      gameId,
+      sourceTurnId,
+      sourceMarker,
+      targetTurnId,
+      targetMarker,
+      author: nickname,
+    });
+    await line.save();
+    res.json({ item: line });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @deprecated
 const createRedLogicLine = async (req, res) => {
   const { gameId } = req.gameInfo;
   const { sourceTurnId, sourceMarker, targetTurnId, targetMarker } = req.body;

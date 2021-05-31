@@ -57,7 +57,7 @@ const schema = new Schema(
     },
     quotes: [
       {
-        id: String,
+        id: Number,
         type: {
           type: String,
           default: QUOTE_TYPE_TEXT,
