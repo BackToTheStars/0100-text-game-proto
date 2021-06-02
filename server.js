@@ -122,12 +122,20 @@ app.get(
   gameController.getGame
 );
 
+app.post(
+  '/lines',
+  gameMiddleware,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
+  gameController.createRedLogicLine2
+);
+
 app.put(
   '/game/red-logic-lines',
   gameMiddleware,
   rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameController.updateRedLogicLines
 ); // camelCase в endpoints не используют
+
 app.post(
   '/game/red-logic-lines',
   gameMiddleware,

@@ -305,6 +305,7 @@ module.exports = {
   // getItem,
   updateRedLogicLines,
   createRedLogicLine,
+  createRedLogicLine2,
   deleteRedLogicLines,
   getGame,
   getGames,
