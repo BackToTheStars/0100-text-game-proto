@@ -59,16 +59,20 @@ const getGame = async (req, res) => {
       return nextCode.role == roleId;
     }) || {};
   const { viewportPointX = 0, viewportPointY = 0 } = code;
-  delete gameObj._id;
   if (roles.indexOf(User.roles.ROLE_GAME_OWNER) === -1) {
     delete gameObj.codes;
   }
+
+  const lines = await Line.find({ gameId: gameObj._id }); // вернёт массив
+  delete gameObj._id;
+
   res.json({
     item: {
       ...gameObj,
       hash: SecurityLayer.getHashByGame(game),
       viewportPointX,
       viewportPointY,
+      lines: lines.map((line) => ({ ...line.toObject(), gameId: null })),
     },
   });
 };

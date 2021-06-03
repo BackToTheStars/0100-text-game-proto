@@ -1,5 +1,6 @@
 const Turn = require('../models/Turn');
 const Game = require('../models/Game');
+const Line = require('../models/Line');
 // const screenshooter = require('./screenshooter');
 const bunyan = require('bunyan');
 const log = bunyan.createLogger({ name: 'turns', level: 'info' });
@@ -27,7 +28,7 @@ async function updateTurn(req, res, next) {
       item: turnModel,
     }); // new true говорит отдать новую модель, а не старую
 
-    Game.updateScreenshotTime(gameId);
+    // Game.updateScreenshotTime(gameId);
   } catch (error) {
     next(error);
   }
@@ -42,11 +43,14 @@ async function deleteTurn(req, res, next) {
       _id: id,
       gameId,
     }); //функция ищет по ид и удаляет
-    // log.debug(`Ending ... ${arguments.callee.name}`);
+    const linesToDelete = await Line.deleteMany({
+      $or: [{ sourceTurnId: turnModel._id }, { targetTurnId: turnModel._id }],
+    });
     res.json({
       item: turnModel,
+      lines: linesToDelete,
     }); // new true говорит отдать новую модель, а не старую
-    Game.updateScreenshotTime(gameId);
+    // Game.updateScreenshotTime(gameId);
   } catch (error) {
     next(error);
   }
@@ -71,7 +75,7 @@ async function saveTurn(req, res, next) {
       // json, render, next - один из трёх завершает обработку
       item: turnModel,
     });
-    Game.updateScreenshotTime(gameId);
+    // Game.updateScreenshotTime(gameId);
   } catch (error) {
     next(error);
   }
@@ -123,7 +127,7 @@ async function updateCoordinates(req, res, next) {
       success: true,
       items,
     });
-    Game.updateScreenshotTime(gameId);
+    // Game.updateScreenshotTime(gameId);
   } catch (error) {
     next(error);
   }
