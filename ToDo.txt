@@ -6,8 +6,14 @@ https://docs.google.com/drawings/d/1BL40I0eJM7N-OKbTD5wKJu41GaTD9fGCEMUu4fy99hc/
 Структура фронтенда:
 https://docs.google.com/drawings/d/1ahOdc6fiwPpsVIdKXo3v62KZY1CB9ZYpRdFpb0Kw-Fo/edit
 
-
 ToDo:
+
+Переделка на React:
+  - Линии и панель линий
+  - Классы
+  - Консоль событий
+  - Цвета комментария
+  - Связи на мини-карте
 
 Функциональные фичи + важные и срочные:
   - Не рендерить те div ходов, которые не находятся на экране и в его ближайших окрестностях + lazy loading
