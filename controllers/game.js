@@ -236,6 +236,7 @@ const updateRedLogicLines = async (req, res) => {
   res.json({ item: game }); // нейтральное название "item" (payload)
 };
 
+// @deprecated
 const deleteRedLogicLines = async (req, res) => {
   const { gameId } = req.gameInfo;
   const { redLogicLines } = req.body;
@@ -256,6 +257,21 @@ const deleteRedLogicLines = async (req, res) => {
   res.json({
     item: game,
   });
+};
+
+const deleteRedLogicLines2 = async (req, res, next) => {
+  try {
+    const { gameId } = req.gameInfo;
+    const ids = req.body;
+    const lines = await Line.find({ gameId, _id: { $in: ids } });
+    await Line.deleteMany({ gameId, _id: { $in: ids } });
+
+    res.json({
+      items: lines,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 const addCode = async (req, res, next) => {
@@ -311,6 +327,7 @@ module.exports = {
   createRedLogicLine,
   createRedLogicLine2,
   deleteRedLogicLines,
+  deleteRedLogicLines2,
   getGame,
   getGames,
   editGame,

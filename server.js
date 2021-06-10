@@ -129,6 +129,13 @@ app.post(
   gameController.createRedLogicLine2
 );
 
+app.delete(
+  '/lines',
+  gameMiddleware,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
+  gameController.deleteRedLogicLines2
+);
+
 app.put(
   '/game/red-logic-lines',
   gameMiddleware,
