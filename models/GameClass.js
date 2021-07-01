@@ -18,10 +18,10 @@ const schema = new Schema({
     type: String,
     required: true,
   },
-  subClasses: {
-    type: [String],
+  parentId: {
+    type: Number,
     required: false,
   },
 });
 
-module.exports = mongoose.model('GameClass', schema, 'classes');
+module.exports = mongoose.model('GameClass', schema, 'classes-001');

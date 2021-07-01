@@ -8,9 +8,16 @@ const log = bunyan.createLogger({
 // @todo: разделить на создание класса и обновление класса (в том числе добавление субкласса)
 const createGameClass = async (req, res, next) => {
   try {
-    const { gameId } = req.gameInfo;
-    const { gameClass } = req.body;
-    const item = new GameClass({ gameClass, gameId });
+    const { gameId, nickname } = req.gameInfo;
+    const { id, title, name, parentId } = req.body;
+    const item = new GameClass({
+      gameId,
+      id,
+      title,
+      name,
+      parentId,
+      author: nickname,
+    });
     await item.save();
     res.json({
       item,

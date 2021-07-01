@@ -164,31 +164,31 @@ app.post(
 );
 
 app.get(
-  '/game-classes',
+  '/classes',
   gameMiddleware,
   rulesCanView,
   gameClassesController.getGameClasses
 );
 app.get(
-  '/game-classes/:id',
+  '/classes/:id',
   gameMiddleware,
   rulesCanView,
   gameClassesController.getGameClass
 );
 app.post(
-  '/game-classes',
+  '/classes',
   gameMiddleware,
   rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameClassesController.createGameClass
 );
 app.put(
-  '/game-classes/:id',
+  '/classes/:id',
   gameMiddleware,
   rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameClassesController.updateGameClass
 );
 app.delete(
-  '/game-classes/:id',
+  '/classes/:id',
   gameMiddleware,
   rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameClassesController.deleteGameClass
