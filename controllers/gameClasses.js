@@ -31,6 +31,20 @@ const updateGameClass = async (req, res, next) => {
   try {
     const { gameId } = req.gameInfo;
     const { id } = req.params;
+    delete req.body.id;
+    const item = await GameClass.findOneAndUpdate({ id, gameId }, req.body, {
+      new: true,
+    });
+    res.json({ item });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateGameClassOld = async (req, res, next) => {
+  try {
+    const { gameId } = req.gameInfo;
+    const { id } = req.params;
     let {
       gameClass,
       addNewSubclass,
@@ -87,7 +101,7 @@ async function deleteGameClass(req, res, next) {
   try {
     const { gameId } = req.gameInfo;
     const { id } = req.params;
-    const item = await GameClass.findOne({ _id: id, gameId });
+    const item = await GameClass.findOne({ id, gameId });
     if (item) {
       await item.delete();
     }
