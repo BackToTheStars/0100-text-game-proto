@@ -43,6 +43,14 @@ const schema = new Schema(
       type: String,
       required: true,
     },
+    backgroundColor: {
+      type: String,
+      default: '#ffffff',
+    },
+    fontColor: {
+      type: String,
+      default: '#000000',
+    },
     imageUrl: {
       type: String,
       required: false,
