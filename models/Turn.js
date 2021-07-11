@@ -9,6 +9,10 @@ const schema = new Schema(
       trim: true,
       type: String,
     },
+    dontShowHeader: {
+      type: Boolean,
+      default: false,
+    },
     date: {
       type: Date,
     },

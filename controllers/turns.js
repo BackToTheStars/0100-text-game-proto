@@ -66,10 +66,6 @@ async function saveTurn(req, res, next) {
       ...turn,
       gameId,
     });
-    // @todo: пересмотреть
-    if (turn.contentType === 'comment') {
-      turnModel.header = 'comment';
-    }
     await turnModel.save();
     res.json({
       // json, render, next - один из трёх завершает обработку
