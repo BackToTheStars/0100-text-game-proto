@@ -83,4 +83,8 @@ const schema = new Schema(
   }
 );
 
+schema.statics = {
+  QUOTE_TYPE_TEXT,
+};
+
 module.exports = mongoose.model('Turn', schema, 'turns');

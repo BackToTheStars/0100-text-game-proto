@@ -75,6 +75,8 @@ const Game = require('../models/Game');
 const Turn = require('../models/Turn');
 const Line = require('../models/Line');
 
+const { QUOTE_TYPE_TEXT } = Turn;
+
 function ifQuotesInParagraph(paragraph) {
   if (!paragraph) return false;
   if (!paragraph.length) return false;
@@ -99,35 +101,102 @@ function getQuotesFromParagraph(paragraph) {
 
 // Проверить количество цитат до изменений и после.
 async function start() {
-  const games = await Game.find();
+  const games = await Game.find({
+    // _id: '6003eaf6847e8e4fdcf01da3', // suleymani
+    // _id: '5ff3deeab303a43cb83b471a', // stamps
+    // _id: '60c79a7bcd62d50017876315', // space
+    // _id: '603bb95d8d996a07c82f2f4d', // test game
+    // '5f7e843151be1669dc611045',
+  });
 
   // 1) Для каждой игры
   for (let game of games) {
     const turns = await Turn.find({ gameId: game._id });
+    const gameLog = {
+      id: game._id,
+      quoteIdSkipped: 0,
+      quoteIdUpdated: 0,
+      quoteBgUpdated: 0,
+      notes: [],
+    }; // отчёт об изменениях в рамках одной игры
     //  1.1) Для каждого шага
     for (let turn of turns) {
       //   1.1.1) Пробежаться по всем цитатам в paragraph и добавить id тем, у которых их нет
       if (!ifQuotesInParagraph(turn.paragraph)) continue;
       const quotes = getQuotesFromParagraph(turn.paragraph);
 
+      let quoteIndex = 0;
       for (let i = 0; i < quotes.length; i++) {
         const quote = quotes[i];
         if (quote.attributes.id) {
-          console.log(
-            `id found: turn ${turn._id}, quoteId ${quote.attributes.id} as ${quote.insert}`
-          );
+          gameLog.quoteIdSkipped += 1;
+          // gameLog.notes.push(
+          //   `id found: turn ${turn._id}, quoteId ${quote.attributes.id} as ${quote.insert}`
+          // );
         } else {
-          console.log(
-            `id not found: turn ${turn._id}, quoteIndex ${i} quote ${quote.insert}`
-          );
+          gameLog.quoteIdUpdated += 1;
+          quote.attributes.id = quoteIndex += 1;
+          // gameLog.notes.push(
+          //   `id not found: turn ${turn._id}, quoteIndex ${i} quote ${quote.insert}`
+          // );
         }
       }
 
+      // @todo:
       //    1.1.1.2) Протестировать, что у всех цитат есть id и они уникальны в рамках хода
+
       //   1.1.2) Пробежаться по всем цитатам в paragraph и поменять цвет yellow на hex ?
+      let bgUpdated = false;
+      for (let quote of quotes) {
+        if (quote.attributes.background === 'yellow') {
+          gameLog.quoteBgUpdated += 1;
+          bgUpdated = true;
+          // gameLog.notes.push(
+          //   `background updated: turn ${turn._id}, quoteId ${quote.attributes.id} as ${quote.insert}`
+          // );
+          quote.attributes.background = '#ffff00';
+        }
+      }
+
+      // @todo:
       //    1.1.2.1) Протестировать, что не осталось цвета yellow
+
       //   1.1.3) Пробежаться по всем цитатам в paragraph и добавить недостающие в свойство quotes шага
+      let quotesFieldUpdated = false;
+      const quotesField = [];
+      for (let quote of quotes) {
+        quotesField.push({
+          id: quote.attributes.id,
+          type: QUOTE_TYPE_TEXT,
+        });
+      }
+      if (turn.quotes.length !== quotesField.length) {
+        quotesFieldUpdated = true;
+      } else {
+        for (let i = 0; i < turn.quotes.length; i++) {
+          if (turn.quotes[i].id !== quotesField[i].id) {
+            quotesFieldUpdated = true;
+          }
+        }
+      }
+
+      if (quotesFieldUpdated) {
+        gameLog.notes.push(`field quotes updated ${turn._id}`);
+        turn.quotes = quotesField;
+        turn.markModified('quotes');
+      }
+
+      if (quoteIndex || bgUpdated) {
+        turn.markModified('paragraph');
+      }
+
+      if (quoteIndex || bgUpdated || quotesFieldUpdated) {
+        gameLog.notes.push(`turn ${turn._id} updated`);
+        await turn.save();
+      }
     }
+
+    console.log({ gameLog });
   }
 
   //
