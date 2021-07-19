@@ -109,8 +109,12 @@ async function start() {
     // '5f7e843151be1669dc611045',
   });
 
+  // коллекция цитат
+  const quotesCollection = {};
+
   // 1) Для каждой игры
   for (let game of games) {
+    quotesCollection[game._id] = {};
     const turns = await Turn.find({ gameId: game._id });
     const gameLog = {
       id: game._id,
@@ -121,6 +125,7 @@ async function start() {
     }; // отчёт об изменениях в рамках одной игры
     //  1.1) Для каждого шага
     for (let turn of turns) {
+      quotesCollection[game._id][turn._id] = {};
       //   1.1.1) Пробежаться по всем цитатам в paragraph и добавить id тем, у которых их нет
       if (!ifQuotesInParagraph(turn.paragraph)) continue;
       const quotes = getQuotesFromParagraph(turn.paragraph);
@@ -194,18 +199,95 @@ async function start() {
         gameLog.notes.push(`turn ${turn._id} updated`);
         await turn.save();
       }
+
+      for (let quote of turn.quotes) {
+        quotesCollection[game._id][turn._id][quote.id] = {
+          gameId: game._id,
+          turnId: turn._id,
+          id: quote.id,
+          quote,
+        };
+      }
     }
 
-    console.log({ gameLog });
+    // console.log({ gameLog });
   }
 
   //
   // 2) Для каждой игры
-  //  2.1) Пробежаться по redLogicLines. Для каждого source и target
-  //    2.1.1) Взять цитату по порядковому номеру
-  //    2.1.2) Проверить, что она существует в шаге. Зафиксировать ошибку при необходимости
-  //  2.2) В случае успешной проверки source и target добавить новый объект Line в БД (если его ещё нет)
-  //  2.3) Проверить, что количество цитат в параграфах, шагах и линиях правильное (нет лишних, нет недостающих)
+  for (let game of games) {
+    //  2.1) Пробежаться по redLogicLines. Для каждого source и target
+    for (let redLogicLine of game.redLogicLines) {
+      let source;
+      if (!quotesCollection[game._id][redLogicLine.sourceTurnId]) {
+        console.log(`!sourceTurn: ${game._id} ${redLogicLine.sourceTurnId}`);
+      } else if (
+        !quotesCollection[game._id][redLogicLine.sourceTurnId][
+          redLogicLine.sourceMarker + 1
+        ]
+      ) {
+        console.log(
+          `!sourceMarker: ${game._id} ${redLogicLine.sourceTurnId} ${
+            redLogicLine.sourceMarker + 1
+          }`
+        );
+      } else {
+        source =
+          quotesCollection[game._id][redLogicLine.sourceTurnId][
+            redLogicLine.sourceMarker + 1
+          ];
+      }
+
+      let target;
+      if (!quotesCollection[game._id][redLogicLine.targetTurnId]) {
+        console.log(`!targetTurn: ${game._id} ${redLogicLine.targetTurnId}`);
+      } else if (
+        !quotesCollection[game._id][redLogicLine.targetTurnId][
+          redLogicLine.targetMarker + 1
+        ]
+      ) {
+        console.log(
+          `!targetMarker: ${game._id} ${redLogicLine.targetTurnId} ${
+            redLogicLine.targetMarker + 1
+          }`
+        );
+      } else {
+        target =
+          quotesCollection[game._id][redLogicLine.targetTurnId][
+            redLogicLine.targetMarker + 1
+          ];
+      }
+
+      //    2.1.1) Взять цитату по порядковому номеру
+      //    2.1.2) Проверить, что она существует в шаге. Зафиксировать ошибку при необходимости
+      //  2.2) В случае успешной проверки source и target добавить новый объект Line в БД (если его ещё нет)
+      if (!!source && !!target) {
+        const currentLine = await Line.findOne({
+          gameId: game._id,
+          sourceTurnId: source.turnId,
+          sourceMarker: source.id,
+          targetTurnId: target.turnId,
+          targetMarker: target.id,
+        });
+        if (currentLine) {
+          console.log(`line exists`);
+        } else {
+          const line = new Line({
+            gameId: game._id,
+            sourceTurnId: source.turnId,
+            sourceMarker: source.id,
+            targetTurnId: target.turnId,
+            targetMarker: target.id,
+          });
+          await line.save();
+          console.log(`line added`);
+        }
+      } else {
+        console.log(`line skipped`);
+      }
+      //  2.3) Проверить, что количество цитат в параграфах, шагах и линиях правильное (нет лишних, нет недостающих)
+    }
+  }
   process.exit();
 }
 start();

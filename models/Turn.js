@@ -49,11 +49,11 @@ const schema = new Schema(
     },
     backgroundColor: {
       type: String,
-      default: '#ffffff',
+      default: '#eced9a',
     },
     fontColor: {
       type: String,
-      default: '#000000',
+      default: '#0a0a0a',
     },
     imageUrl: {
       type: String,
