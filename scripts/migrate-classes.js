@@ -11,6 +11,7 @@ const Game = require('../models/Game');
 const getNameAlias = (title) => title.toLowerCase().replace(/\s/g, '-');
 
 const start = async () => {
+  await GameClass.deleteMany();
   const games = await Game.find();
 
   for (let game of games) {
@@ -49,4 +50,6 @@ const start = async () => {
   process.exit();
 };
 
-start();
+setTimeout(() => {
+  start();
+}, 3000);
