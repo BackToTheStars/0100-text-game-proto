@@ -156,12 +156,13 @@ const getGames = async (req, res, next) => {
       public: true,
       description: true,
       image: true,
+      turnsCount: true,
     };
     if (!!req.adminId) {
       // есть ли у него права superAdmin?
       fields.codes = true;
     }
-    const games = await Game.find({}, fields);
+    const games = await Game.find({}, fields).sort({ updatedAt: -1 });
     res.json({
       items: games.map((game) => ({
         ...game.toObject(),

@@ -29,6 +29,8 @@ async function updateTurn(req, res, next) {
     }); // new true говорит отдать новую модель, а не старую
 
     // Game.updateScreenshotTime(gameId);
+    const game = await Game.findById(gameId);
+    await game.timeOfGameUpdate();
   } catch (error) {
     next(error);
   }
@@ -51,6 +53,8 @@ async function deleteTurn(req, res, next) {
       lines: linesToDelete,
     }); // new true говорит отдать новую модель, а не старую
     // Game.updateScreenshotTime(gameId);
+    const game = await Game.findById(gameId);
+    await game.timeOfGameUpdate();
   } catch (error) {
     next(error);
   }
@@ -59,7 +63,6 @@ async function saveTurn(req, res, next) {
   // бусы на нитке - функции в Node все работают с req res
   try {
     const { gameId } = req.gameInfo;
-    log.debug(`Entering ... ${arguments.callee.name}`);
     let turn = req.body; // деструктуризатор
     delete turn._id;
     const turnModel = new Turn({
@@ -72,6 +75,8 @@ async function saveTurn(req, res, next) {
       item: turnModel,
     });
     // Game.updateScreenshotTime(gameId);
+    const game = await Game.findById(gameId);
+    await game.timeOfGameUpdate();
   } catch (error) {
     next(error);
   }
