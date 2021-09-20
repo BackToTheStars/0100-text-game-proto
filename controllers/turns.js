@@ -84,10 +84,17 @@ async function saveTurn(req, res, next) {
 
 async function getTurns(req, res) {
   const { gameId } = req.gameInfo;
-  // log.debug(`Entering ... ${arguments.callee.name}`);
-  const turns = await Turn.find({
+  const { turnIds } = req.query;
+  const criteria = {
     gameId,
-  });
+  };
+  if (!!turnIds) {
+    criteria._id = { $in: turnIds.split(',') };
+  }
+
+  // &turnIds=${turnIdsOutOfScreen.join(',')
+  // log.debug(`Entering ... ${arguments.callee.name}`);
+  const turns = await Turn.find(criteria);
   // log.debug(`Ending ... ${arguments.callee.name}`);
   res.json({
     items: turns,
