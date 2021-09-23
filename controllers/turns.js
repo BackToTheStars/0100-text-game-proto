@@ -1,5 +1,6 @@
 const Turn = require('../models/Turn');
 const Game = require('../models/Game');
+const Line = require('../models/Line');
 // const screenshooter = require('./screenshooter');
 const bunyan = require('bunyan');
 const log = bunyan.createLogger({ name: 'turns', level: 'info' });
@@ -27,7 +28,9 @@ async function updateTurn(req, res, next) {
       item: turnModel,
     }); // new true говорит отдать новую модель, а не старую
 
-    Game.updateScreenshotTime(gameId);
+    // Game.updateScreenshotTime(gameId);
+    const game = await Game.findById(gameId);
+    await game.timeOfGameUpdate();
   } catch (error) {
     next(error);
   }
@@ -42,11 +45,16 @@ async function deleteTurn(req, res, next) {
       _id: id,
       gameId,
     }); //функция ищет по ид и удаляет
-    // log.debug(`Ending ... ${arguments.callee.name}`);
+    const linesToDelete = await Line.deleteMany({
+      $or: [{ sourceTurnId: turnModel._id }, { targetTurnId: turnModel._id }],
+    });
     res.json({
       item: turnModel,
+      lines: linesToDelete,
     }); // new true говорит отдать новую модель, а не старую
-    Game.updateScreenshotTime(gameId);
+    // Game.updateScreenshotTime(gameId);
+    const game = await Game.findById(gameId);
+    await game.timeOfGameUpdate();
   } catch (error) {
     next(error);
   }
@@ -55,23 +63,20 @@ async function saveTurn(req, res, next) {
   // бусы на нитке - функции в Node все работают с req res
   try {
     const { gameId } = req.gameInfo;
-    log.debug(`Entering ... ${arguments.callee.name}`);
     let turn = req.body; // деструктуризатор
     delete turn._id;
     const turnModel = new Turn({
       ...turn,
       gameId,
     });
-    // @todo: пересмотреть
-    if (turn.contentType === 'comment') {
-      turnModel.header = 'comment';
-    }
     await turnModel.save();
     res.json({
       // json, render, next - один из трёх завершает обработку
       item: turnModel,
     });
-    Game.updateScreenshotTime(gameId);
+    // Game.updateScreenshotTime(gameId);
+    const game = await Game.findById(gameId);
+    await game.timeOfGameUpdate();
   } catch (error) {
     next(error);
   }
@@ -79,10 +84,17 @@ async function saveTurn(req, res, next) {
 
 async function getTurns(req, res) {
   const { gameId } = req.gameInfo;
-  // log.debug(`Entering ... ${arguments.callee.name}`);
-  const turns = await Turn.find({
+  const { turnIds } = req.query;
+  const criteria = {
     gameId,
-  });
+  };
+  if (!!turnIds) {
+    criteria._id = { $in: turnIds.split(',') };
+  }
+
+  // &turnIds=${turnIdsOutOfScreen.join(',')
+  // log.debug(`Entering ... ${arguments.callee.name}`);
+  const turns = await Turn.find(criteria);
   // log.debug(`Ending ... ${arguments.callee.name}`);
   res.json({
     items: turns,
@@ -96,7 +108,7 @@ async function updateCoordinates(req, res, next) {
     const { turns = [] } = req.body;
     const items = [];
     for (let turn of turns) {
-      const { id, x, y, height, width, contentType, scrollPosition } = turn;
+      const { _id, x, y, height, width, contentType, scrollPosition } = turn;
 
       // Turn.findOneAndUpdate({
       //     _id: id
@@ -104,7 +116,7 @@ async function updateCoordinates(req, res, next) {
       //     x, y, height, width, contentType, scrollPosition
       // })
 
-      const turnModel = await Turn.findOne({ _id: id, gameId });
+      const turnModel = await Turn.findOne({ _id, gameId });
       turnModel.x = x;
       turnModel.y = y;
       turnModel.height = height;
@@ -115,7 +127,7 @@ async function updateCoordinates(req, res, next) {
       turnModel.save();
 
       items.push({
-        id: turnModel._id,
+        _id: turnModel._id,
       });
     }
     // console.log((Date.now() - time) / 1000);
@@ -123,7 +135,7 @@ async function updateCoordinates(req, res, next) {
       success: true,
       items,
     });
-    Game.updateScreenshotTime(gameId);
+    // Game.updateScreenshotTime(gameId);
   } catch (error) {
     next(error);
   }

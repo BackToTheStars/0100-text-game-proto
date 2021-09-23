@@ -8,9 +8,16 @@ const log = bunyan.createLogger({
 // @todo: разделить на создание класса и обновление класса (в том числе добавление субкласса)
 const createGameClass = async (req, res, next) => {
   try {
-    const { gameId } = req.gameInfo;
-    const { gameClass } = req.body;
-    const item = new GameClass({ gameClass, gameId });
+    const { gameId, nickname } = req.gameInfo;
+    const { id, title, name, parentId } = req.body;
+    const item = new GameClass({
+      gameId,
+      id,
+      title,
+      name,
+      parentId,
+      author: nickname,
+    });
     await item.save();
     res.json({
       item,
@@ -21,6 +28,20 @@ const createGameClass = async (req, res, next) => {
 };
 
 const updateGameClass = async (req, res, next) => {
+  try {
+    const { gameId } = req.gameInfo;
+    const { id } = req.params;
+    delete req.body.id;
+    const item = await GameClass.findOneAndUpdate({ id, gameId }, req.body, {
+      new: true,
+    });
+    res.json({ item });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateGameClassOld = async (req, res, next) => {
   try {
     const { gameId } = req.gameInfo;
     const { id } = req.params;
@@ -80,7 +101,7 @@ async function deleteGameClass(req, res, next) {
   try {
     const { gameId } = req.gameInfo;
     const { id } = req.params;
-    const item = await GameClass.findOne({ _id: id, gameId });
+    const item = await GameClass.findOne({ id, gameId });
     if (item) {
       await item.delete();
     }

@@ -2,15 +2,11 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const schema = new Schema({
-  id: {
-    type: Number,
-    required: false,
-  },
   gameId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
   },
-  title: {
+  gameClass: {
     type: String,
     required: true,
   },
@@ -18,10 +14,10 @@ const schema = new Schema({
     type: String,
     required: true,
   },
-  parentId: {
-    type: Number,
+  subClasses: {
+    type: [String],
     required: false,
   },
 });
 
-module.exports = mongoose.model('GameClass', schema, 'classes-001');
+module.exports = mongoose.model('GameClassOld', schema, 'classes');

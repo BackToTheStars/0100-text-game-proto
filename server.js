@@ -37,6 +37,7 @@ const gameMiddleware = async (req, res, next) => {
           gameId,
           userId,
           roles: [...roles, decoded.data.role],
+          nickname: decoded.data.nickname || 'Unknown',
         };
       } else {
         req.gameInfo = { gameId, userId, roles };
@@ -121,12 +122,27 @@ app.get(
   gameController.getGame
 );
 
+app.post(
+  '/lines',
+  gameMiddleware,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
+  gameController.createRedLogicLine2
+);
+
+app.delete(
+  '/lines',
+  gameMiddleware,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
+  gameController.deleteRedLogicLines2
+);
+
 app.put(
   '/game/red-logic-lines',
   gameMiddleware,
   rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameController.updateRedLogicLines
 ); // camelCase в endpoints не используют
+
 app.post(
   '/game/red-logic-lines',
   gameMiddleware,
@@ -148,31 +164,31 @@ app.post(
 );
 
 app.get(
-  '/game-classes',
+  '/classes',
   gameMiddleware,
   rulesCanView,
   gameClassesController.getGameClasses
 );
 app.get(
-  '/game-classes/:id',
+  '/classes/:id',
   gameMiddleware,
   rulesCanView,
   gameClassesController.getGameClass
 );
 app.post(
-  '/game-classes',
+  '/classes',
   gameMiddleware,
   rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameClassesController.createGameClass
 );
 app.put(
-  '/game-classes/:id',
+  '/classes/:id',
   gameMiddleware,
   rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameClassesController.updateGameClass
 );
 app.delete(
-  '/game-classes/:id',
+  '/classes/:id',
   gameMiddleware,
   rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameClassesController.deleteGameClass

@@ -1,6 +1,7 @@
 const Game = require('../models/Game');
 const Screenshot = require('../models/Screenshot');
 const User = require('../models/User');
+const Line = require('../models/Line');
 const SecurityLayer = require('../services/SecurityLayer');
 
 const createGame = async (req, res, next) => {
@@ -58,16 +59,20 @@ const getGame = async (req, res) => {
       return nextCode.role == roleId;
     }) || {};
   const { viewportPointX = 0, viewportPointY = 0 } = code;
-  delete gameObj._id;
   if (roles.indexOf(User.roles.ROLE_GAME_OWNER) === -1) {
     delete gameObj.codes;
   }
+
+  const lines = await Line.find({ gameId: gameObj._id }); // вернёт массив
+  delete gameObj._id;
+
   res.json({
     item: {
       ...gameObj,
       hash: SecurityLayer.getHashByGame(game),
       viewportPointX,
       viewportPointY,
+      lines: lines.map((line) => ({ ...line.toObject(), gameId: null })),
     },
   });
 };
@@ -129,6 +134,10 @@ const updateViewPort = async (req, res, next) => {
 
   res.json({
     success: true,
+    item: {
+      x: viewportPointX,
+      y: viewportPointY,
+    },
   });
 };
 
@@ -147,12 +156,13 @@ const getGames = async (req, res, next) => {
       public: true,
       description: true,
       image: true,
+      turnsCount: true,
     };
     if (!!req.adminId) {
       // есть ли у него права superAdmin?
       fields.codes = true;
     }
-    const games = await Game.find({}, fields);
+    const games = await Game.find({}, fields).sort({ updatedAt: -1 });
     res.json({
       items: games.map((game) => ({
         ...game.toObject(),
@@ -178,6 +188,26 @@ const getGames = async (req, res, next) => {
 //     })
 // }
 
+const createRedLogicLine2 = async (req, res, next) => {
+  try {
+    const { gameId, nickname } = req.gameInfo;
+    const { sourceTurnId, sourceMarker, targetTurnId, targetMarker } = req.body;
+    const line = new Line({
+      gameId,
+      sourceTurnId,
+      sourceMarker,
+      targetTurnId,
+      targetMarker,
+      author: nickname,
+    });
+    await line.save();
+    res.json({ item: line });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @deprecated
 const createRedLogicLine = async (req, res) => {
   const { gameId } = req.gameInfo;
   const { sourceTurnId, sourceMarker, targetTurnId, targetMarker } = req.body;
@@ -207,6 +237,7 @@ const updateRedLogicLines = async (req, res) => {
   res.json({ item: game }); // нейтральное название "item" (payload)
 };
 
+// @deprecated
 const deleteRedLogicLines = async (req, res) => {
   const { gameId } = req.gameInfo;
   const { redLogicLines } = req.body;
@@ -227,6 +258,21 @@ const deleteRedLogicLines = async (req, res) => {
   res.json({
     item: game,
   });
+};
+
+const deleteRedLogicLines2 = async (req, res, next) => {
+  try {
+    const { gameId } = req.gameInfo;
+    const ids = req.body;
+    const lines = await Line.find({ gameId, _id: { $in: ids } });
+    await Line.deleteMany({ gameId, _id: { $in: ids } });
+
+    res.json({
+      items: lines,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 const addCode = async (req, res, next) => {
@@ -280,7 +326,9 @@ module.exports = {
   // getItem,
   updateRedLogicLines,
   createRedLogicLine,
+  createRedLogicLine2,
   deleteRedLogicLines,
+  deleteRedLogicLines2,
   getGame,
   getGames,
   editGame,
