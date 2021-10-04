@@ -22,7 +22,7 @@ let jsonParser = express.json();
 const gameMiddleware = async (req, res, next) => {
   const { hash } = req.query; // после request?...
   const gameToken = req.headers['game-token'];
-  const { gameId, userId, roles } = await SecurityLayer.getInfo(hash);
+  const { gameId, roles } = await SecurityLayer.getInfo(hash);
   if (!gameId) {
     // @todo: вынести в отдельный тип ошибок
     const error = new Error('Игра не найдена');
@@ -35,17 +35,16 @@ const gameMiddleware = async (req, res, next) => {
       if (!err) {
         req.gameInfo = {
           gameId,
-          userId,
           roles: [...roles, decoded.data.role],
-          nickname: decoded.data.nickname || 'Unknown',
+          nickname: decoded.data.nickname || 'Unknown', // проверка того, что пользователь зашёл
         };
       } else {
-        req.gameInfo = { gameId, userId, roles };
+        req.gameInfo = { gameId, roles };
       }
       next();
     });
   } else {
-    req.gameInfo = { gameId, userId, roles };
+    req.gameInfo = { gameId, roles };
     next(); // пропускаем в следующий слой
   }
 };

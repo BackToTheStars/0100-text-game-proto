@@ -38,7 +38,8 @@ const createGame = async (req, res, next) => {
 };
 
 const getGame = async (req, res) => {
-  const { gameId, roles } = req.gameInfo;
+  const { gameId, roles, nickname } = req.gameInfo;
+  // console.log(req.gameInfo);
   const fields = {
     // _id: false,
     hash: true,
@@ -73,6 +74,7 @@ const getGame = async (req, res) => {
       viewportPointX,
       viewportPointY,
       lines: lines.map((line) => ({ ...line.toObject(), gameId: null })),
+      auth: !!nickname,
     },
   });
 };
