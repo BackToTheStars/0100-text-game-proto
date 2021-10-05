@@ -164,7 +164,11 @@ const getGames = async (req, res, next) => {
       // есть ли у него права superAdmin?
       fields.codes = true;
     }
-    const games = await Game.find({}, fields).sort({ updatedAt: -1 });
+    const criteria = {};
+    if (!req.adminId) {
+      criteria.public = true;
+    }
+    const games = await Game.find(criteria, fields).sort({ updatedAt: -1 });
     res.json({
       items: games.map((game) => ({
         ...game.toObject(),
