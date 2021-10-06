@@ -30,6 +30,7 @@ const createGame = async (req, res, next) => {
       item: {
         name: game.name,
         code,
+        public: game.public,
       },
     });
   } catch (e) {
@@ -297,7 +298,7 @@ const addCode = async (req, res, next) => {
       hash: SecurityLayer.hashFunc(gameId, process.env.GAME_ID_HASH_LENGTH),
     };
 
-    console.log(`code.hash = ${code.hash}`);
+    // console.log(`code.hash = ${code.hash}`);
 
     const game = await Game.findById(gameId);
     game.codes.push(code);
@@ -305,6 +306,7 @@ const addCode = async (req, res, next) => {
 
     res.json({
       item: code,
+      codes: game.codes,
     });
   } catch (e) {
     next(e);
