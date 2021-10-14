@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const QUOTE_TYPE_TEXT = 'text';
+const QUOTE_TYPE_PICTURE = 'picture';
 
 const schema = new Schema(
   {
@@ -75,6 +76,10 @@ const schema = new Schema(
           type: String,
           default: QUOTE_TYPE_TEXT,
         },
+        x: Number,
+        y: Number,
+        width: Number,
+        height: Number,
       },
     ],
   },
