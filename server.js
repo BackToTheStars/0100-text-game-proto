@@ -216,6 +216,12 @@ app.put(
   turnsController.updateTurn
 );
 app.delete(
+  '/turns/:id/quote/:quoteId',
+  gameMiddleware,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
+  turnsController.deleteQuote
+);
+app.delete(
   '/turns/:id',
   gameMiddleware,
   rulesEndpoint(User.rules.RULE_TURNS_CRUD),

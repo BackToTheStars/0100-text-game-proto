@@ -90,6 +90,7 @@ const schema = new Schema(
 
 schema.statics = {
   QUOTE_TYPE_TEXT,
+  QUOTE_TYPE_PICTURE,
 };
 
 module.exports = mongoose.model('Turn', schema, 'turns');

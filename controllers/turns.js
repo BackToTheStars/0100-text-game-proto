@@ -36,9 +36,34 @@ async function updateTurn(req, res, next) {
   }
 }
 
+async function deleteQuote(req, res, next) {
+  try {
+    const { gameId } = req.gameInfo;
+    const { quoteId, id } = req.params;
+    const turnModel = await Turn.findOne({ gameId, _id: id });
+    const quoteToRemove = turnModel.quotes.find(
+      (quote) => quote.id === +quoteId // + приводит из строки в число
+    );
+    turnModel.quotes = turnModel.quotes.filter(
+      (quote) => quote.id !== +quoteId
+    );
+    // if (quoteToRemove.type === Turn.QUOTE_TYPE_PICTURE) { }
+    if (quoteToRemove.type === Turn.QUOTE_TYPE_TEXT) {
+      console.log('removing text quote...'); // @todo: finish
+    }
+    await turnModel.save();
+    res.json({
+      item: turnModel,
+      removedQuote: quoteToRemove,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function deleteTurn(req, res, next) {
   try {
-    log.debug(`Entering ... ${arguments.callee.name}`);
+    // log.debug(`Entering ... ${arguments.callee.name}`);
     const { gameId } = req.gameInfo;
     const { id } = req.params;
     const turnModel = await Turn.findOneAndRemove({
@@ -147,4 +172,5 @@ module.exports = {
   updateCoordinates,
   updateTurn,
   deleteTurn,
+  deleteQuote,
 };
