@@ -2,10 +2,14 @@ const path = require('path');
 require('dotenv').config({
   path: path.resolve(__dirname, '../.env'),
 });
+
 const { exec } = require('child_process');
-const dumpFolder = '2021-07-18-1'; //"2021-07-18-1";
+
+const dumpFolder = '2021-10-12-1'; //"2021-07-18-1" in dumps folder
+const targetDB = 'BrainDanceDevelopment'; // name of Database in Atlas
+
 const folder = path.join(__dirname, `../dumps/${dumpFolder}/TextGame`);
-const command = `mongorestore --drop -d TextGame ${folder} --uri "${process.env.MONGO_URL}"`;
+const command = `mongorestore --drop -d ${targetDB} ${folder} --uri "${process.env.MONGO_URL}"`;
 
 if (dumpFolder) {
   exec(command, (err, stdout, stderr) => {
