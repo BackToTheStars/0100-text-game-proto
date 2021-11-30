@@ -198,17 +198,21 @@ const getGames = async (req, res, next) => {
 const createRedLogicLine2 = async (req, res, next) => {
   try {
     const { gameId, nickname } = req.gameInfo;
-    const { sourceTurnId, sourceMarker, targetTurnId, targetMarker } = req.body;
-    const line = new Line({
-      gameId,
-      sourceTurnId,
-      sourceMarker,
-      targetTurnId,
-      targetMarker,
-      author: nickname,
-    });
-    await line.save();
-    res.json({ item: line });
+    const newLines = [];
+    const { lines } = req.body;
+    for (let line of lines) {
+      const { sourceTurnId, sourceMarker, targetTurnId, targetMarker } = line;
+      newLines.push({
+        gameId,
+        sourceTurnId,
+        sourceMarker,
+        targetTurnId,
+        targetMarker,
+        author: nickname,
+      });
+    }
+    const items = await Line.create(newLines);
+    res.json({ items });
   } catch (err) {
     next(err);
   }
