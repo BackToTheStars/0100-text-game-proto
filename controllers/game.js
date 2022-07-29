@@ -1,4 +1,5 @@
 const Game = require('../models/Game');
+const Turn = require('../models/Turn');
 const Screenshot = require('../models/Screenshot');
 const User = require('../models/User');
 const Line = require('../models/Line');
@@ -181,6 +182,33 @@ const getGames = async (req, res, next) => {
   }
 };
 
+const getLastTurns = async (req, res, next) => {
+  try {
+    
+      const lastTurns = [];
+
+      const games = await Game.find({}).sort({updatedAt: 'desc'}).limit(1);
+
+      for (const game of games) {
+
+        const turns = await Turn.find({gameId: game._id}).sort({createdAt: 'desc'}).limit(1);
+        lastTurns.push(turns[0]);
+
+      }
+
+      //console.log(lastTurns)
+
+    res.json({
+
+      items: lastTurns
+
+    })
+
+  } catch (err) {
+    next(err);
+  }
+};
+
 // const getItem = async (req, res) => {
 //     let game = await Game.findOne();
 //     // @fixme
@@ -348,4 +376,5 @@ module.exports = {
   deleteGame,
   addCode,
   getScreenshot,
+  getLastTurns,
 };
