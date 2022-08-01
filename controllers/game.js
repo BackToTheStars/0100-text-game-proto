@@ -184,26 +184,29 @@ const getGames = async (req, res, next) => {
 
 const getLastTurns = async (req, res, next) => {
   try {
-    
-      const lastTurns = [];
+    const lastTurns = [];
 
-      const games = await Game.find({}).sort({updatedAt: 'desc'}).limit(1);
+    const criteria = { turnsCount: { $gt: 0 } };
+    if (!req.adminId) {
+      criteria.public = true;
+    }
+    const games = await Game.find(criteria)
+      .sort({ updatedAt: 'desc' })
+      .limit(10);
 
-      for (const game of games) {
-
-        const turns = await Turn.find({gameId: game._id}).sort({createdAt: 'desc'}).limit(1);
-        lastTurns.push(turns[0]);
-
-      }
-
-      //console.log(lastTurns)
+    for (const game of games) {
+      const turns = await Turn.find({
+        gameId: game._id,
+        contentType: { $ne: 'zero-point' },
+      })
+        .sort({ createdAt: 'desc' })
+        .limit(1);
+      lastTurns.push(turns[0]);
+    }
 
     res.json({
-
-      items: lastTurns
-
-    })
-
+      items: lastTurns,
+    });
   } catch (err) {
     next(err);
   }
