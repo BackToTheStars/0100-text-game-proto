@@ -185,17 +185,15 @@ const getGames = async (req, res, next) => {
 const getLastTurns = async (req, res, next) => {
   try {
     const lastTurns = [];
-    let games = [];
 
-    if (req.adminId) {
-      games = await Game.find({ turnsCount: { $gt: 0 } })
-        .sort({ updatedAt: 'desc' })
-        .limit(10);
-    } else {
-      games = await Game.find({ turnsCount: { $gt: 0 }, public: true })
-        .sort({ updatedAt: 'desc' })
-        .limit(10);
+    const criteria = { turnsCount: { $gt: 0 } };
+    if (!req.adminId) {
+      criteria.public = true;
     }
+
+    const games = await Game.find(criteria)
+      .sort({ updatedAt: 'desc' })
+      .limit(10);
 
     for (const game of games) {
       const turns = await Turn.find({
@@ -209,8 +207,18 @@ const getLastTurns = async (req, res, next) => {
       lastTurns.push(turns[0]);
     }
 
+    const gamesDictionary = games.reduce(
+      (d, game) => ({ ...d, [game._id]: SecurityLayer.getHashByGame(game) }),
+      {}
+    );
+    const lastTurnsGamesDictionary = lastTurns.reduce(
+      (d, turn) => ({ ...d, [turn._id]: gamesDictionary[turn.gameId] }),
+      {}
+    );
+
     res.json({
       items: lastTurns,
+      lastTurnsGamesDictionary: lastTurnsGamesDictionary,
     });
   } catch (err) {
     next(err);
