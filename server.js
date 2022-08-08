@@ -102,6 +102,8 @@ app.get(
   gameController.getLastTurns
 );
 
+app.post('/games/tokens', gameMiddleware, gameController.getToken);
+
 app.post('/games', gameController.createGame);
 // if (mode == USER_MODE_ADMIN) {
 app.put(
