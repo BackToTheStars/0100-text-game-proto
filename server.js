@@ -102,7 +102,12 @@ app.get(
   gameController.getLastTurns
 );
 
-app.post('/games/tokens', gameMiddleware, gameController.getToken);
+app.post(
+  '/games/tokens',
+  gameMiddleware,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
+  gameController.getTokens
+);
 
 app.post('/games', gameController.createGame);
 // if (mode == USER_MODE_ADMIN) {

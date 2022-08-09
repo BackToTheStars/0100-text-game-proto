@@ -4,8 +4,7 @@ const Screenshot = require('../models/Screenshot');
 const User = require('../models/User');
 const Line = require('../models/Line');
 const SecurityLayer = require('../services/SecurityLayer');
-const jwt = require('jsonwebtoken');
-const { getTokenFunction } = require('../lib/game');
+const { getToken } = require('../lib/game');
 
 const createGame = async (req, res, next) => {
   try {
@@ -227,11 +226,11 @@ const getLastTurns = async (req, res, next) => {
   }
 };
 
-const getToken = async (req, res, next) => {
+const getTokens = async (req, res, next) => {
   try {
     const hash = SecurityLayer.hashFunc(req.gameInfo.gameId);
 
-    const token = getTokenFunction(
+    const token = getToken(
       process.env.JWT_SECRET_STATIC,
       req.body.action,
       new Date().getTime() + 5 * 60 * 1000,
@@ -414,5 +413,5 @@ module.exports = {
   addCode,
   getScreenshot,
   getLastTurns,
-  getToken,
+  getTokens,
 };
