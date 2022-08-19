@@ -96,6 +96,18 @@ app.get('/codes/login/:hash', authController.codeLogin);
 
 app.get('/games/screenshot', gameMiddleware, gameController.getScreenshot);
 app.get('/games', authController.adminMiddleware, gameController.getGames);
+app.get(
+  '/games/last-turns',
+  authController.adminMiddleware,
+  gameController.getLastTurns
+);
+
+app.post(
+  '/games/tokens',
+  gameMiddleware,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
+  gameController.getTokens
+);
 
 app.post('/games', gameController.createGame);
 // if (mode == USER_MODE_ADMIN) {

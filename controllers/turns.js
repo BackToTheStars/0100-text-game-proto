@@ -133,7 +133,7 @@ async function updateCoordinates(req, res, next) {
     const { turns = [] } = req.body;
     const items = [];
     for (let turn of turns) {
-      const { _id, x, y, height, width, contentType, scrollPosition } = turn;
+      const { _id, x, y, height, width, scrollPosition } = turn;
 
       // Turn.findOneAndUpdate({
       //     _id: id
@@ -146,7 +146,6 @@ async function updateCoordinates(req, res, next) {
       turnModel.y = y;
       turnModel.height = height;
       turnModel.width = width;
-      turnModel.contentType = contentType; // @todo: delete
       turnModel.scrollPosition = scrollPosition;
 
       turnModel.save();
