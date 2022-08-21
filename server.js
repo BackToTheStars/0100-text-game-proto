@@ -104,6 +104,7 @@ app.get(
 
 app.post(
   '/games/tokens',
+  // hello world
   gameMiddleware,
   rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameController.getTokens
