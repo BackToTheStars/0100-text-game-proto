@@ -17,7 +17,7 @@ const { USER_MODE_ADMIN, USER_MODE_VISITOR } = User.user_modes;
 const port = process.env.PORT || 3000;
 const mode = process.env.USER_MODE || USER_MODE_VISITOR; // может быть ADMIN, VISITOR, PLAYER, ...
 
-let jsonParser = express.json();
+let jsonParser = express.json({ limit: '6mb' });
 
 const gameMiddleware = async (req, res, next) => {
   const { hash } = req.query; // после request?...
