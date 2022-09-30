@@ -4,6 +4,7 @@
   "description": "",
   "main": "server.js",
   "dependencies": {
+    "axios": "^0.27.2",
     "bcrypt": "^5.0.1",
     "bunyan": "^1.8.15",
     "cors": "^2.8.5",
@@ -13,10 +14,11 @@
     "images": "^3.2.3",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.12.0",
+    "node-telegram-bot-api": "^0.59.0",
     "nodemon": "^2.0.7"
   },
-  "devDependencies": {},
   "scripts": {
+    "bot": "nodemon bot.js",
     "server": "nodemon server.js",
     "start": "node server.js",
     "dump": "node ./scripts/db_dump.js",
