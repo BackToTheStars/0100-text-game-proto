@@ -11,9 +11,12 @@ const TelegramBot = require('node-telegram-bot-api');
 const Game = require('./models/Game');
 const Turn = require('./models/Turn');
 const TelegramUser = require('./models/TelegramUser');
+const SecurityLayer = require('./services/SecurityLayer');
 
 const token = process.env.BOT_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
+
+const port = process.env.PORT || 3000;
 
 // msg.chat.id и id пользователя в TG - одно и то же
 
@@ -145,7 +148,10 @@ bot.on('message', async (msg) => {
         });
         await newTurn.save();
 
+        const shortHash = SecurityLayer.hashFunc(telegramUser.gameId);
+
         bot.sendMessage(chatId, 'New turn created');
+        bot.sendMessage(chatId, `http://localhost:3002/game?hash=${shortHash}`);
         return;
       } else {
         const lastTurn = await Turn.findOne({
@@ -169,7 +175,11 @@ bot.on('message', async (msg) => {
         });
         await newTurn.save();
 
+        const shortHash = SecurityLayer.hashFunc(telegramUser.gameId);
+
         bot.sendMessage(chatId, 'New turn created');
+        bot.sendMessage(chatId, `http://localhost:3002/game?hash=${shortHash}`);
+
         return;
       }
     } else {
