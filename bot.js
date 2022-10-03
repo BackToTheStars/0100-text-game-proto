@@ -6,6 +6,7 @@ const https = require('https');
 const fs = require('fs');
 const axios = require('axios');
 const FormData = require('form-data');
+const get = require('async-get-file');
 
 const TelegramBot = require('node-telegram-bot-api');
 const Game = require('./models/Game');
@@ -44,9 +45,7 @@ bot.onText(/\/start/, async (msg, match) => {
 
     if (!telegramUser) {
       telegramUser = new TelegramUser({
-        userId: user_id,
-        gameId: '',
-        hash: '',
+        userId: chatId,
       });
       await telegramUser.save();
     }
@@ -76,23 +75,33 @@ bot.on('message', async (msg) => {
 
     const chatId = msg.chat.id;
 
+    let telegramUser = await TelegramUser.findOne({
+      userId: chatId,
+    });
+
     if (msg.text === '/start') {
       return;
     }
 
-    if (msg.forward_date !== undefined) {
-      let telegramUser = await TelegramUser.findOne({
-        userId: chatId,
-      });
+    if (msg.forward_date !== undefined && telegramUser.gameId === undefined) {
+      bot.sendMessage(chatId, 'Send game code first');
+      return;
+    }
 
+    if (msg.forward_date !== undefined) {
       if (msg.photo !== undefined) {
         const file = await bot.getFile(msg.photo[2].file_id);
         //console.log(file.file_path);
         const fileUrl = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
 
-        https.get(fileUrl, (resp) =>
+        /*https.get(fileUrl, (resp) =>
           resp.pipe(fs.createWriteStream('file.jpg'))
-        );
+        );*/
+
+        await get(fileUrl, {
+          directory: './',
+          filename: 'file.jpg',
+        });
 
         const data = new FormData();
         data.append('file', fs.createReadStream('file.jpg'));
@@ -115,16 +124,8 @@ bot.on('message', async (msg) => {
         };
 
         let imagePath = '';
-
-        await axios(config)
-          .then(function (response) {
-            //console.log(JSON.stringify(response.data));
-            imagePath = response.data.src;
-            //console.log(imagePath);
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
+        const resp = await axios(config);
+        imagePath = resp.data.src;
 
         const lastTurn = await Turn.findOne({
           gameId: telegramUser.gameId,
@@ -136,17 +137,24 @@ bot.on('message', async (msg) => {
           width: 800,
           height: 600,
           contentType: 'picture',
+          header: msg.forward_from_chat?.title,
+          date: msg.forward_date,
+          sourceUrl: '',
           imageUrl: imagePath,
           paragraph: [
             {
               insert: msg.caption,
             },
           ],
-          x: lastTurn.x + 50,
+          x: lastTurn.x + lastTurn.width + 50,
           y: lastTurn.y + 0,
           dontShowHeader: true,
         });
         await newTurn.save();
+
+        if (fs.existsSync('./file.jpg')) {
+          fs.unlinkSync('./file.jpg');
+        }
 
         const shortHash = SecurityLayer.hashFunc(telegramUser.gameId);
 
@@ -164,12 +172,15 @@ bot.on('message', async (msg) => {
           width: 800,
           height: 600,
           contentType: 'text',
+          header: msg.forward_from_chat?.title,
+          date: msg.forward_date,
+          sourceUrl: '',
           paragraph: [
             {
               insert: msg.text,
             },
           ],
-          x: lastTurn.x + 50,
+          x: lastTurn.x + lastTurn.width + 50,
           y: lastTurn.y + 0,
           dontShowHeader: true,
         });
@@ -199,7 +210,7 @@ bot.on('message', async (msg) => {
 
       if (!telegramUser) {
         telegramUser = new TelegramUser({
-          userId: user_id,
+          userId: chatId,
           gameId: game._id,
           hash: hash,
         });
