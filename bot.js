@@ -1,6 +1,6 @@
 require('dotenv').config();
 require('./models/db');
-const { downloadImage, uploadImage } = require('./lib/telegram');
+const { downloadImage, uploadImage, createTurn } = require('./lib/telegram');
 
 const fs = require('fs');
 
@@ -87,35 +87,13 @@ bot.on('message', async (msg) => {
         const downloadPath = await downloadImage(fileUrl);
         const imagePath = await uploadImage(downloadPath, telegramUser.hash);
 
-        const lastTurn = await Turn.findOne({
+        const data = {
           gameId: telegramUser.gameId,
-          contentType: { $ne: 'zero-point' },
-        }).sort({ createdAt: 'desc' });
-
-        const body = {
-          gameId: telegramUser.gameId,
-          width: 800,
-          height: 600,
-          contentType: 'picture',
-          header: msg.forward_from_chat?.title,
-          date: msg.forward_date * 1000,
-          imageUrl: imagePath,
-          paragraph: [
-            {
-              insert: msg.caption,
-            },
-          ],
-          x: lastTurn.x + lastTurn.width + 50,
-          y: lastTurn.y + 0,
-          dontShowHeader: true,
+          msg: msg,
+          imagePath: imagePath,
         };
 
-        if (msg.forward_from_message_id) {
-          body.sourceUrl = `https://t.me/${msg.forward_from_chat.username}/${msg.forward_from_message_id}`;
-        }
-
-        const newTurn = new Turn(body);
-        await newTurn.save();
+        await createTurn(data);
 
         if (fs.existsSync(downloadPath)) {
           fs.unlinkSync(downloadPath);
@@ -127,34 +105,13 @@ bot.on('message', async (msg) => {
         bot.sendMessage(chatId, `http://localhost:3002/game?hash=${shortHash}`);
         return;
       } else {
-        const lastTurn = await Turn.findOne({
+        const data = {
           gameId: telegramUser.gameId,
-          contentType: { $ne: 'zero-point' },
-        }).sort({ createdAt: 'desc' });
-
-        const body = {
-          gameId: telegramUser.gameId,
-          width: 800,
-          height: 600,
-          contentType: 'picture',
-          header: msg.forward_from_chat?.title,
-          date: msg.forward_date * 1000,
-          paragraph: [
-            {
-              insert: msg.text,
-            },
-          ],
-          x: lastTurn.x + lastTurn.width + 50,
-          y: lastTurn.y + 0,
-          dontShowHeader: true,
+          msg: msg,
+          imagePath: '',
         };
 
-        if (msg.forward_from_message_id) {
-          body.sourceUrl = `https://t.me/${msg.forward_from_chat.username}/${msg.forward_from_message_id}`;
-        }
-
-        const newTurn = new Turn(body);
-        await newTurn.save();
+        await createTurn(data);
 
         const shortHash = SecurityLayer.hashFunc(telegramUser.gameId);
 
