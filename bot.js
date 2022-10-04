@@ -1,12 +1,8 @@
 require('dotenv').config();
 require('./models/db');
-const { getToken } = require('./lib/game');
+const { downloadImage, uploadImage } = require('./lib/telegram');
 
-const https = require('https');
 const fs = require('fs');
-const axios = require('axios');
-const FormData = require('form-data');
-const get = require('async-get-file');
 
 const TelegramBot = require('node-telegram-bot-api');
 const Game = require('./models/Game');
@@ -36,8 +32,6 @@ bot.onText(/\/start/, async (msg, match) => {
   // console.log(JSON.stringify(msg, null, 2));
   try {
     const chatId = msg.chat.id;
-    //const resp = match[1];
-    //bot.sendMessage(chatId, resp);
 
     let telegramUser = await TelegramUser.findOne({
       userId: chatId,
@@ -51,15 +45,12 @@ bot.onText(/\/start/, async (msg, match) => {
     }
 
     bot.sendMessage(chatId, 'Send game code');
-
-    console.log(telegramUser);
   } catch (err) {
     console.log(err);
   }
 });
 
 bot.onText(/\/echo (.+)/, (msg, match) => {
-  // console.log(JSON.stringify(msg, null, 2));
   try {
     const chatId = msg.chat.id;
     const resp = match[1];
@@ -71,8 +62,7 @@ bot.onText(/\/echo (.+)/, (msg, match) => {
 
 bot.on('message', async (msg) => {
   try {
-    console.log(JSON.stringify(msg, null, 2));
-
+    //console.log(JSON.stringify(msg, null, 2));
     const chatId = msg.chat.id;
 
     let telegramUser = await TelegramUser.findOne({
@@ -90,56 +80,25 @@ bot.on('message', async (msg) => {
 
     if (msg.forward_date !== undefined) {
       if (msg.photo !== undefined) {
-        const file = await bot.getFile(msg.photo[2].file_id);
+        const file = await bot.getFile(msg.photo[msg.photo.length - 1].file_id);
         //console.log(file.file_path);
         const fileUrl = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
 
-        /*https.get(fileUrl, (resp) =>
-          resp.pipe(fs.createWriteStream('file.jpg'))
-        );*/
-
-        await get(fileUrl, {
-          directory: './',
-          filename: 'file.jpg',
-        });
-
-        const data = new FormData();
-        data.append('file', fs.createReadStream('file.jpg'));
-
-        const tokenStaticServer = getToken(
-          process.env.JWT_SECRET_STATIC,
-          'upload',
-          new Date().getTime() + 5 * 60 * 1000,
-          telegramUser.hash
-        );
-
-        const config = {
-          method: 'post',
-          url: 'http://localhost:3003/images/upload',
-          headers: {
-            Authorization: 'Bearer ' + tokenStaticServer,
-            ...data.getHeaders(),
-          },
-          data: data,
-        };
-
-        let imagePath = '';
-        const resp = await axios(config);
-        imagePath = resp.data.src;
+        const downloadPath = await downloadImage(fileUrl);
+        const imagePath = await uploadImage(downloadPath, telegramUser.hash);
 
         const lastTurn = await Turn.findOne({
           gameId: telegramUser.gameId,
           contentType: { $ne: 'zero-point' },
         }).sort({ createdAt: 'desc' });
 
-        const newTurn = new Turn({
+        const body = {
           gameId: telegramUser.gameId,
           width: 800,
           height: 600,
           contentType: 'picture',
           header: msg.forward_from_chat?.title,
-          date: msg.forward_date,
-          sourceUrl: '',
+          date: msg.forward_date * 1000,
           imageUrl: imagePath,
           paragraph: [
             {
@@ -149,11 +108,17 @@ bot.on('message', async (msg) => {
           x: lastTurn.x + lastTurn.width + 50,
           y: lastTurn.y + 0,
           dontShowHeader: true,
-        });
+        };
+
+        if (msg.forward_from_message_id) {
+          body.sourceUrl = `https://t.me/${msg.forward_from_chat.username}/${msg.forward_from_message_id}`;
+        }
+
+        const newTurn = new Turn(body);
         await newTurn.save();
 
-        if (fs.existsSync('./file.jpg')) {
-          fs.unlinkSync('./file.jpg');
+        if (fs.existsSync(downloadPath)) {
+          fs.unlinkSync(downloadPath);
         }
 
         const shortHash = SecurityLayer.hashFunc(telegramUser.gameId);
@@ -167,14 +132,13 @@ bot.on('message', async (msg) => {
           contentType: { $ne: 'zero-point' },
         }).sort({ createdAt: 'desc' });
 
-        const newTurn = new Turn({
+        const body = {
           gameId: telegramUser.gameId,
           width: 800,
           height: 600,
-          contentType: 'text',
+          contentType: 'picture',
           header: msg.forward_from_chat?.title,
-          date: msg.forward_date,
-          sourceUrl: '',
+          date: msg.forward_date * 1000,
           paragraph: [
             {
               insert: msg.text,
@@ -183,7 +147,13 @@ bot.on('message', async (msg) => {
           x: lastTurn.x + lastTurn.width + 50,
           y: lastTurn.y + 0,
           dontShowHeader: true,
-        });
+        };
+
+        if (msg.forward_from_message_id) {
+          body.sourceUrl = `https://t.me/${msg.forward_from_chat.username}/${msg.forward_from_message_id}`;
+        }
+
+        const newTurn = new Turn(body);
         await newTurn.save();
 
         const shortHash = SecurityLayer.hashFunc(telegramUser.gameId);
@@ -221,7 +191,7 @@ bot.on('message', async (msg) => {
 
       bot.sendMessage(chatId, 'Code saved. Now you can forward a message');
 
-      console.log(telegramUser);
+      //console.log(telegramUser);
     }
   } catch (err) {
     console.log(err);
