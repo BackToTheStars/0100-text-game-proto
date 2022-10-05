@@ -17,7 +17,7 @@ const { USER_MODE_ADMIN, USER_MODE_VISITOR } = User.user_modes;
 const port = process.env.PORT || 3000;
 const mode = process.env.USER_MODE || USER_MODE_VISITOR; // может быть ADMIN, VISITOR, PLAYER, ...
 
-let jsonParser = express.json();
+let jsonParser = express.json({ limit: '6mb' });
 
 const gameMiddleware = async (req, res, next) => {
   const { hash } = req.query; // после request?...
@@ -96,8 +96,19 @@ app.get('/codes/login/:hash', authController.codeLogin);
 
 app.get('/games/screenshot', gameMiddleware, gameController.getScreenshot);
 app.get('/games', authController.adminMiddleware, gameController.getGames);
-app.get('/games/last-turns', authController.adminMiddleware, gameController.getLastTurns);
+app.get(
+  '/games/last-turns',
+  authController.adminMiddleware,
+  gameController.getLastTurns
+);
 
+app.post(
+  '/games/tokens',
+  // hello world
+  gameMiddleware,
+  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
+  gameController.getTokens
+);
 
 app.post('/games', gameController.createGame);
 // if (mode == USER_MODE_ADMIN) {

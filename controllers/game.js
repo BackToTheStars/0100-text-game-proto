@@ -4,6 +4,7 @@ const Screenshot = require('../models/Screenshot');
 const User = require('../models/User');
 const Line = require('../models/Line');
 const SecurityLayer = require('../services/SecurityLayer');
+const { getToken } = require('../lib/game');
 
 const createGame = async (req, res, next) => {
   try {
@@ -190,6 +191,7 @@ const getLastTurns = async (req, res, next) => {
     if (!req.adminId) {
       criteria.public = true;
     }
+
     const games = await Game.find(criteria)
       .sort({ updatedAt: 'desc' })
       .limit(10);
@@ -199,13 +201,43 @@ const getLastTurns = async (req, res, next) => {
         gameId: game._id,
         contentType: { $ne: 'zero-point' },
       })
-        .sort({ createdAt: 'desc' })
-        .limit(1);
+      .sort({ createdAt: 'desc' })
+      .limit(1);
+
       lastTurns.push(turns[0]);
     }
 
+    const gamesDictionary = games.reduce(
+      (d, game) => ({ ...d, [game._id]: SecurityLayer.getHashByGame(game) }),
+      {}
+    );
+    const lastTurnsGamesDictionary = lastTurns.reduce(
+      (d, turn) => ({ ...d, [turn._id]: gamesDictionary[turn.gameId] }),
+      {}
+    );
+
     res.json({
       items: lastTurns,
+      lastTurnsGamesDictionary: lastTurnsGamesDictionary,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getTokens = async (req, res, next) => {
+  try {
+    const hash = SecurityLayer.hashFunc(req.gameInfo.gameId);
+
+    const token = getToken(
+      process.env.JWT_SECRET_STATIC,
+      req.body.action,
+      new Date().getTime() + 5 * 60 * 1000,
+      hash
+    );
+
+    res.json({
+      item: token,
     });
   } catch (err) {
     next(err);
@@ -380,4 +412,5 @@ module.exports = {
   addCode,
   getScreenshot,
   getLastTurns,
+  getTokens,
 };

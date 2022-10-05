@@ -72,6 +72,10 @@ const schema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       // required: true,
     },
+    pictureOnly: {
+      type: Boolean,
+      default: false,
+    },
     quotes: [
       {
         id: Number,
