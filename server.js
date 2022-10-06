@@ -102,9 +102,15 @@ app.use(express.static('public'));
 app.use(jsonParser);
 
 if (process.env.BOT_MODE === 'hook') {
-  app.post(`/bot${token}`, (req, res) => {
-    bot.processUpdate(req.body);
-    res.sendStatus(200);
+  app.post(`/bot${token}`, (req, res, next) => {
+    try {
+      bot.processUpdate(req.body);
+      res.sendStatus(200);
+      console.log('hook requested');
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
   });
 }
 
