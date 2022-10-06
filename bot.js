@@ -11,7 +11,10 @@ const SecurityLayer = require('./services/SecurityLayer');
 const { CLIENT_URL } = require('./config/url');
 
 const token = process.env.BOT_TOKEN;
-const bot = new TelegramBot(token, { polling: true });
+const bot =
+  process.env.BOT_MODE === 'hook'
+    ? new TelegramBot(token)
+    : new TelegramBot(token, { polling: true });
 
 const getUserByChatId = async (chatId) => {
   let telegramUser = await TelegramUser.findOne({
@@ -39,14 +42,16 @@ bot.onText(/\/start/, async (msg, match) => {
 
 bot.on('message', async (msg) => {
   try {
-    if (msg.text && msg.text.indexOf('/') === 0) { // не обрабатываем здесь команды
+    if (msg.text && msg.text.indexOf('/') === 0) {
+      // не обрабатываем здесь команды
       return;
     }
 
     const chatId = msg.chat.id;
     const telegramUser = await getUserByChatId(chatId);
 
-    if (!telegramUser.gameId) { // получаем код игры, без него дальше не пропускаем
+    if (!telegramUser.gameId) {
+      // получаем код игры, без него дальше не пропускаем
       const game = await Game.findOne({
         'codes.hash': msg.text,
       });
@@ -56,19 +61,27 @@ bot.on('message', async (msg) => {
       }
 
       await telegramUser.updateOne({ gameId: game._id });
-      return bot.sendMessage(chatId, 'Code saved. Now you can forward a message');
+      return bot.sendMessage(
+        chatId,
+        'Code saved. Now you can forward a message'
+      );
     }
 
-    if (!msg.forward_date) { // сейчас обрабатываем только форварды
-      return bot.sendMessage(chatId, 'You can forward a message. No other messages available');
+    if (!msg.forward_date) {
+      // сейчас обрабатываем только форварды
+      return bot.sendMessage(
+        chatId,
+        'You can forward a message. No other messages available'
+      );
     }
 
     const turnData = {
       gameId: telegramUser.gameId,
       msg: msg,
-    }
+    };
 
-    if (msg.photo) { // добавляем картинку, если она есть в сообщении
+    if (msg.photo) {
+      // добавляем картинку, если она есть в сообщении
       const file = await bot.getFile(msg.photo[msg.photo.length - 1].file_id);
       const fileUrl = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
 
@@ -90,3 +103,5 @@ bot.on('message', async (msg) => {
     bot.sendMessage(msg.chat.id, 'Something went wrong.');
   }
 });
+
+module.exports = bot;

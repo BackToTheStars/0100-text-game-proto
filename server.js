@@ -1,5 +1,6 @@
 require('dotenv').config();
 require('./models/db');
+
 const cors = require('cors');
 const path = require('path');
 
@@ -11,6 +12,16 @@ const gameController = require('./controllers/game');
 const authController = require('./controllers/auth');
 const User = require('./models/User');
 const SecurityLayer = require('./services/SecurityLayer');
+const { CLIENT_URL } = require('./config/url');
+
+let bot;
+let token = process.env.BOT_TOKEN;
+if (process.env.BOT_MODE === 'hook') {
+  bot = require('./bot');
+  console.log('bot imported');
+  bot.setWebHook(`${CLIENT_URL}/bot${token}`);
+}
+
 let app = express();
 const { USER_MODE_ADMIN, USER_MODE_VISITOR } = User.user_modes;
 
@@ -89,6 +100,13 @@ app.use(express.static('public'));
 
 // нужна для скриншотов minimap
 app.use(jsonParser);
+
+if (process.env.BOT_MODE === 'hook') {
+  app.post(`/bot${token}`, (req, res) => {
+    bot.processUpdate(req.body);
+    res.sendStatus(200);
+  });
+}
 
 app.post('/login', authController.login);
 
