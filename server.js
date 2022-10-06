@@ -12,14 +12,14 @@ const gameController = require('./controllers/game');
 const authController = require('./controllers/auth');
 const User = require('./models/User');
 const SecurityLayer = require('./services/SecurityLayer');
-const { CLIENT_URL } = require('./config/url');
+const { API_URL } = require('./config/url');
 
 let bot;
 let token = process.env.BOT_TOKEN;
 if (process.env.BOT_MODE === 'hook') {
   bot = require('./bot');
   console.log('bot imported');
-  bot.setWebHook(`${CLIENT_URL}/bot${token}`);
+  bot.setWebHook(`${API_URL}/bot${token}`);
 }
 
 let app = express();
