@@ -50,7 +50,7 @@ bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const telegramUser = await getUserByChatId(chatId);
 
-    if (!telegramUser.gameId) {
+    if (!telegramUser.gameId || !msg.forward_date) {
       // получаем код игры, без него дальше не пропускаем
       const game = await Game.findOne({
         'codes.hash': msg.text,
@@ -67,13 +67,13 @@ bot.on('message', async (msg) => {
       );
     }
 
-    if (!msg.forward_date) {
-      // сейчас обрабатываем только форварды
-      return bot.sendMessage(
-        chatId,
-        'You can forward a message. No other messages available'
-      );
-    }
+    // if (!msg.forward_date) {
+    //   // сейчас обрабатываем только форварды
+    //   return bot.sendMessage(
+    //     chatId,
+    //     'You can forward a message. No other messages available'
+    //   );
+    // }
 
     const turnData = {
       gameId: telegramUser.gameId,
