@@ -9,6 +9,11 @@ const Game = require('./models/Game');
 const TelegramUser = require('./models/TelegramUser');
 const SecurityLayer = require('./services/SecurityLayer');
 const { CLIENT_URL } = require('./config/url');
+const {
+  addLog,
+  TYPE_BOT_MESSAGE_ERROR,
+  TYPE_BOT_GAME_CODE_ERROR,
+} = require('./lib/log');
 
 const token = process.env.BOT_TOKEN;
 const bot =
@@ -57,6 +62,7 @@ bot.on('message', async (msg) => {
       });
 
       if (!game) {
+        addLog(TYPE_BOT_GAME_CODE_ERROR, { text: msg.text }, null);
         return bot.sendMessage(chatId, 'Wrong code. Please send correct one');
       }
 
@@ -100,6 +106,7 @@ bot.on('message', async (msg) => {
     );
   } catch (err) {
     console.log(err);
+    addLog(TYPE_BOT_MESSAGE_ERROR, null, err);
     bot.sendMessage(msg.chat.id, 'Something went wrong.');
   }
 });
