@@ -1,19 +1,22 @@
 require('dotenv').config();
 require('./models/db');
-const { downloadImage, uploadImage, createTurn } = require('./lib/telegram');
-
-const fs = require('fs');
 
 const TelegramBot = require('node-telegram-bot-api');
-const Game = require('./models/Game');
-const TelegramUser = require('./models/TelegramUser');
-const SecurityLayer = require('./services/SecurityLayer');
-const { CLIENT_URL } = require('./config/url');
+
+const { addLog, TYPE_BOT_MESSAGE_ERROR } = require('./lib/log');
 const {
-  addLog,
-  TYPE_BOT_MESSAGE_ERROR,
-  TYPE_BOT_GAME_CODE_ERROR,
-} = require('./lib/log');
+  setUserInfo,
+  STEP_MESSAGE_FORWARD,
+} = require('./modules/bot/lib/state');
+const {
+  getUserByChatId,
+  start,
+  saveGameCode,
+} = require('./modules/bot/services/authenticateUser');
+const {
+  saveForwardedTurn,
+  sendGameButtons,
+} = require('./modules/bot/services/forwardTurn');
 
 const token = process.env.BOT_TOKEN;
 const bot =
@@ -21,25 +24,9 @@ const bot =
     ? new TelegramBot(token)
     : new TelegramBot(token, { polling: true });
 
-const getUserByChatId = async (chatId) => {
-  let telegramUser = await TelegramUser.findOne({
-    userId: chatId,
-  });
-
-  if (!telegramUser) {
-    telegramUser = new TelegramUser({
-      userId: chatId,
-    });
-    await telegramUser.save();
-  }
-
-  return telegramUser;
-};
-
 bot.onText(/\/start/, async (msg, match) => {
   try {
-    await getUserByChatId(msg.chat.id);
-    bot.sendMessage(msg.chat.id, 'Send game code');
+    start(bot, msg);
   } catch (err) {
     console.log(err);
   }
@@ -57,53 +44,15 @@ bot.on('message', async (msg) => {
 
     if (!telegramUser.gameId || !msg.forward_date) {
       // получаем код игры, без него дальше не пропускаем
-      const game = await Game.findOne({
-        'codes.hash': msg.text,
-      });
-
-      if (!game) {
-        addLog(TYPE_BOT_GAME_CODE_ERROR, { text: msg.text }, null);
-        return bot.sendMessage(chatId, 'Wrong code. Please send correct one');
-      }
-
-      await telegramUser.updateOne({ gameId: game._id });
-      return bot.sendMessage(
-        chatId,
-        'Code saved. Now you can forward a message'
-      );
+      await saveGameCode(bot, msg, { telegramUser });
+      return;
     }
 
-    // if (!msg.forward_date) {
-    //   // сейчас обрабатываем только форварды
-    //   return bot.sendMessage(
-    //     chatId,
-    //     'You can forward a message. No other messages available'
-    //   );
-    // }
+    setUserInfo(chatId, { step: STEP_MESSAGE_FORWARD, msg });
 
-    const turnData = {
-      gameId: telegramUser.gameId,
-      msg: msg,
-    };
+    showGameButtons(bot, msg, { telegramUser });
 
-    if (msg.photo) {
-      // добавляем картинку, если она есть в сообщении
-      const file = await bot.getFile(msg.photo[msg.photo.length - 1].file_id);
-      const fileUrl = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
-
-      const downloadPath = await downloadImage(fileUrl);
-      turnData.imageUrl = await uploadImage(downloadPath, telegramUser.hash);
-      if (fs.existsSync(downloadPath)) {
-        fs.unlinkSync(downloadPath);
-      }
-    }
-    await createTurn(turnData);
-    const shortHash = SecurityLayer.hashFunc(telegramUser.gameId);
-    bot.sendMessage(
-      chatId,
-      `New turn created. Follow the link:
-      ${CLIENT_URL}/game?hash=${shortHash}`
-    );
+    // saveForwardedTurn(bot, msg, { telegramUser });
   } catch (err) {
     console.log(err);
     addLog(TYPE_BOT_MESSAGE_ERROR, null, err);

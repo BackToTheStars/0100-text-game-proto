@@ -10,7 +10,17 @@ const schema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
     },
     hash: {
+      // нужно удалить, не нужна
       type: String,
+    },
+    games: {
+      type: [
+        {
+          hash: String,
+          gameId: mongoose.Schema.Types.ObjectId,
+        },
+      ],
+      default: [],
     },
   },
   {
