@@ -3,7 +3,11 @@ require('./models/db');
 
 const TelegramBot = require('node-telegram-bot-api');
 
-const { addLog, TYPE_BOT_MESSAGE_ERROR } = require('./lib/log');
+const {
+  addLog,
+  TYPE_BOT_MESSAGE_ERROR,
+  TYPE_BOT_QUERY_ERROR,
+} = require('./lib/log');
 const {
   setUserInfo,
   STEP_MESSAGE_FORWARD,
@@ -16,6 +20,7 @@ const {
 const {
   saveForwardedTurn,
   sendGameButtons,
+  showGameButtons,
 } = require('./modules/bot/services/forwardTurn');
 
 const token = process.env.BOT_TOKEN;
@@ -42,8 +47,9 @@ bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const telegramUser = await getUserByChatId(chatId);
 
-    if (!telegramUser.gameId || !msg.forward_date) {
-      // получаем код игры, без него дальше не пропускаем
+    console.log({ msg });
+
+    if (!msg.forward_date) {
       await saveGameCode(bot, msg, { telegramUser });
       return;
     }
@@ -56,6 +62,31 @@ bot.on('message', async (msg) => {
   } catch (err) {
     console.log(err);
     addLog(TYPE_BOT_MESSAGE_ERROR, null, err);
+    bot.sendMessage(msg.chat.id, 'Something went wrong.');
+  }
+});
+
+bot.on('callback_query', async (query) => {
+  try {
+    const chatId = query.message.chat.id;
+    const telegramUser = await getUserByChatId(chatId);
+
+    const [prefix, params] = query.data.split('_');
+    console.log({ prefix, params });
+
+    switch (prefix) {
+      case 'CHG': // CHange Game
+        if (params === 'other') {
+          bot.sendMessage(chatId, 'Send game code');
+        } else {
+          const gameId = params;
+          saveForwardedTurn(bot, query.message, { telegramUser, gameId });
+        }
+        break;
+    }
+  } catch (err) {
+    console.log(err);
+    addLog(TYPE_BOT_QUERY_ERROR, null, err);
     bot.sendMessage(msg.chat.id, 'Something went wrong.');
   }
 });

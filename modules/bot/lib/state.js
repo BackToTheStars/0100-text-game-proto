@@ -1,5 +1,5 @@
 const usersD = {};
-const STEP_MESSAGE_FORWARD = 'STEP_MESSAGE_FORWARD';
+const STEP_MESSAGE_FORWARD = 'STEP_MESSAGE_FORWARD'; // { step, msg }
 
 const getUserInfo = (telegramUserId) => usersD[telegramUserId];
 

@@ -7,6 +7,11 @@ const {
 } = require('../../../lib/telegram');
 const Game = require('../../../models/Game');
 const SecurityLayer = require('../../../services/SecurityLayer');
+const {
+  getUserInfo,
+  STEP_MESSAGE_FORWARD,
+  setUserInfo,
+} = require('../lib/state');
 
 const showGameButtons = async (bot, msg, { telegramUser }) => {
   const games = await Game.find({
@@ -20,20 +25,32 @@ const showGameButtons = async (bot, msg, { telegramUser }) => {
 
   bot.sendMessage(msg.chat.id, 'Choose game to forward turn:', {
     reply_markup: {
-      keyboard: [games.map((g) => [`${g.name}`])],
+      inline_keyboard: [
+        ...games.map((g) => [
+          { text: `${g.name}`, callback_data: `CHG_${g._id}` },
+        ]),
+        [{ text: `Other`, callback_data: `CHG_other` }],
+      ],
     },
   });
 };
 
-const saveForwardedTurn = async (bot, msg, { telegramUser }) => {
+const saveForwardedTurn = async (bot, msg, { telegramUser, gameId }) => {
+  const userInfo = getUserInfo(telegramUser.userId);
+  if (userInfo?.step !== STEP_MESSAGE_FORWARD) {
+    bot.sendMessage(msg.chat.id, 'No turn to forward');
+    return;
+  }
   const turnData = {
-    gameId: telegramUser.gameId,
-    msg: msg,
+    gameId,
+    msg: userInfo.msg,
   };
 
-  if (msg.photo) {
+  if (userInfo.msg.photo) {
     // добавляем картинку, если она есть в сообщении
-    const file = await bot.getFile(msg.photo[msg.photo.length - 1].file_id);
+    const file = await bot.getFile(
+      userInfo.msg.photo[userInfo.msg.photo.length - 1].file_id
+    );
     const fileUrl = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
 
     const downloadPath = await downloadImage(fileUrl);
@@ -45,10 +62,11 @@ const saveForwardedTurn = async (bot, msg, { telegramUser }) => {
   await createTurn(turnData);
   const shortHash = SecurityLayer.hashFunc(telegramUser.gameId);
   bot.sendMessage(
-    chatId,
+    msg.chat.id,
     `New turn created. Follow the link:
     ${CLIENT_URL}/game?hash=${shortHash}`
   );
+  setUserInfo(telegramUser.userId, null);
 };
 
 module.exports = {
