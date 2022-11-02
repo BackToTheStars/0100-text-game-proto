@@ -22,7 +22,8 @@ const start = async (bot, msg) => {
   bot.sendMessage(msg.chat.id, 'Send game code');
 };
 
-const saveGameCode = async (bot, msg, { telegramUser }) => {
+// возвращает объект game или undefined
+const saveGameCode = async (bot, msg, { telegramUser, returnGameOnlyFlag }) => {
   const chatId = msg.chat.id;
 
   const game = await Game.findOne({
@@ -31,7 +32,8 @@ const saveGameCode = async (bot, msg, { telegramUser }) => {
 
   if (!game) {
     addLog(TYPE_BOT_GAME_CODE_ERROR, { text: msg.text }, null);
-    return bot.sendMessage(chatId, 'Wrong code. Please send correct one');
+    bot.sendMessage(chatId, 'Wrong code. Please send correct one');
+    return;
   }
 
   const existingGames = telegramUser.games;
@@ -44,7 +46,11 @@ const saveGameCode = async (bot, msg, { telegramUser }) => {
     existingGames[index] = { gameId: game._id, hash: msg.text };
   }
   await telegramUser.updateOne({ games: existingGames });
-  return bot.sendMessage(chatId, 'Code saved. Now you can forward a message');
+  if (returnGameOnlyFlag) {
+    return game;
+  }
+  bot.sendMessage(chatId, 'Code saved. Now you can forward a message');
+  return;
 };
 
 module.exports = {

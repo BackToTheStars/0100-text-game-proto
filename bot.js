@@ -11,6 +11,7 @@ const {
 const {
   setUserInfo,
   STEP_MESSAGE_FORWARD,
+  getUserInfo,
 } = require('./modules/bot/lib/state');
 const {
   getUserByChatId,
@@ -47,10 +48,26 @@ bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const telegramUser = await getUserByChatId(chatId);
 
-    console.log({ msg });
+    // console.log({ msg });
 
     if (!msg.forward_date) {
-      await saveGameCode(bot, msg, { telegramUser });
+      const userInfo = getUserInfo(telegramUser.userId);
+      // если forward Turn существует,
+      if (userInfo?.step === STEP_MESSAGE_FORWARD) {
+        // то функция должна вернуть game при условии, что код корректный
+        const game = await saveGameCode(bot, msg, {
+          telegramUser,
+          returnGameOnlyFlag: true,
+        });
+        if (!game) return;
+        saveForwardedTurn(bot, msg, {
+          telegramUser,
+          gameId: game._id,
+          token,
+        });
+      } else {
+        await saveGameCode(bot, msg, { telegramUser });
+      }
       return;
     }
 
@@ -80,7 +97,11 @@ bot.on('callback_query', async (query) => {
           bot.sendMessage(chatId, 'Send game code');
         } else {
           const gameId = params;
-          saveForwardedTurn(bot, query.message, { telegramUser, gameId });
+          saveForwardedTurn(bot, query.message, {
+            telegramUser,
+            gameId,
+            token,
+          });
         }
         break;
     }

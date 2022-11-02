@@ -35,7 +35,7 @@ const showGameButtons = async (bot, msg, { telegramUser }) => {
   });
 };
 
-const saveForwardedTurn = async (bot, msg, { telegramUser, gameId }) => {
+const saveForwardedTurn = async (bot, msg, { telegramUser, gameId, token }) => {
   const userInfo = getUserInfo(telegramUser.userId);
   if (userInfo?.step !== STEP_MESSAGE_FORWARD) {
     bot.sendMessage(msg.chat.id, 'No turn to forward');
@@ -60,7 +60,7 @@ const saveForwardedTurn = async (bot, msg, { telegramUser, gameId }) => {
     }
   }
   await createTurn(turnData);
-  const shortHash = SecurityLayer.hashFunc(telegramUser.gameId);
+  const shortHash = SecurityLayer.hashFunc(gameId);
   bot.sendMessage(
     msg.chat.id,
     `New turn created. Follow the link:
