@@ -23,6 +23,11 @@ const {
   sendGameButtons,
   showGameButtons,
 } = require('./modules/bot/services/forwardTurn');
+const {
+  showLogoutGameButtons,
+  forgetGameCode,
+  confirmToForgetGameCode,
+} = require('./modules/bot/services/logoutGame');
 
 const token = process.env.BOT_TOKEN;
 const bot =
@@ -33,6 +38,15 @@ const bot =
 bot.onText(/\/start/, async (msg, match) => {
   try {
     start(bot, msg);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+bot.onText(/\/forget_game/, async (msg, match) => {
+  try {
+    const telegramUser = await getUserByChatId(msg.chat.id);
+    showLogoutGameButtons(bot, msg, { telegramUser });
   } catch (err) {
     console.log(err);
   }
@@ -92,7 +106,8 @@ bot.on('callback_query', async (query) => {
     console.log({ prefix, params });
 
     switch (prefix) {
-      case 'CHG': // CHange Game
+      case 'CHG': {
+        // CHange Game
         if (params === 'other') {
           bot.sendMessage(chatId, 'Send game code');
         } else {
@@ -104,11 +119,34 @@ bot.on('callback_query', async (query) => {
           });
         }
         break;
+      }
+      case 'EXG': {
+        // EXit Game
+        const gameId = params;
+        confirmToForgetGameCode(bot, query.message, {
+          telegramUser,
+          gameId,
+        });
+        break;
+      }
+      case 'EXGF': {
+        // EXit Game Force
+        if (params === 'CANCEL') {
+          bot.sendMessage(query.message.chat.id, 'Cancelled.');
+          return;
+        }
+        const gameId = params;
+        forgetGameCode(bot, query.message, {
+          telegramUser,
+          gameId,
+        });
+        break;
+      }
     }
   } catch (err) {
     console.log(err);
     addLog(TYPE_BOT_QUERY_ERROR, null, err);
-    bot.sendMessage(msg.chat.id, 'Something went wrong.');
+    bot.sendMessage(query.message.chat.id, 'Something went wrong.');
   }
 });
 
