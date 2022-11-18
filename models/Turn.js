@@ -90,6 +90,16 @@ const schema = new Schema(
         height: Number,
       },
     ],
+    compressed: {
+      type: Boolean,
+      default: false,
+    },
+    compressedHeight: {
+      type: Number,
+    },
+    uncompressedHeight: {
+      type: Number,
+    },
   },
   {
     timestamps: true,

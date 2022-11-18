@@ -236,7 +236,7 @@ app.post(
   gameMiddleware,
   // rulesCanEdit,
   rulesEndpoint(User.rules.RULE_TURNS_CRUD),
-  turnsController.saveTurn
+  turnsController.createTurn
 );
 app.put(
   '/turns/coordinates',

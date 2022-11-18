@@ -84,7 +84,7 @@ async function deleteTurn(req, res, next) {
     next(error);
   }
 }
-async function saveTurn(req, res, next) {
+async function createTurn(req, res, next) {
   // бусы на нитке - функции в Node все работают с req res
   try {
     const { gameId } = req.gameInfo;
@@ -133,7 +133,17 @@ async function updateCoordinates(req, res, next) {
     const { turns = [] } = req.body;
     const items = [];
     for (let turn of turns) {
-      const { _id, x, y, height, width, scrollPosition } = turn;
+      const {
+        _id,
+        x,
+        y,
+        height,
+        compressed,
+        compressedHeight,
+        uncompressedHeight,
+        width,
+        scrollPosition,
+      } = turn;
 
       // Turn.findOneAndUpdate({
       //     _id: id
@@ -147,7 +157,13 @@ async function updateCoordinates(req, res, next) {
       turnModel.height = height;
       turnModel.width = width;
       turnModel.scrollPosition = scrollPosition;
-
+      turnModel.compressed = !!compressed;
+      if (!!compressedHeight) {
+        turnModel.compressedHeight = compressedHeight;
+      }
+      if (!!uncompressedHeight) {
+        turnModel.uncompressedHeight = uncompressedHeight;
+      }
       turnModel.save();
 
       items.push({
@@ -166,7 +182,7 @@ async function updateCoordinates(req, res, next) {
 }
 
 module.exports = {
-  saveTurn,
+  createTurn,
   getTurns,
   updateCoordinates,
   updateTurn,
