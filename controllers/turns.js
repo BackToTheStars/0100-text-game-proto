@@ -1,4 +1,6 @@
 const Turn = require('../models/Turn');
+const TempTurn = require('../models/TempTurn');
+
 const Game = require('../models/Game');
 const Line = require('../models/Line');
 // const screenshooter = require('./screenshooter');
@@ -181,6 +183,20 @@ async function updateCoordinates(req, res, next) {
   }
 }
 
+// ------------------------- Temp Turn work ---------------------------
+
+async function createTempTurn(req, res, next) {
+  try {
+    res.json({
+      item: await TempTurn.create(req.body),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// --------------------------------------------------------------------
+
 module.exports = {
   createTurn,
   getTurns,
@@ -188,4 +204,5 @@ module.exports = {
   updateTurn,
   deleteTurn,
   deleteQuote,
+  createTempTurn,
 };

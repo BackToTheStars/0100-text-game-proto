@@ -265,6 +265,18 @@ app.delete(
   turnsController.deleteTurn
 );
 
+// ---------------------- Temp Turn work ------------------------
+
+app.post(
+  '/temp-turns',
+  // gameMiddleware,
+  // rulesCanEdit,
+  // rulesEndpoint(User.rules.RULE_TURNS_CRUD),
+  turnsController.createTempTurn
+);
+
+// --------------------------------------------------------------
+
 app.use('*', (req, res) => {
   res.status(404).json({
     message: '404 Not Found',

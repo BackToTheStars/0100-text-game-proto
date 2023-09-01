@@ -7,6 +7,10 @@ https://docs.google.com/drawings/d/1BL40I0eJM7N-OKbTD5wKJu41GaTD9fGCEMUu4fy99hc/
 https://docs.google.com/drawings/d/1ahOdc6fiwPpsVIdKXo3v62KZY1CB9ZYpRdFpb0Kw-Fo/edit
 
 ToDo:
+   - редактирование игры - интерфейс загрузки картинки на сервер как в ходе                          21.08.23.
+
+
+
    - ступенька скролла внизу хода
    - флажок resize двигается вниз не туда
    - красный прямоугольник не соответствует размеру цитаты
