@@ -23,7 +23,7 @@
     "bot": "nodemon bot.js",
     "server": "nodemon server.js",
     "start": "node server.js",
-    "dump": "node ./scripts/db_dump.js",
+    "backup": "node ./scripts/db_dump.js",
     "restore": "node ./scripts/db_restore.js"
   },
   "keywords": [],

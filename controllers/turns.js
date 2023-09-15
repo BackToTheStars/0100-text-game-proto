@@ -1,5 +1,5 @@
 const Turn = require('../models/Turn');
-const TempTurn = require('../models/TempTurn');
+const TempTurn = require('../modules/game/models/Turn');
 
 const Game = require('../models/Game');
 const Line = require('../models/Line');
@@ -195,6 +195,25 @@ async function createTempTurn(req, res, next) {
   }
 }
 
+async function getTempTurns(req, res, next) {
+  try {
+    const { gameId } = req.gameInfo;
+    const { turnIds } = req.query;
+    const criteria = {
+      gameId,
+    };
+    if (!!turnIds) {
+      criteria._id = { $in: turnIds.split(',') };
+    }
+    const turns = await TempTurn.find(criteria);
+    res.json({
+      items: turns,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // --------------------------------------------------------------------
 
 module.exports = {
@@ -205,4 +224,5 @@ module.exports = {
   deleteTurn,
   deleteQuote,
   createTempTurn,
+  getTempTurns,
 };

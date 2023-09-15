@@ -5,7 +5,7 @@ require('dotenv').config({
 
 const { exec } = require('child_process');
 
-const dumpFolder = '2021-10-12-1'; //"2021-07-18-1" in dumps folder
+const dumpFolder = '2023-09-13-1'; //"2021-07-18-1" in dumps folder
 const targetDB = 'BrainDanceDevelopment'; // name of Database in Atlas
 
 const folder = path.join(__dirname, `../dumps/${dumpFolder}/TextGame`);

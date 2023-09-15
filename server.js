@@ -275,6 +275,13 @@ app.post(
   turnsController.createTempTurn
 );
 
+app.get(
+  '/temp-turns',
+  gameMiddleware,
+  rulesCanView,
+  turnsController.getTempTurns
+);
+
 // --------------------------------------------------------------
 
 app.use('*', (req, res) => {
