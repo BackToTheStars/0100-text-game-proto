@@ -78,6 +78,10 @@ const schema = new Schema(
       type: Number,
       default: 0,
     },
+    newTurnsCount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

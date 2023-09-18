@@ -9,6 +9,8 @@ const {
 const toNewFields = (turn) => {
   const widgets = {
     [WIDGET_HEADER]: [
+      // @todo: использовать логику getCommentHeaderColor с клиентского сайта
+      // установить высоту в зависимости от наличия source
       {
         id: 'h_1',
         show: !turn.dontShowHeader,

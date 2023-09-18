@@ -162,6 +162,7 @@ const getGames = async (req, res, next) => {
       description: true,
       image: true,
       turnsCount: true,
+      newTurnsCount: true,
     };
     if (!!req.adminId) {
       // есть ли у него права superAdmin?
@@ -201,8 +202,8 @@ const getLastTurns = async (req, res, next) => {
         gameId: game._id,
         contentType: { $ne: 'zero-point' },
       })
-      .sort({ createdAt: 'desc' })
-      .limit(1);
+        .sort({ createdAt: 'desc' })
+        .limit(1);
 
       lastTurns.push(turns[0]);
     }
