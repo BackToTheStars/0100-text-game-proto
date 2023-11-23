@@ -10,6 +10,7 @@ const turnsController = require('./controllers/turns');
 const gameClassesController = require('./controllers/gameClasses');
 const gameController = require('./controllers/game');
 const authController = require('./controllers/auth');
+const lobbyController = require('./modules/lobby/controllers/lobby');
 const User = require('./models/User');
 const SecurityLayer = require('./services/SecurityLayer');
 const { API_URL } = require('./config/url');
@@ -269,7 +270,7 @@ app.delete(
 
 app.post(
   '/temp-turns',
-  // gameMiddleware,
+  gameMiddleware,
   // rulesCanEdit,
   // rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   turnsController.createTempTurn
@@ -282,7 +283,15 @@ app.get(
   turnsController.getTempTurns
 );
 
-// --------------------------------------------------------------
+// --------------------- Lobby work -------------------------------
+
+app.get(
+  '/lobby/turns',
+  lobbyController.getTurns
+);
+
+
+// --------------------- Lobby work end -------------------------------
 
 app.use('*', (req, res) => {
   res.status(404).json({
