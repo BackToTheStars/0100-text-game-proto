@@ -1,5 +1,66 @@
+const mongoose = require('mongoose');
 const Turn = require('../../../models/Turn');
 const Game = require('../../../models/Game');
+
+const getGameIdsByCodesInfo = async (codesInfo) => {
+  const hashes = codesInfo.map((c) => c.code);
+  const games = await Game.find({
+    'codes.hash': { $in: hashes },
+  });
+  return games.map((g) => g._id);
+};
+
+const getGames = async (req, res, next) => {
+  try {
+    const { codes = '' } = req.query;
+    const codesInfo = codes
+      .split(',')
+      .map((str) => str.split(':'))
+      .map(([hash, code]) => ({
+        hash,
+        code,
+      }));
+
+    const fields = {
+      name: true,
+      public: true,
+      description: true,
+      image: true,
+      turnsCount: true,
+      newTurnsCount: true,
+      image: true,
+    };
+
+    if (!codesInfo.length) {
+      const games = await Game.find({ public: true }, fields).sort({
+        updatedAt: -1,
+      });
+      res.json({ items: games });
+      return;
+    }
+
+    const gameIds = await getGameIdsByCodesInfo(codesInfo);
+
+    const criteria = {
+      $or: [
+        {
+          public: true,
+        },
+        {
+          _id: {
+            $in: gameIds.map((id) => new mongoose.Types.ObjectId(id)),
+          },
+        },
+      ],
+    };
+    const games = await Game.find(criteria, fields).sort({ updatedAt: -1 });
+    res.json({
+      items: games,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 
 const getTurns = async (req, res, next) => {
   try {
@@ -64,9 +125,11 @@ const getTurns = async (req, res, next) => {
       ];
       const gameItems = await Game.aggregate(pipe);
       res.json({
-        items: gameItems.filter((game)=>game.turns.contentType !== 'zero-point').map((item) => {
-          return item.turns;
-        }),
+        items: gameItems
+          .filter((game) => game.turns.contentType !== 'zero-point')
+          .map((item) => {
+            return item.turns;
+          }),
       });
       return;
     }
@@ -79,4 +142,5 @@ const getTurns = async (req, res, next) => {
 
 module.exports = {
   getTurns,
+  getGames,
 };

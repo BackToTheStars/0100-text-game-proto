@@ -285,11 +285,9 @@ app.get(
 
 // --------------------- Lobby work -------------------------------
 
-app.get(
-  '/lobby/turns',
-  lobbyController.getTurns
-);
+app.get('/lobby/games', lobbyController.getGames);
 
+app.get('/lobby/turns', lobbyController.getTurns);
 
 // --------------------- Lobby work end -------------------------------
 
