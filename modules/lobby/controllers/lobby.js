@@ -1,6 +1,17 @@
 const mongoose = require('mongoose');
 const Turn = require('../../../models/Turn');
 const Game = require('../../../models/Game');
+const SecurityLayer = require('../../../services/SecurityLayer');
+
+const getCodesInfo = (codes) => {
+  return codes
+    .split(',')
+    .map((str) => str.split(':'))
+    .map(([hash, code]) => ({
+      hash,
+      code,
+    }));
+};
 
 const getGameIdsByCodesInfo = async (codesInfo) => {
   const hashes = codesInfo.map((c) => c.code);
@@ -10,26 +21,20 @@ const getGameIdsByCodesInfo = async (codesInfo) => {
   return games.map((g) => g._id);
 };
 
+const fields = {
+  name: true,
+  public: true,
+  description: true,
+  image: true,
+  turnsCount: true,
+  newTurnsCount: true,
+  image: true,
+};
+
 const getGames = async (req, res, next) => {
   try {
     const { codes = '' } = req.query;
-    const codesInfo = codes
-      .split(',')
-      .map((str) => str.split(':'))
-      .map(([hash, code]) => ({
-        hash,
-        code,
-      }));
-
-    const fields = {
-      name: true,
-      public: true,
-      description: true,
-      image: true,
-      turnsCount: true,
-      newTurnsCount: true,
-      image: true,
-    };
+    const codesInfo = getCodesInfo(codes);
 
     if (!codesInfo.length) {
       const games = await Game.find({ public: true }, fields).sort({
@@ -55,7 +60,7 @@ const getGames = async (req, res, next) => {
     };
     const games = await Game.find(criteria, fields).sort({ updatedAt: -1 });
     res.json({
-      items: games,
+      items: games.map((g) => ({ ...g.toObject(), hash: SecurityLayer.getHashByGame(g) })),
     });
   } catch (err) {
     next(err);
@@ -69,10 +74,31 @@ const getTurns = async (req, res, next) => {
       limit = 100,
       mode = 'chrono', // or 'byGame'
       //   byGameLimit = 0,
+      codes = '',
     } = req.query;
 
+    const codesInfo = getCodesInfo(codes);
+    const gameIds = await getGameIdsByCodesInfo(codesInfo);
+    const criteria = {
+      $or: [
+        {
+          public: true,
+        },
+        {
+          _id: {
+            $in: gameIds.map((id) => new mongoose.Types.ObjectId(id)),
+          },
+        },
+      ],
+    };
+    const games = await Game.find(criteria, fields).sort({ updatedAt: -1 });
+    const allGameIds = games.map((game) => game._id);
+
     if (mode === 'chrono') {
-      const items = await Turn.find()
+      const items = await Turn.find({
+        gameId: { $in: allGameIds },
+        contentType: { $nin: ['zero-point'] },
+      })
         .skip(skip)
         .limit(limit)
         .sort({ updatedAt: -1 });
@@ -84,6 +110,9 @@ const getTurns = async (req, res, next) => {
       const pipe = [
         {
           $limit: +gameLimit,
+        },
+        {
+          $match: { _id: { $in: allGameIds } },
         },
         {
           $project: {
@@ -110,6 +139,11 @@ const getTurns = async (req, res, next) => {
                     // $ne: ['$contentType', 'zero-point']
                   },
                 },
+                // $match: {
+                //   contentType: {
+                //     $ne: 'zero-point',
+                //   },
+                // },
               },
               {
                 $limit: +turnLimit,
@@ -124,9 +158,12 @@ const getTurns = async (req, res, next) => {
         },
       ];
       const gameItems = await Game.aggregate(pipe);
+      // for (const item of gameItems) {
+      //   console.log(item._id)
+      // }
       res.json({
         items: gameItems
-          .filter((game) => game.turns.contentType !== 'zero-point')
+          // .filter((game) => game.turns.contentType !== 'zero-point')
           .map((item) => {
             return item.turns;
           }),
