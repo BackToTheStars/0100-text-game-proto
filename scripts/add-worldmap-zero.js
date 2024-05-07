@@ -50,6 +50,7 @@ const Turn = require('../models/Turn');
 
 // resetZeroPointsInAllGames();
 
+// @deprecated
 const checkZeroPointsInAllGames = async () => {
   const games = await Game.find();
   for (let game of games) {

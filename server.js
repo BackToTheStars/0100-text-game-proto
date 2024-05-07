@@ -6,10 +6,13 @@ const path = require('path');
 
 let express = require('express');
 const jwt = require('jsonwebtoken');
+
+const newTurnRoutes = require('./modules/game/routes/turns');
 const turnsController = require('./controllers/turns');
 const gameClassesController = require('./controllers/gameClasses');
 const gameController = require('./controllers/game');
 const authController = require('./controllers/auth');
+const lobbyController = require('./modules/lobby/controllers/lobby');
 const User = require('./models/User');
 const SecurityLayer = require('./services/SecurityLayer');
 const { API_URL } = require('./config/url');
@@ -113,6 +116,8 @@ if (process.env.BOT_MODE === 'hook') {
     }
   });
 }
+
+app.use('/new-turns', gameMiddleware, newTurnRoutes);
 
 app.post('/login', authController.login);
 
@@ -283,6 +288,10 @@ app.get(
 );
 
 // --------------------------------------------------------------
+
+app.get('/lobby/games', lobbyController.getGames);
+
+app.get('/lobby/turns', lobbyController.getTurns);
 
 app.use('*', (req, res) => {
   res.status(404).json({

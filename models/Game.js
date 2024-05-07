@@ -106,6 +106,8 @@ schema.statics = {
   //     console.log({ err });
   //   }
   // },
+
+  // @deprecated
   addZeroPointTurn: async function (gameId) {
     const existedTurn = await Turn.findOne({
       gameId,
@@ -128,6 +130,7 @@ schema.statics = {
     }
   },
 
+  // @deprecated
   adjustZeroPointTurnToZeroZero: async function (gameId) {
     const existedTurn = await Turn.findOne({
       gameId,

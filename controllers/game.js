@@ -25,7 +25,7 @@ const createGame = async (req, res, next) => {
 
     game.codes.push(code);
     await game.save();
-    await Game.addZeroPointTurn(game._id);
+    // await Game.addZeroPointTurn(game._id);
 
     res.json({
       hash: SecurityLayer.getHashByGame(game),
