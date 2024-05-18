@@ -6,7 +6,6 @@
 .idea/*
 /node_modules
 .env
-/dumps
 /selenium
 /dist
 .vs

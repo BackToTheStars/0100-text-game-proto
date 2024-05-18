@@ -104,8 +104,16 @@ const adminMiddleware = (req, res, next) => {
   });
 };
 
+const isAdmin = (req, res, next) => {
+  if (!req.adminId) {
+    return _sendError(res, 'Unauthorized');
+  }
+  next();
+}
+
 module.exports = {
   login,
   codeLogin,
   adminMiddleware,
+  isAdmin,
 };
