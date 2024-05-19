@@ -51,9 +51,9 @@ const restore = async (req, res, next) => {
 const createAndRestore = async (req, res, next) => {
   try {
     const createCommand = getDumpCommand(backupConnectionUrl);
-    const restoreCommand = await getRestoreCommand(restoreConnectionUrl);
-
     await execCommand(createCommand);
+    
+    const restoreCommand = await getRestoreCommand(restoreConnectionUrl);
     await execCommand(restoreCommand);
 
     res.json({ success: true });
