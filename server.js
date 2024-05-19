@@ -8,6 +8,8 @@ let express = require('express');
 const jwt = require('jsonwebtoken');
 
 const newTurnRoutes = require('./modules/game/routes/turns');
+const adminGamesRoutes = require('./modules/admin/routes/games');
+const adminTurnsRoutes = require('./modules/admin/routes/turns');
 const backupRoutes = require('./modules/backups/routes/backups');
 
 const turnsController = require('./controllers/turns');
@@ -121,7 +123,24 @@ if (process.env.BOT_MODE === 'hook') {
 }
 
 app.use('/new-turns', gameMiddleware, newTurnRoutes);
-app.use('/backups', authController.adminMiddleware, authController.isAdmin, backupRoutes);
+app.use(
+  '/admin/games',
+  authController.adminMiddleware,
+  authController.isAdmin,
+  adminGamesRoutes
+);
+app.use(
+  '/admin/turns',
+  authController.adminMiddleware,
+  authController.isAdmin,
+  adminTurnsRoutes
+);
+app.use(
+  '/backups',
+  authController.adminMiddleware,
+  authController.isAdmin,
+  backupRoutes
+);
 
 app.post('/login', authController.login);
 
