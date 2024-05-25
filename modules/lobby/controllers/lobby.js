@@ -60,7 +60,10 @@ const getGames = async (req, res, next) => {
     };
     const games = await Game.find(criteria, fields).sort({ updatedAt: -1 });
     res.json({
-      items: games.map((g) => ({ ...g.toObject(), hash: SecurityLayer.getHashByGame(g) })),
+      items: games.map((g) => ({
+        ...g.toObject(),
+        hash: SecurityLayer.getHashByGame(g),
+      })),
     });
   } catch (err) {
     next(err);
@@ -109,10 +112,10 @@ const getTurns = async (req, res, next) => {
 
       const pipe = [
         {
-          $limit: +gameLimit,
+          $match: { _id: { $in: allGameIds } },
         },
         {
-          $match: { _id: { $in: allGameIds } },
+          $limit: +gameLimit,
         },
         {
           $project: {
@@ -154,6 +157,7 @@ const getTurns = async (req, res, next) => {
         {
           $unwind: {
             path: '$turns',
+            preserveNullAndEmptyArrays: true,
           },
         },
       ];

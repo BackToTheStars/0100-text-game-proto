@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { BACKUP_DIR } = require('../../../config/backup');
+const mongoose = require('mongoose');
 
 const getBackupDirs = async () => {
   const items = (await fs.readdirSync(BACKUP_DIR))
@@ -19,7 +20,7 @@ const getDbNameFromConnectionString = (connectionString) => {
   const url = new URL(connectionString);
   const pathnameWithoutQuery = url.pathname.split('?')[0];
   return pathnameWithoutQuery.split('/')[1];
-}
+};
 
 const getDumpCommand = (connectionString) => {
   const date = new Date();
@@ -38,6 +39,21 @@ const getDumpCommand = (connectionString) => {
   return `mongodump --uri "${connectionString}" --out ${targetFolder}`;
 };
 
+const removeAllCollections = async (connectionString) => {
+  const connection = await mongoose.createConnection(connectionString, {
+    useUnifiedTopology: true,
+    useNewUrlParser: true,
+  });
+  const db = connection.db;
+
+  const collections = await db.listCollections().toArray();
+  for (const collection of collections) {
+    await db.collection(collection.name).drop();
+  }
+
+  await connection.close();
+};
+
 const getRestoreCommand = async (connectionString) => {
   const backupDirs = await getBackupDirs();
   const folderName = backupDirs.at(-1).path;
@@ -46,4 +62,9 @@ const getRestoreCommand = async (connectionString) => {
   return `mongorestore --drop -d ${targetDb} ${sourceFolder} --uri "${connectionString}"`;
 };
 
-module.exports = { getBackupDirs, getDumpCommand, getRestoreCommand };
+module.exports = {
+  getBackupDirs,
+  getDumpCommand,
+  removeAllCollections,
+  getRestoreCommand,
+};

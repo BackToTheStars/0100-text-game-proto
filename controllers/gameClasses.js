@@ -41,62 +41,6 @@ const updateGameClass = async (req, res, next) => {
   }
 };
 
-const updateGameClassOld = async (req, res, next) => {
-  try {
-    const { gameId } = req.gameInfo;
-    const { id } = req.params;
-    let {
-      gameClass,
-      addNewSubclass,
-      renameSubclass,
-      //   : { fromRenameSubclass = null, toRenameSubclass = null },
-      subClassToDelete,
-    } = req.body;
-
-    const item = await GameClass.findOne({ _id: id, gameId });
-
-    console.log(item);
-    if (gameClass) {
-      item.gameClass = gameClass.trim();
-    }
-    if (addNewSubclass) {
-      addNewSubclass = addNewSubclass.trim();
-      item.subClasses.push(addNewSubclass);
-    }
-    if (renameSubclass) {
-      const { from, to } = renameSubclass;
-      fromRenameSubclass = from.trim();
-      toRenameSubclass = to.trim();
-      const index = item.subClasses.indexOf(fromRenameSubclass);
-      console.log({
-        fromRenameSubclass,
-        toRenameSubclass,
-        index,
-      });
-      if (index !== -1) {
-        const prevSubClasses = [...item.subClasses];
-        prevSubClasses.splice(index, 1, toRenameSubclass);
-        item.subClasses = prevSubClasses;
-        // item.subClasses.splice(index, 1, toRenameSubclass);
-      }
-    }
-    if (subClassToDelete) {
-      subClassToDelete = subClassToDelete.trim();
-      const index = item.subClasses.indexOf(subClassToDelete);
-      if (index !== -1) {
-        item.subClasses.splice(index, 1);
-      }
-    }
-
-    await item.save();
-    res.json({
-      item,
-    });
-  } catch (e) {
-    next(e);
-  }
-};
-
 async function deleteGameClass(req, res, next) {
   try {
     const { gameId } = req.gameInfo;

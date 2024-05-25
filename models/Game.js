@@ -2,21 +2,6 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const Turn = require('./Turn');
 
-const redLogicLine = new Schema({
-  sourceTurnId: {
-    type: mongoose.Types.ObjectId,
-  },
-  sourceMarker: {
-    type: Number,
-  },
-  targetTurnId: {
-    type: mongoose.Types.ObjectId,
-  },
-  targetMarker: {
-    type: Number,
-  },
-});
-
 const roleSchema = new Schema({
   role: {
     type: Number,
@@ -54,10 +39,6 @@ const schema = new Schema(
     },
     codes: {
       type: [roleSchema],
-      default: [],
-    },
-    redLogicLines: {
-      type: [redLogicLine],
       default: [],
     },
     public: {

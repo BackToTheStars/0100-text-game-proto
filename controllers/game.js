@@ -48,7 +48,6 @@ const getGame = async (req, res) => {
     hash: true,
     name: true,
     public: true,
-    redLogicLines: true,
     description: true,
     image: true,
     codes: true, // есть ли у него права superAdmin?
@@ -245,20 +244,6 @@ const getTokens = async (req, res, next) => {
   }
 };
 
-// const getItem = async (req, res) => {
-//     let game = await Game.findOne();
-//     // @fixme
-//     if (!game) {
-//         game = new Game({
-//             name: "Dev"
-//         })
-//         await game.save();
-//     }
-//     res.json({
-//         item: game
-//     })
-// }
-
 const createRedLogicLine2 = async (req, res, next) => {
   try {
     const { gameId, nickname } = req.gameInfo;
@@ -280,59 +265,6 @@ const createRedLogicLine2 = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-};
-
-// @deprecated
-const createRedLogicLine = async (req, res) => {
-  const { gameId } = req.gameInfo;
-  const { sourceTurnId, sourceMarker, targetTurnId, targetMarker } = req.body;
-  const game = await Game.findById(gameId);
-  game.redLogicLines = [
-    { sourceTurnId, sourceMarker, targetTurnId, targetMarker },
-    ...game.redLogicLines,
-  ];
-  await game.save();
-  res.json({ item: game.redLogicLines[0] });
-};
-
-const updateRedLogicLines = async (req, res) => {
-  const { gameId } = req.gameInfo;
-  const { redLogicLines } = req.body;
-  // console.log(redLogicLines);
-  const game = await Game.findById(gameId);
-  // @fixme
-  // if (!game) {
-  //     game = new Game({
-  //         name: "Dev"
-  //     })
-  //     await game.save();
-  // }
-  game.redLogicLines = redLogicLines;
-  await game.save();
-  res.json({ item: game }); // нейтральное название "item" (payload)
-};
-
-// @deprecated
-const deleteRedLogicLines = async (req, res) => {
-  const { gameId } = req.gameInfo;
-  const { redLogicLines } = req.body;
-  // console.log(redLogicLines);
-  const game = await Game.findById(gameId);
-  // @todo: O(n^2) заменить на O(n)
-  const length = game.redLogicLines.length;
-  game.redLogicLines = game.redLogicLines.filter((line) => {
-    for (let redLogicLineToRemove of redLogicLines) {
-      if (line._id == redLogicLineToRemove._id) {
-        return false;
-      }
-    }
-    return true;
-  });
-  await game.save();
-
-  res.json({
-    item: game,
-  });
 };
 
 const deleteRedLogicLines2 = async (req, res, next) => {
@@ -399,11 +331,7 @@ const getScreenshot = async (req, res, next) => {
 
 module.exports = {
   createGame,
-  // getItem,
-  updateRedLogicLines,
-  createRedLogicLine,
   createRedLogicLine2,
-  deleteRedLogicLines,
   deleteRedLogicLines2,
   getGame,
   getGames,

@@ -2,6 +2,7 @@ const {
   getBackupDirs,
   getDumpCommand,
   getRestoreCommand,
+  removeAllCollections,
 } = require('../services/backups');
 const { exec } = require('child_process');
 
@@ -53,6 +54,7 @@ const createAndRestore = async (req, res, next) => {
     const createCommand = getDumpCommand(backupConnectionUrl);
     await execCommand(createCommand);
     
+    await removeAllCollections(restoreConnectionUrl);
     const restoreCommand = await getRestoreCommand(restoreConnectionUrl);
     await execCommand(restoreCommand);
 

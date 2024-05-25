@@ -11,6 +11,7 @@ const newTurnRoutes = require('./modules/game/routes/turns');
 const adminGamesRoutes = require('./modules/admin/routes/games');
 const adminTurnsRoutes = require('./modules/admin/routes/turns');
 const backupRoutes = require('./modules/backups/routes/backups');
+const snapshotRoutes = require('./modules/backups/routes/snapshots');
 
 const turnsController = require('./controllers/turns');
 const gameClassesController = require('./controllers/gameClasses');
@@ -123,24 +124,23 @@ if (process.env.BOT_MODE === 'hook') {
 }
 
 app.use('/new-turns', gameMiddleware, newTurnRoutes);
-app.use(
-  '/admin/games',
-  authController.adminMiddleware,
-  authController.isAdmin,
-  adminGamesRoutes
-);
-app.use(
-  '/admin/turns',
-  authController.adminMiddleware,
-  authController.isAdmin,
-  adminTurnsRoutes
-);
-app.use(
-  '/backups',
-  authController.adminMiddleware,
-  authController.isAdmin,
-  backupRoutes
-);
+
+const adminRoutes = {
+  '/admin/games': adminGamesRoutes,
+  '/admin/turns': adminTurnsRoutes,
+  '/backups': backupRoutes,
+  '/snapshots': snapshotRoutes,
+};
+
+// добавляем middleware для всех админских роутов
+for (let route in adminRoutes) {
+  app.use(
+    route,
+    authController.adminMiddleware,
+    authController.isAdmin,
+    adminRoutes[route]
+  );
+}
 
 app.post('/login', authController.login);
 
@@ -156,7 +156,6 @@ app.get(
 
 app.post(
   '/games/tokens',
-  // hello world
   gameMiddleware,
   rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameController.getTokens
@@ -198,26 +197,6 @@ app.delete(
   gameMiddleware,
   rulesEndpoint(User.rules.RULE_TURNS_CRUD),
   gameController.deleteRedLogicLines2
-);
-
-app.put(
-  '/game/red-logic-lines',
-  gameMiddleware,
-  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
-  gameController.updateRedLogicLines
-); // camelCase в endpoints не используют
-
-app.post(
-  '/game/red-logic-lines',
-  gameMiddleware,
-  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
-  gameController.createRedLogicLine
-);
-app.delete(
-  '/game/red-logic-lines',
-  gameMiddleware,
-  rulesEndpoint(User.rules.RULE_TURNS_CRUD),
-  gameController.deleteRedLogicLines
 );
 
 app.post(
