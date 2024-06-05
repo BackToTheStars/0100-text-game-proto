@@ -1,6 +1,6 @@
-const Game = require('../../../models/Game');
-const Turn = require('../../../models/Turn');
-const GameClass = require('../../../models/GameClass');
+const Game = require('../../game/models/Game');
+const Turn = require('../../game/models/Turn');
+const GameClass = require('../../game/models/GameClass');
 const { createGameSnapshot } = require('../../backups/services/snapshots');
 
 const list = async (req, res, next) => {
@@ -31,7 +31,7 @@ const list = async (req, res, next) => {
       .limit(+limit)
       .sort({ [sort]: sortDir === 'asc' ? 1 : -1 });
 
-    const count = await Game.count(criteria);
+    const count = await Game.countDocuments(criteria);
     res.json({
       count,
       items,

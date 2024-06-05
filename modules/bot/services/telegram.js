@@ -8,7 +8,7 @@ const { getToken } = require('../lib/game');
 const fs = require('fs');
 
 const Turn = require('../models/Turn');
-const { STATIC_API_URL } = require('../config/url');
+const { STATIC_API_URL } = require('../../../config/url');
 
 const tmpBasePath = path.join(__dirname, '../tmp/');
 

@@ -1,4 +1,4 @@
-const Turn = require('../../../models/Turn');
+const Turn = require('../../game/models/Turn');
 
 const list = async (req, res, next) => {
   try {
@@ -25,7 +25,7 @@ const list = async (req, res, next) => {
       .skip(+skip)
       .limit(+limit)
       .sort({ [sort]: sortDir === 'asc' ? 1 : -1 });
-    const count = await Turn.count(criteria);
+    const count = await Turn.countDocuments(criteria);
     res.json({
       count,
       items,

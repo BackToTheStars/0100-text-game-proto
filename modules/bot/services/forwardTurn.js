@@ -4,9 +4,9 @@ const {
   downloadImage,
   uploadImage,
   createTurn,
-} = require('../../../lib/telegram');
+} = require('./telegram');
 const Game = require('../../../models/Game');
-const SecurityLayer = require('../../../services/SecurityLayer');
+const { hashFunc } = require('../../game/services/security');
 const {
   getUserInfo,
   STEP_MESSAGE_FORWARD,
@@ -60,7 +60,7 @@ const saveForwardedTurn = async (bot, msg, { telegramUser, gameId, token }) => {
     }
   }
   await createTurn(turnData);
-  const shortHash = SecurityLayer.hashFunc(gameId);
+  const shortHash = hashFunc(gameId);
   bot.sendMessage(
     msg.chat.id,
     `New turn created. Follow the link:

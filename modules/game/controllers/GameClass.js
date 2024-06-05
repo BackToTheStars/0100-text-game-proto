@@ -1,10 +1,4 @@
 const GameClass = require('../models/GameClass');
-const bunyan = require('bunyan');
-const log = bunyan.createLogger({
-  name: 'gameClassesController',
-  level: 'debug',
-});
-
 // @todo: разделить на создание класса и обновление класса (в том числе добавление субкласса)
 const createGameClass = async (req, res, next) => {
   try {
@@ -78,30 +72,17 @@ const getGameClasses = async (req, res) => {
 async function gameClassAddSubclass(req, res) {
   try {
     const { gameId } = req.gameInfo;
-    // console.log(`${JSON.stringify(req.body)}`);
     const { className, subClass } = req.body;
     const gameClassModel = await GameClass.find({
       gameClass: className,
       gameId,
     });
-    // console.log(`${JSON.stringify(gameClassModel)}`);
     if (!gameClassModel.length) {
       console.log(`className: ${className} was not found in db`);
     } else if (gameClassModel.length == 1) {
       if (gameClassModel[0].subClasses) {
-        console.log(
-          `PUSH: gameClassModel[0].subClasses: ${JSON.stringify(
-            gameClassModel[0].subClasses
-          )}`
-        );
         gameClassModel[0].subClasses.push(subClass);
-        //gameClassModel[0].update({subClasses: gameClassModel[0].subClasses});
       } else {
-        console.log(
-          `NEW: gameClassModel[0].subClasses: ${JSON.stringify(
-            gameClassModel[0].subClasses
-          )}`
-        );
         gameClassModel[0].subClasses = [subClass];
       }
       await gameClassModel[0].save();

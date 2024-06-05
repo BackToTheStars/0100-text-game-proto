@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
-const Turn = require('../../../models/Turn');
-const Game = require('../../../models/Game');
-const SecurityLayer = require('../../../services/SecurityLayer');
+const Turn = require('../../game/models/Turn');
+const Game = require('../../game/models/Game');
+const { getHashByGame } = require('../../game/services/security');
 
 const getCodesInfo = (codes) => {
   return codes
@@ -62,7 +62,7 @@ const getGames = async (req, res, next) => {
     res.json({
       items: games.map((g) => ({
         ...g.toObject(),
-        hash: SecurityLayer.getHashByGame(g),
+        hash: getHashByGame(g),
       })),
     });
   } catch (err) {

@@ -1,6 +1,6 @@
-const Game = require('../../../models/Game');
-const Turn = require('../../../models/Turn');
-const GameClass = require('../../../models/GameClass');
+const Game = require('../../game/models/Game');
+const Turn = require('../../game/models/Turn');
+const GameClass = require('../../game/models/GameClass');
 const Snapshot = require('../models/Snapshot');
 
 const TYPE_GAME = 'game';

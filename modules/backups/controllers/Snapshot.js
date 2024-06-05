@@ -15,7 +15,7 @@ const list = async (req, res, next) => {
     if (typeName) {
       criteria.typeName = typeName;
     }
-    const count = await Snapshot.count(criteria);
+    const count = await Snapshot.countDocuments(criteria);
     const items = await Snapshot.find(criteria, {
       params: 1,
       createdAt: 1,
@@ -38,7 +38,7 @@ const createSnapshot = async (req, res, next) => {
       const snapshot = await createGameSnapshot(req.body.gameId);
       res.json({ item: snapshot });
     } else {
-      next(getError(`Cannot create snapshot for type ${typeName}`, 400));
+      return next(getError(`Cannot create snapshot for type ${typeName}`, 400));
     }
   } catch (err) {
     next(err);
