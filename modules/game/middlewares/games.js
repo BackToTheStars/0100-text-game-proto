@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { ROLES, ROLE_GAME_VISITOR } = require('../../../config/game/user');
 const { getInfo } = require('../services/security');
-const { AUTH_VERSION } = require('../../../config/game/auth');
 
 const gameMiddleware = async (req, res, next) => {
   try {
@@ -20,7 +19,7 @@ const gameMiddleware = async (req, res, next) => {
         if (!err) {
           req.gameInfo = {
             gameId,
-            code: decoded.data?.code,
+            // code: decoded.data?.code,
             role: decoded.data.role,
             nickname: decoded.data.nickname || 'Unknown', // проверка того, что пользователь зашёл
             v: decoded.data?.v,

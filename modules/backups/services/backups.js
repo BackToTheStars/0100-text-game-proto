@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { BACKUP_DIR } = require('../../../config/backup');
 const mongoose = require('mongoose');
+const { exec } = require('child_process');
 
 const getBackupDirs = async () => {
   const items = (await fs.readdirSync(BACKUP_DIR))
@@ -62,9 +63,19 @@ const getRestoreCommand = async (connectionString) => {
   return `mongorestore --drop -d ${targetDb} ${sourceFolder} --uri "${connectionString}"`;
 };
 
+const execCommand = async (command) => {
+  const { stdout, stderr } = await new Promise((resolve, reject) =>
+    exec(command, (err, stdout, stderr) =>
+      err ? reject(err) : resolve({ stdout, stderr })
+    )
+  );
+  return { stdout, stderr };
+};
+
 module.exports = {
   getBackupDirs,
   getDumpCommand,
   removeAllCollections,
   getRestoreCommand,
+  execCommand,
 };

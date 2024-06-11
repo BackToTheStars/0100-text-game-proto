@@ -7,6 +7,8 @@ const express = require('express');
 const adminAuthRoutes = require('./modules/admin/routes/auth');
 const adminGamesRoutes = require('./modules/admin/routes/games');
 const adminTurnsRoutes = require('./modules/admin/routes/turns');
+
+const adminScriptsRoutes = require('./modules/admin/routes/scripts');
 const backupRoutes = require('./modules/backups/routes/backups');
 const snapshotRoutes = require('./modules/backups/routes/snapshots');
 
@@ -62,6 +64,8 @@ app.use('/admin/auth', adminAuthRoutes);
 const adminRoutes = {
   '/admin/games': adminGamesRoutes,
   '/admin/turns': adminTurnsRoutes,
+  '/admin/scripts': adminScriptsRoutes,
+  
   '/admin/backups': backupRoutes,
   '/admin/snapshots': snapshotRoutes,
 };

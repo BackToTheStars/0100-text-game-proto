@@ -7,29 +7,27 @@ const { AUTH_VERSION } = require('../../../config/game/auth');
 
 const codeLogin = async (req, res, next) => {
   try {
-    const { hash, nickname } = req.body; // это после : в запросе
+    const { code, nickname } = req.body; // это после : в запросе
 
-    if (!hash || !nickname) {
-      return next(getError('Invalid hash or nickname', 401));
+    if (!code || !nickname) {
+      return next(getError('Invalid code or nickname', 401));
     }
 
     const game = await Game.findOne({
-      'codes.hash': hash,
+      'codes.hash': code,
     });
 
     if (!game) {
-      return next(getError('Invalid hash or nickname', 401));
+      return next(getError('Invalid code or nickname', 401));
     }
 
-    // @todo: check if there is the same nickname
-    const codeObj = game.codes.find((code) => code.hash === hash);
-
+    const codeObj = game.codes.find((codeItem) => codeItem.hash === code);
     const cookieExp = Date.now() + 7 * 24 * 3600000;
 
     const data = {
       v: AUTH_VERSION,
-      hash: getHashByGame(game),
-      code: hash,
+      // hash: getHashByGame(game),
+      code,
       nickname,
       role: codeObj.role,
     };
@@ -44,7 +42,10 @@ const codeLogin = async (req, res, next) => {
     res.json({
       success: true,
       expires: Math.floor(cookieExp / 1000),
-      info: data,
+      info: {
+        ...data,
+        hash: getHashByGame(game)
+      },
       token,
     });
   } catch (error) {
@@ -55,9 +56,10 @@ const codeLogin = async (req, res, next) => {
 const addCode = async (req, res, next) => {
   try {
     const { gameId } = req.gameInfo;
+    const { role = ROLE_GAME_PLAYER } = req.body;
 
     const code = {
-      role: ROLE_GAME_PLAYER,
+      role,
       hash: hashFunc(gameId, process.env.GAME_ID_HASH_LENGTH),
     };
 

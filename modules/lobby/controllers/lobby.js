@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Turn = require('../../game/models/Turn');
 const Game = require('../../game/models/Game');
-const { getHashByGame } = require('../../game/services/security');
+const { getHashByGame, getInfo } = require('../../game/services/security');
 
 const getCodesInfo = (codes) => {
   return codes
@@ -181,7 +181,43 @@ const getTurns = async (req, res, next) => {
   }
 };
 
+const getGamesByHashes = async (req, res, next) => {
+  try {
+    const { hashes } = req.query;
+    const arrHashes = hashes.split(',');
+    const ids = [];
+    const notFoundHashes = [];
+    for (const hash of arrHashes) {
+      const gameInfo = await getInfo(hash);
+      if (gameInfo.gameId) {
+        ids.push(gameInfo.gameId);
+      } else {
+        notFoundHashes.push(hash);
+      }
+    }
+    const games = await Game.find({ _id: { $in: ids }, accessLevel: 'link' }, fields);
+    res.json({
+      items: games.map((g) => ({ ...g.toObject(), hash: getHashByGame(g) })),
+      notFoundHashes,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const checkGame = async (req, res, next) => {
+  try {
+    const { hash } = req.query;
+    const gameInfo = await getInfo(hash);
+    res.json({ item: gameInfo });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getTurns,
   getGames,
+  getGamesByHashes,
+  checkGame,
 };

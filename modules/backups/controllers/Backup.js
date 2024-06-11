@@ -3,20 +3,11 @@ const {
   getDumpCommand,
   getRestoreCommand,
   removeAllCollections,
+  execCommand
 } = require('../services/backups');
-const { exec } = require('child_process');
 
 const backupConnectionUrl = process.env.BACKUP_MONGO_URL;
 const restoreConnectionUrl = process.env.RESTORE_MONGO_URL;
-
-const execCommand = async (command) => {
-  const { stdout, stderr } = await new Promise((resolve, reject) =>
-    exec(command, (err, stdout, stderr) =>
-      err ? reject(err) : resolve({ stdout, stderr })
-    )
-  );
-  return { stdout, stderr };
-}
 
 // actions
 const list = async (req, res, next) => {

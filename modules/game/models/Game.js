@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const Turn = require('./Turn');
 
-const roleSchema = new Schema({
+const codeSchema = new Schema({
   role: {
     type: Number,
     required: true,
@@ -38,12 +38,17 @@ const schema = new Schema(
       type: String,
     },
     codes: {
-      type: [roleSchema],
+      type: [codeSchema],
       default: [],
     },
     public: {
       type: Boolean,
       default: true,
+    },
+    accessLevel: {
+      type: String,
+      // default: 'link', // 'code'
+      enum: ['link', 'code'],
     },
     turnsCount: {
       type: Number,
@@ -53,6 +58,8 @@ const schema = new Schema(
       type: Number,
       default: 0,
     },
+    // @deprecated
+    redLogicLines: mongoose.Schema.Types.Mixed,
   },
   {
     timestamps: true,

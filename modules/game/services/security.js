@@ -44,8 +44,8 @@ const getInfo = async (hash) => {
             }
           }
           for (const hash of hashes) {
-            if (d[hash]) {
-              throw getError(`hash duplicated: ${hash}`, 400);
+            if (d[hash] && d[hash] !== game._id) {
+              throw getError(`hash duplicated: ${hash} ids: ${d[hash]}, ${game._id}`, 400);
             }
             d[hash] = game._id;
           }
