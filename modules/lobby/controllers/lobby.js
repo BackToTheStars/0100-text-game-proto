@@ -33,7 +33,7 @@ const fields = {
 
 const getGames = async (req, res, next) => {
   try {
-    const { codes = '' } = req.query;
+    const { codes = '', chosen = false } = req.query;
     const codesInfo = getCodesInfo(codes);
 
     if (!codesInfo.length) {
@@ -46,17 +46,20 @@ const getGames = async (req, res, next) => {
 
     const gameIds = await getGameIdsByCodesInfo(codesInfo);
 
+    const idCriterias = [
+      {
+        _id: {
+          $in: gameIds.map((id) => new mongoose.Types.ObjectId(id)),
+        },
+      },
+    ];
+    if (!chosen) {
+      idCriterias.push({
+        public: true,
+      });
+    }
     const criteria = {
-      $or: [
-        {
-          public: true,
-        },
-        {
-          _id: {
-            $in: gameIds.map((id) => new mongoose.Types.ObjectId(id)),
-          },
-        },
-      ],
+      $or: idCriterias,
     };
     const games = await Game.find(criteria, fields).sort({ updatedAt: -1 });
     res.json({
@@ -78,21 +81,26 @@ const getTurns = async (req, res, next) => {
       mode = 'chrono', // or 'byGame'
       //   byGameLimit = 0,
       codes = '',
+      chosen = false,
     } = req.query;
 
     const codesInfo = getCodesInfo(codes);
     const gameIds = await getGameIdsByCodesInfo(codesInfo);
+
+    const idCriterias = [
+      {
+        _id: {
+          $in: gameIds.map((id) => new mongoose.Types.ObjectId(id)),
+        },
+      },
+    ];
+    if (!chosen) {
+      idCriterias.push({
+        public: true,
+      });
+    }
     const criteria = {
-      $or: [
-        {
-          public: true,
-        },
-        {
-          _id: {
-            $in: gameIds.map((id) => new mongoose.Types.ObjectId(id)),
-          },
-        },
-      ],
+      $or: idCriterias,
     };
     const games = await Game.find(criteria, fields).sort({ updatedAt: -1 });
     const allGameIds = games.map((game) => game._id);
@@ -195,7 +203,10 @@ const getGamesByHashes = async (req, res, next) => {
         notFoundHashes.push(hash);
       }
     }
-    const games = await Game.find({ _id: { $in: ids }, accessLevel: 'link' }, fields);
+    const games = await Game.find(
+      { _id: { $in: ids }, accessLevel: 'link' },
+      fields
+    );
     res.json({
       items: games.map((g) => ({ ...g.toObject(), hash: getHashByGame(g) })),
       notFoundHashes,
