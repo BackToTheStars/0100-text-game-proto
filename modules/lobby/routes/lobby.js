@@ -6,7 +6,7 @@ const {
   getGames,
   getGamesByHashes,
   checkGame,
-} = require('../controllers/Lobby');
+} = require('../controllers/LobbyController');
 
 router.get('/turns', getTurns);
 router.get('/games', getGames);
