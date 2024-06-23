@@ -53,6 +53,43 @@ const codeLogin = async (req, res, next) => {
   }
 };
 
+const refreshCode = async (req, res, next) => {
+  try {
+    const { gameId, role } = req.gameInfo;
+    const game = await Game.findById(gameId);
+    const { nickname } = req.body;
+    const cookieExp = Date.now() + 7 * 24 * 3600000;
+    const code = game.codes.find((codeItem) => codeItem.role === role).hash;
+
+    const data = {
+      v: AUTH_VERSION,
+      // hash: getHashByGame(game),
+      code,
+      nickname,
+      role,
+    };
+    const token = jwt.sign(
+      {
+        exp: Math.floor(cookieExp / 1000),
+        data,
+      },
+      process.env.JWT_SECRET
+    );
+
+    res.json({
+      success: true,
+      expires: Math.floor(cookieExp / 1000),
+      info: {
+        ...data,
+        hash: getHashByGame(game),
+      },
+      token,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 const addCode = async (req, res, next) => {
   try {
     const { gameId } = req.gameInfo;
@@ -104,4 +141,5 @@ module.exports = {
   codeLogin,
   addCode,
   updateViewport,
+  refreshCode,
 };

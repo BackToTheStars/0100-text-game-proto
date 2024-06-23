@@ -47,7 +47,7 @@ const schema = new Schema(
     },
     accessLevel: {
       type: String,
-      // default: 'link', // 'code'
+      default: 'link', // 'code'
       enum: ['link', 'code'],
     },
     turnsCount: {

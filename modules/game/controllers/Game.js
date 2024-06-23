@@ -9,7 +9,10 @@ const {
   getHashByGame,
 } = require('../services/security');
 
-const { ROLE_GAME_OWNER } = require('../../../config/game/user');
+const {
+  ROLE_GAME_OWNER,
+  ROLE_GAME_VISITOR,
+} = require('../../../config/game/user');
 const { createGameSnapshot } = require('../../backups/services/snapshots');
 
 const createGame = async (req, res, next) => {
@@ -23,6 +26,13 @@ const createGame = async (req, res, next) => {
 
     clearGamesCache();
     await game.save();
+
+    if (game.accessLevel === 'link') {
+      game.codes.push({
+        role: ROLE_GAME_VISITOR,
+        hash: hashFunc(game._id),
+      });
+    }
 
     const code = {
       role: ROLE_GAME_OWNER, // @todo: check if need to use role hash
