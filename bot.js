@@ -1,5 +1,5 @@
 require('dotenv').config();
-require('./models/db');
+require('./config/db');
 
 const TelegramBot = require('node-telegram-bot-api');
 
