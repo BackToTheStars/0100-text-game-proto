@@ -4,10 +4,10 @@ const path = require('path');
 const uniqid = require('uniqid');
 const axios = require('axios');
 const FormData = require('form-data');
-const { getToken } = require('../lib/game');
+const { getToken } = require('../../game/services/game');
 const fs = require('fs');
 
-const Turn = require('../models/Turn');
+const Turn = require('../../game/models/Turn');
 const { STATIC_API_URL } = require('../../../config/url');
 
 const tmpBasePath = path.join(__dirname, '../tmp/');

@@ -1,4 +1,4 @@
-const Game = require('../../../models/Game');
+const Game = require('../../game/models/Game');
 
 const confirmToForgetGameCode = async (bot, msg, { telegramUser, gameId }) => {
   const existingGames = telegramUser.games;

@@ -5,7 +5,7 @@ const {
   uploadImage,
   createTurn,
 } = require('./telegram');
-const Game = require('../../../models/Game');
+const Game = require('../../game/models/Game');
 const { hashFunc } = require('../../game/services/security');
 const {
   getUserInfo,

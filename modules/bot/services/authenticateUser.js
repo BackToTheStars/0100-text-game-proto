@@ -1,7 +1,6 @@
-const { addLog, TYPE_BOT_GAME_CODE_ERROR } = require('../../../lib/log');
-const Game = require('../../../models/Game');
+const { TYPE_BOT_GAME_CODE_ERROR, addLog } = require('../../core/services/log');
+const Game = require('../../game/models/Game');
 const TelegramUser = require('../models/TelegramUser');
-
 const getUserByChatId = async (chatId) => {
   let telegramUser = await TelegramUser.findOne({
     userId: chatId,
