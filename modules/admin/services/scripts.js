@@ -9,6 +9,8 @@ const {
   updateGamesCache,
   checkOldLines,
   removeOldLines,
+  checkCodeViewports,
+  removeCodeViewports,
 } = require('./scripts/Game');
 
 const {
@@ -71,6 +73,16 @@ const scripts = [
         name: 'removeOldLines',
         description: 'Удаление старых линий',
         callback: removeOldLines,
+      },
+      {
+        name: 'checkCodeViewports',
+        description: 'Проверка кодов вьюпортов',
+        callback: checkCodeViewports,
+      },
+      {
+        name: 'removeCodeViewports',
+        description: 'Удаление кодов вьюпортов',
+        callback: removeCodeViewports,
       },
     ],
   },

@@ -1,4 +1,4 @@
-const Turn = require("../models/Turn");
+const Turn = require('../models/Turn');
 const Game = require('../models/Game');
 const Line = require('../models/Line');
 
@@ -46,14 +46,19 @@ const getTurnsByIds = async (req, res, next) => {
     if (ids) {
       criteria._id = { $in: ids.split(',') };
     }
-    const turns = await Turn.find(criteria, { x: false, y: false, width: false, height: false });
+    const turns = await Turn.find(criteria, {
+      x: false,
+      y: false,
+      width: false,
+      height: false,
+    });
     res.json({
       items: turns,
     });
   } catch (err) {
     next(err);
   }
-}
+};
 
 async function updateTurn(req, res, next) {
   try {
@@ -138,9 +143,9 @@ async function updateCoordinates(req, res, next) {
         x,
         y,
         height,
-        compressed,
-        compressedHeight,
-        uncompressedHeight,
+        // compressed,
+        // compressedHeight,
+        // uncompressedHeight,
         width,
         scrollPosition,
       } = turn;
@@ -157,15 +162,38 @@ async function updateCoordinates(req, res, next) {
       turnModel.height = height;
       turnModel.width = width;
       turnModel.scrollPosition = scrollPosition;
-      turnModel.compressed = !!compressed;
-      if (!!compressedHeight) {
-        turnModel.compressedHeight = compressedHeight;
-      }
-      if (!!uncompressedHeight) {
-        turnModel.uncompressedHeight = uncompressedHeight;
-      }
+      // turnModel.compressed = !!compressed;
+      // if (!!compressedHeight) {
+      //   turnModel.compressedHeight = compressedHeight;
+      // }
+      // if (!!uncompressedHeight) {
+      //   turnModel.uncompressedHeight = uncompressedHeight;
+      // }
       turnModel.save();
 
+      items.push({
+        _id: turnModel._id,
+      });
+    }
+    res.json({
+      success: true,
+      items,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function updateScrollPositions(req, res, next) {
+  try {
+    const { gameId } = req.gameInfo;
+    const { turns = [] } = req.body;
+    const items = [];
+    for (let turn of turns) {
+      const { turnId, widgetId, scrollPosition } = turn;
+      const turnModel = await Turn.findOne({ _id: turnId, gameId });
+      turnModel.scrollPosition = scrollPosition;
+      turnModel.save();
       items.push({
         _id: turnModel._id,
       });
@@ -184,6 +212,7 @@ module.exports = {
   getTurnsByIds,
   createTurn,
   updateCoordinates,
+  updateScrollPositions,
   updateTurn,
   deleteTurn,
 };

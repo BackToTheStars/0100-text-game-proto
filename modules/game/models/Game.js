@@ -12,13 +12,15 @@ const codeSchema = new Schema({
     required: true,
   },
   viewportPointX: {
+    // @deprecated
     type: Number,
-    default: 0,
+    // default: 0,
     required: false,
   },
   viewportPointY: {
+    // @deprecated
     type: Number,
-    default: 0,
+    // default: 0,
     required: false,
   },
 });

@@ -6,6 +6,7 @@ const {
   getTurnsByIds,
   createTurn,
   updateCoordinates,
+  updateScrollPositions,
   updateTurn,
   deleteTurn,
 } = require('../controllers/Turn');
@@ -15,6 +16,11 @@ router.get('/geometry', getTurnsGeometry);
 router.get('/ids', getTurnsByIds);
 router.post('/', rulesEndpoint(RULE_TURNS_CRUD), createTurn);
 router.put('/coordinates', rulesEndpoint(RULE_TURNS_CRUD), updateCoordinates);
+router.put(
+  '/scroll-positions',
+  rulesEndpoint(RULE_TURNS_CRUD),
+  updateScrollPositions
+);
 router.put('/:id', rulesEndpoint(RULE_TURNS_CRUD), updateTurn);
 router.delete('/:id', rulesEndpoint(RULE_TURNS_CRUD), deleteTurn);
 

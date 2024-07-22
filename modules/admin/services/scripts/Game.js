@@ -50,6 +50,56 @@ const removeOldLines = async () => {
   return [true, `Old lines removed from games`];
 };
 
+const checkCodeViewports = async () => {
+  const gamesWithViewports = await Game.find({
+    $or: [
+      { 'codes.viewportPointX': { $exists: true } },
+      { 'codes.viewportPointY': { $exists: true } },
+    ],
+  });
+  return [
+    true,
+    `${gamesWithViewports.length} games with viewports in codes found`,
+  ];
+};
+
+const removeCodeViewports = async () => {
+  const gamesWithViewports = await Game.find({
+    $or: [
+      { 'codes.viewportPointX': { $exists: true } },
+      { 'codes.viewportPointY': { $exists: true } },
+    ],
+  });
+
+  let games = 0;
+  let codes = 0;
+  for (const game of gamesWithViewports) {
+    const newCodes = [];
+    for (const code of game.codes) {
+      if (
+        code.viewportPointX !== undefined ||
+        code.viewportPointY !== undefined
+      ) {
+        codes += 1;
+        newCodes.push({
+          ...code.toObject(),
+          viewportPointX: undefined,
+          viewportPointY: undefined,
+        });
+      } else {
+        newCodes.push(code);
+      }
+    }
+
+    game.codes = newCodes;
+    game.markModified('codes');
+    await game.save();
+    games += 1;
+  }
+
+  return [true, `${games} games updated. ${codes} codes updated.`];
+};
+
 module.exports = {
   checkZeroPoints,
   removeZeroPoints,
@@ -57,4 +107,6 @@ module.exports = {
   updateGamesCache,
   checkOldLines,
   removeOldLines,
+  checkCodeViewports,
+  removeCodeViewports,
 };

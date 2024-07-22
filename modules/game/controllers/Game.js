@@ -90,11 +90,6 @@ const getGame = async (req, res) => {
   // здесь может быть проверка, есть ли у пользователя доступ к игре
   const gameObj = game.toObject();
   const roleId = role;
-  const code =
-    game.codes.find((nextCode) => {
-      return nextCode.role == roleId;
-    }) || {};
-  const { viewportPointX = 0, viewportPointY = 0 } = code;
   if (role !== ROLE_GAME_OWNER) {
     delete gameObj.codes;
   }
@@ -106,8 +101,6 @@ const getGame = async (req, res) => {
     item: {
       ...gameObj,
       hash: getHashByGame(game),
-      viewportPointX,
-      viewportPointY,
       lines: lines.map((line) => ({ ...line.toObject(), gameId: null })),
       auth: !!nickname,
     },

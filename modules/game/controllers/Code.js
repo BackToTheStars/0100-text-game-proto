@@ -113,33 +113,8 @@ const addCode = async (req, res, next) => {
   }
 };
 
-const updateViewport = async (req, res, next) => {
-  const { gameId, role } = req.gameInfo;
-  const { x: viewportPointX, y: viewportPointY } = req.body;
-  const roleId = role;
-
-  const game = await Game.findById(gameId);
-  for (let i = 0; i < game.codes.length; i++) {
-    // @fixme: проверять код, а не роль
-    if (game.codes[i].role == roleId) {
-      game.codes[i].viewportPointX = viewportPointX;
-      game.codes[i].viewportPointY = viewportPointY;
-    }
-  }
-  await game.save();
-
-  res.json({
-    success: true,
-    item: {
-      x: viewportPointX,
-      y: viewportPointY,
-    },
-  });
-};
-
 module.exports = {
   codeLogin,
   addCode,
-  updateViewport,
   refreshCode,
 };
