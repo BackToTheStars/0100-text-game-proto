@@ -7,7 +7,8 @@ const {
   addLog,
   TYPE_BOT_MESSAGE_ERROR,
   TYPE_BOT_QUERY_ERROR,
-} = require('./lib/log');
+} = require('./modules/core/services/log');
+
 const {
   setUserInfo,
   STEP_MESSAGE_FORWARD,
