@@ -4,6 +4,7 @@ const { hashFunc, getHashByGame } = require('../services/security');
 const { getError } = require('../../core/services/errors');
 const { ROLE_GAME_PLAYER } = require('../../../config/game/user');
 const { AUTH_VERSION } = require('../../../config/game/auth');
+const { getToken } = require('../services/game');
 
 const codeLogin = async (req, res, next) => {
   try {
@@ -113,8 +114,28 @@ const addCode = async (req, res, next) => {
   }
 };
 
+const getStaticToken = async (req, res, next) => {
+  try {
+    const hash = hashFunc(req.gameInfo.gameId);
+
+    const token = getToken(
+      process.env.JWT_SECRET_STATIC,
+      req.body.action,
+      new Date().getTime() + 5 * 60 * 1000,
+      hash
+    );
+
+    res.json({
+      item: token,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   codeLogin,
   addCode,
   refreshCode,
+  getStaticToken,
 };
