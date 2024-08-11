@@ -8,9 +8,14 @@ const { getToken } = require('../../game/services/game');
 const fs = require('fs');
 
 const Turn = require('../../game/models/Turn');
-const { STATIC_API_URL } = require('../../../config/url');
+const { STATIC_API_URL, STATIC_AUDIO_URL } = require('../../../config/url');
 
 const tmpBasePath = path.join(__dirname, '../tmp/');
+
+const getExt = (fileUrl) => {
+  const ext = fileUrl.split('.').pop();
+  return ext;
+};
 
 const downloadImage = async (fileUrl) => {
   const imageName = uniqid.time() + '.jpg';
@@ -20,6 +25,16 @@ const downloadImage = async (fileUrl) => {
     filename: imageName,
   });
   return path.join(tmpBasePath, imageName);
+};
+
+const downloadAudio = async (fileUrl) => {
+  const audioName = uniqid.time() + '.' + getExt(fileUrl);
+
+  await get(fileUrl, {
+    directory: tmpBasePath,
+    filename: audioName,
+  });
+  return path.join(tmpBasePath, audioName);
 };
 
 const uploadImage = async (filePath, hash) => {
@@ -47,10 +62,34 @@ const uploadImage = async (filePath, hash) => {
   return resp.data.src;
 };
 
+const uploadAudio = async (filePath, hash) => {
+  const data = new FormData();
+  data.append('file', fs.createReadStream(filePath));
+
+  const tokenStaticServer = getToken(
+    process.env.JWT_SECRET_STATIC,
+    'upload',
+    new Date().getTime() + 5 * 60 * 1000,
+    hash
+  );
+
+  const config = {
+    method: 'post',
+    url: STATIC_AUDIO_URL + '/audios/upload',
+    headers: {
+      Authorization: 'Bearer ' + tokenStaticServer,
+      ...data.getHeaders(),
+    },
+    data: data,
+  };
+
+  const resp = await axios(config);
+  return resp.data.src;
+};
+
 const createTurn = async ({ gameId, msg, imageUrl }) => {
   const lastTurn = await Turn.findOne({
     gameId,
-    contentType: { $ne: 'zero-point' },
   }).sort({ createdAt: 'desc' });
 
   const { x = 0, y = 0, width = 0 } = lastTurn || {};
@@ -77,8 +116,39 @@ const createTurn = async ({ gameId, msg, imageUrl }) => {
   await newTurn.save();
 };
 
+const createAudioTurn = async ({ gameId, msg, audioUrl }) => {
+  const lastTurn = await Turn.findOne({
+    gameId,
+  }).sort({ createdAt: 'desc' });
+
+  const { x = 0, y = 0, width = 0 } = lastTurn || {};
+
+  const body = {
+    gameId,
+    width: 400,
+    height: 50 + 28 + (msg?.caption ? 40 + 14 : 0), // audio + 2spaces + (text?paragraph + space)
+    contentType: 'audio',
+    header: msg.audio?.title || '',
+    date: msg.date * 1000,
+    audioUrl,
+    x: x + width + 50,
+    y,
+    dontShowHeader: true,
+  };
+  body.paragraph = msg?.caption ? [{ insert: msg?.caption }] : undefined;
+  const newTurn = new Turn(body);
+  await newTurn.save();
+
+  return newTurn;
+};
+
 module.exports = {
   downloadImage,
   uploadImage,
+
+  downloadAudio,
+  uploadAudio,
+
   createTurn,
+  createAudioTurn,
 };

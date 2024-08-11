@@ -63,9 +63,7 @@ bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const telegramUser = await getUserByChatId(chatId);
 
-    // console.log({ msg });
-
-    if (!msg.forward_date) {
+    if (!msg.forward_date && !msg.audio) {
       const userInfo = getUserInfo(telegramUser.userId);
       // если forward Turn существует,
       if (userInfo?.step === STEP_MESSAGE_FORWARD) {
@@ -104,7 +102,6 @@ bot.on('callback_query', async (query) => {
     const telegramUser = await getUserByChatId(chatId);
 
     const [prefix, params] = query.data.split('_');
-    console.log({ prefix, params });
 
     switch (prefix) {
       case 'CHG': {

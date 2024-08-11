@@ -13,6 +13,7 @@ const WIDGET_PICTURE = 'picture';
 const WIDGET_PARAGRAPH = 'paragraph';
 const WIDGET_HEADER = 'header';
 const WIDGET_VIDEO = 'video';
+const WIDGET_AUDIO = 'audio';
 const WIDGET_SOURCE = 'source';
 
 module.exports = {
@@ -31,5 +32,6 @@ module.exports = {
   WIDGET_PARAGRAPH,
   WIDGET_HEADER,
   WIDGET_VIDEO,
+  WIDGET_AUDIO,
   WIDGET_SOURCE,
 };

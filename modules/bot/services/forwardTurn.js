@@ -4,6 +4,9 @@ const {
   downloadImage,
   uploadImage,
   createTurn,
+  downloadAudio,
+  uploadAudio,
+  createAudioTurn,
 } = require('./telegram');
 const Game = require('../../game/models/Game');
 const { hashFunc } = require('../../game/services/security');
@@ -58,6 +61,35 @@ const saveForwardedTurn = async (bot, msg, { telegramUser, gameId, token }) => {
     if (fs.existsSync(downloadPath)) {
       fs.unlinkSync(downloadPath);
     }
+  } else if (userInfo.msg.audio) {
+    const file = await bot.getFile(
+      userInfo.msg.audio.file_id
+    )
+    
+    const tgAudioUrl = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
+    if (tgAudioUrl) {
+      bot.sendMessage(msg.chat.id, 'Uploading audio...');
+      const downloadAudioPath = await downloadAudio(tgAudioUrl);
+      turnData.audioUrl = await uploadAudio(
+        downloadAudioPath,
+        telegramUser.hash
+      );
+      
+      await createAudioTurn(turnData);
+      const shortHash = hashFunc(gameId);
+      bot.sendMessage(
+        msg.chat.id,
+        `New turn created. Follow the link:
+    ${CLIENT_URL}/game?hash=${shortHash}`
+      );
+      setUserInfo(telegramUser.userId, null);
+      return;
+    } else {
+      bot.sendMessage(
+        msg.chat.id,
+        'Error uploading audio. Please try again later.')
+    }
+    return;
   }
   await createTurn(turnData);
   const shortHash = hashFunc(gameId);

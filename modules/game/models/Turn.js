@@ -50,17 +50,21 @@ const schema = new Schema(
     },
     backgroundColor: {
       type: String,
-      default: '#eced9a',
+      // default: '#eced9a',
     },
     fontColor: {
       type: String,
-      default: '#0a0a0a',
+      // default: '#0a0a0a',
     },
     imageUrl: {
       type: String,
       required: false,
     },
     videoUrl: {
+      type: String,
+      required: false,
+    },
+    audioUrl: {
       type: String,
       required: false,
     },
