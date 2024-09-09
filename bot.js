@@ -1,3 +1,27 @@
+// --- подключаем
+// бота
+// логирование
+// стейт + объект пользователя
+
+// saveForwardedTurn и кнопки игр
+// выход из игры
+
+// --- обработка команд
+// /start отправьте код игры
+// /forget_game кнопки EXG_*
+
+// --- обработка сообщений
+// forward_date, audio - remember STEP_MESSAGE_FORWARD и кнопки игр
+// иначе
+//    STEP_MESSAGE_FORWARD ?
+//        saveGameCode (без сообщения), saveForwardedTurn
+//        saveGameCode
+
+// --- обработка кнопок
+// CHG saveForwardedTurn или запрос нового
+// EXG confirmToForgetGameCode
+// EXGF forgetGameCode
+
 require('dotenv').config();
 require('./config/db');
 
@@ -10,20 +34,35 @@ const {
 } = require('./modules/core/services/log');
 
 const {
-  setUserInfo,
-  STEP_MESSAGE_FORWARD,
   getUserInfo,
+  resetUserInfo,
+  updateUserInfo,
+  STEP_INIT,
+  STEP_UPLOADING,
+  STEP_MESSAGE_FORWARD,
 } = require('./modules/bot/lib/state');
+
 const {
   getUserByChatId,
-  start,
   saveGameCode,
 } = require('./modules/bot/services/authenticateUser');
+
 const {
-  saveForwardedTurn,
-  sendGameButtons,
+  createTurnByMessage,
   showGameButtons,
+  isMessageToForward,
 } = require('./modules/bot/services/forwardTurn');
+
+const {
+  MSG_WENT_WRONG,
+  MSG_COMMAND_NOT_FOUND,
+  MSG_SEND_GAME_CODE,
+  MSG_NOT_AVAILABLE,
+  MSG_SEND_CODE_OR_TURN,
+  MSG_SEND_CODE_FIRST,
+  MSG_SEND_TURN_FIRST,
+} = require('./modules/bot/lib/messages');
+
 const {
   showLogoutGameButtons,
   forgetGameCode,
@@ -31,68 +70,81 @@ const {
 } = require('./modules/bot/services/logoutGame');
 
 const token = process.env.BOT_TOKEN;
-const bot =
-  process.env.BOT_MODE === 'hook'
-    ? new TelegramBot(token)
-    : new TelegramBot(token, { polling: true });
 
-bot.onText(/\/start/, async (msg, match) => {
-  try {
-    start(bot, msg);
-  } catch (err) {
-    console.log(err);
-  }
-});
+const tgOptions = {}
+if (process.env.BOT_MODE !== 'hook') {
+  tgOptions.polling = true
+}
+if (process.env.BOT_BASE_API_URL) {
+  tgOptions.baseApiUrl = process.env.BOT_BASE_API_URL
+}
 
-bot.onText(/\/forget_game/, async (msg, match) => {
-  try {
-    const telegramUser = await getUserByChatId(msg.chat.id);
-    showLogoutGameButtons(bot, msg, { telegramUser });
-  } catch (err) {
-    console.log(err);
-  }
-});
+const bot = new TelegramBot(token, tgOptions);
 
 bot.on('message', async (msg) => {
   try {
-    if (msg.text && msg.text.indexOf('/') === 0) {
-      // не обрабатываем здесь команды
-      return;
-    }
-
     const chatId = msg.chat.id;
     const telegramUser = await getUserByChatId(chatId);
+    const userInfo = getUserInfo(chatId);
 
-    if (!msg.forward_date && !msg.audio) {
-      const userInfo = getUserInfo(telegramUser.userId);
-      // если forward Turn существует,
-      if (userInfo?.step === STEP_MESSAGE_FORWARD) {
-        // то функция должна вернуть game при условии, что код корректный
-        const game = await saveGameCode(bot, msg, {
-          telegramUser,
-          returnGameOnlyFlag: true,
-        });
-        if (!game) return;
-        saveForwardedTurn(bot, msg, {
-          telegramUser,
-          gameId: game._id,
-          token,
-        });
-      } else {
-        await saveGameCode(bot, msg, { telegramUser });
+    // COMMANDS
+    if (msg.text && msg.text.indexOf('/') === 0) {
+      switch (msg.text) {
+        case '/start':
+          resetUserInfo(chatId);
+          if (telegramUser.games.length === 0) {
+            bot.sendMessage(chatId, MSG_SEND_GAME_CODE);
+          } else {
+            bot.sendMessage(chatId, MSG_SEND_CODE_OR_TURN);
+          }
+          break;
+        case '/status':
+          // for debug
+          bot.sendMessage(
+            chatId,
+            `${userInfo.userId} ${userInfo.step} ${!!userInfo.msg}`
+          );
+          break;
+        case '/forget_game':
+          showLogoutGameButtons(bot, msg, { telegramUser });
+          break;
+        default:
+          bot.sendMessage(chatId, MSG_COMMAND_NOT_FOUND);
       }
       return;
     }
 
-    setUserInfo(chatId, { step: STEP_MESSAGE_FORWARD, msg });
-
-    showGameButtons(bot, msg, { telegramUser });
-
-    // saveForwardedTurn(bot, msg, { telegramUser });
+    // MESSAGES
+    if (userInfo.step === STEP_INIT) {
+      // проверяем, что сообщение для РАЗМЕЩЕНИЯ ХОДА
+      if (isMessageToForward(msg)) {
+        if (telegramUser.games.length === 0) {
+          bot.sendMessage(chatId, MSG_SEND_CODE_FIRST);
+        } else {
+          updateUserInfo(chatId, { step: STEP_MESSAGE_FORWARD, msg });
+          showGameButtons(bot, msg, { telegramUser });
+        }
+        return;
+      } else {
+        // проверяем, что сообщение для ДОБАВЛЕНИЯ ИГРЫ
+        await saveGameCode(bot, msg, { telegramUser });
+        return;
+      }
+    } else if (userInfo.step === STEP_MESSAGE_FORWARD) {
+      // выберите игру для публикации или начните заново
+      if (isMessageToForward(msg)) {
+        // обновляем информацию о сообщении для публикации
+        updateUserInfo(chatId, { msg });
+      }
+      showGameButtons(bot, msg, { telegramUser });
+      return;
+    }
+    bot.sendMessage(chatId, MSG_NOT_AVAILABLE);
   } catch (err) {
     console.log(err);
+    resetUserInfo(msg.chat.id);
     addLog(TYPE_BOT_MESSAGE_ERROR, null, err);
-    bot.sendMessage(msg.chat.id, 'Something went wrong.');
+    bot.sendMessage(msg.chat.id, MSG_WENT_WRONG);
   }
 });
 
@@ -100,22 +152,51 @@ bot.on('callback_query', async (query) => {
   try {
     const chatId = query.message.chat.id;
     const telegramUser = await getUserByChatId(chatId);
+    const userInfo = getUserInfo(chatId);
 
     const [prefix, params] = query.data.split('_');
 
     switch (prefix) {
       case 'CHG': {
         // CHange Game
-        if (params === 'other') {
-          bot.sendMessage(chatId, 'Send game code');
-        } else {
-          const gameId = params;
-          saveForwardedTurn(bot, query.message, {
+        const gameId = params;
+        if (userInfo.step !== STEP_MESSAGE_FORWARD) {
+          bot.sendMessage(chatId, MSG_SEND_TURN_FIRST);
+          return;
+        }
+        createTurnByMessage(
+          bot,
+          query.message,
+          {
             telegramUser,
+            userInfo,
             gameId,
             token,
-          });
-        }
+          },
+          {
+            startStep: async () => {
+              updateUserInfo(chatId, { step: STEP_UPLOADING });
+              bot.sendMessage(chatId, 'Uploading...');
+            },
+            uploadingStep: async () => {
+              bot.sendMessage(chatId, 'Saving...');
+            },
+            uploadedStep: async () => {
+              resetUserInfo(chatId);
+              bot.sendMessage(chatId, 'Done!');
+            },
+            doneStep: async (gameLink) => {
+              bot.sendMessage(
+                chatId,
+                'New turn created. Follow the link:\n' + gameLink
+              );
+            },
+            errorStep: async (text) => {
+              resetUserInfo(chatId);
+              bot.sendMessage(chatId, text);
+            },
+          }
+        );
         break;
       }
       case 'EXG': {
@@ -130,7 +211,7 @@ bot.on('callback_query', async (query) => {
       case 'EXGF': {
         // EXit Game Force
         if (params === 'CANCEL') {
-          bot.sendMessage(query.message.chat.id, 'Cancelled.');
+          bot.sendMessage(chatId, 'Cancelled.');
           return;
         }
         const gameId = params;
@@ -143,8 +224,9 @@ bot.on('callback_query', async (query) => {
     }
   } catch (err) {
     console.log(err);
+    resetUserInfo(msg.chat.id);
     addLog(TYPE_BOT_QUERY_ERROR, null, err);
-    bot.sendMessage(query.message.chat.id, 'Something went wrong.');
+    bot.sendMessage(msg.chat.id, MSG_WENT_WRONG);
   }
 });
 

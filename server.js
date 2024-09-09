@@ -7,6 +7,7 @@ const express = require('express');
 const adminAuthRoutes = require('./modules/admin/routes/auth');
 const adminGamesRoutes = require('./modules/admin/routes/games');
 const adminTurnsRoutes = require('./modules/admin/routes/turns');
+const adminLogsRoutes = require('./modules/admin/routes/logs');
 
 const adminScriptsRoutes = require('./modules/admin/routes/scripts');
 const backupRoutes = require('./modules/backups/routes/backups');
@@ -68,6 +69,8 @@ const adminRoutes = {
   
   '/admin/backups': backupRoutes,
   '/admin/snapshots': snapshotRoutes,
+
+  '/admin/logs': adminLogsRoutes,
 };
 
 // добавляем middleware для всех админских роутов

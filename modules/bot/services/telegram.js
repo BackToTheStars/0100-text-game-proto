@@ -87,6 +87,30 @@ const uploadAudio = async (filePath, hash) => {
   return resp.data.src;
 };
 
+const reverseDownloadAudio = async (audioUrl, hash) => {
+  const tokenStaticServer = getToken(
+    process.env.JWT_SECRET_STATIC,
+    'download_and_save',
+    new Date().getTime() + 5 * 60 * 1000,
+    hash
+  );
+
+  const config = {
+    method: 'post',
+    url: STATIC_AUDIO_URL + '/audios/download-and-save',
+    headers: {
+      Authorization: 'Bearer ' + tokenStaticServer,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      audioUrl,
+    },
+  };
+
+  const resp = await axios(config);
+  return resp.data.src;
+}
+
 const createTurn = async ({ gameId, msg, imageUrl }) => {
   const lastTurn = await Turn.findOne({
     gameId,
@@ -128,7 +152,7 @@ const createAudioTurn = async ({ gameId, msg, audioUrl }) => {
     width: 400,
     height: 50 + 28 + (msg?.caption ? 40 + 14 : 0), // audio + 2spaces + (text?paragraph + space)
     contentType: 'audio',
-    header: msg.audio?.title || '',
+    header: msg.audio?.title || msg.audio?.file_name || '',
     date: msg.date * 1000,
     audioUrl,
     x: x + width + 50,
@@ -148,6 +172,7 @@ module.exports = {
 
   downloadAudio,
   uploadAudio,
+  reverseDownloadAudio,
 
   createTurn,
   createAudioTurn,

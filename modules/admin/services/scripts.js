@@ -1,6 +1,7 @@
 const SCRIPT_SYNC_DATABASE = 'SCRIPT_SYNC_DATABASE';
 const SCRIPT_ACCESS_LEVEL_INIT = 'SCRIPT_ACCESS_LEVEL_INIT';
 const SCRIPT_GAME_COMMON = 'SCRIPT_GAME_COMMON';
+const SCRIPT_BOT = 'SCRIPT_BOT';
 
 const {
   checkZeroPoints,
@@ -22,6 +23,8 @@ const {
   check: accessLevelCheck,
   run: accessLevelRun,
 } = require('./scripts/AccessLevel');
+const { MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION } = require('../../../config/admin');
+const { checkTgCodes, removeTgCodesDuplicates } = require('./scripts/TgBot');
 
 const scripts = [
   {
@@ -32,12 +35,32 @@ const scripts = [
         name: 'check',
         description: 'Проверка',
         callback: syncDatabaseCheck,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL],
       },
       {
         name: 'run',
         description: 'Запуск',
         callback: syncDatabaseRun,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL],
       },
+    ],
+  },
+  {
+    name: SCRIPT_BOT,
+    description: 'Управление ботом',
+    commands: [
+      {
+        name: 'checkTgUserCodes',
+        description: 'Проверка дублей кодов пользователей',
+        callback: checkTgCodes,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
+      },
+      {
+        name: 'removeTgUserCodeDuplicates',
+        description: 'Удаление дублей кодов пользователей',
+        callback: removeTgCodesDuplicates,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
+      }
     ],
   },
   {
@@ -48,41 +71,49 @@ const scripts = [
         name: 'checkZeroPoints',
         description: 'Проверка ZeroPoints',
         callback: checkZeroPoints,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL],
       },
       {
         name: 'removeZeroPoints',
         description: 'Удаление ZeroPoints',
         callback: removeZeroPoints,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL],
       },
       {
         name: 'checkGamesWithoutTurns',
         description: 'Проверка игр без ходов',
         callback: checkGamesWithoutTurns,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
       },
       {
         name: 'updateGamesCache',
         description: 'Обновление кеша игр',
         callback: updateGamesCache,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
       },
       {
         name: 'checkOldLines',
         description: 'Проверка старых линий',
         callback: checkOldLines,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL],
       },
       {
         name: 'removeOldLines',
         description: 'Удаление старых линий',
         callback: removeOldLines,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL],
       },
       {
         name: 'checkCodeViewports',
         description: 'Проверка кодов вьюпортов',
         callback: checkCodeViewports,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL],
       },
       {
         name: 'removeCodeViewports',
         description: 'Удаление кодов вьюпортов',
         callback: removeCodeViewports,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL],
       },
     ],
   },
@@ -94,11 +125,13 @@ const scripts = [
         name: 'check',
         description: 'Проверка',
         callback: accessLevelCheck,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
       },
       {
         name: 'run',
         description: 'Запуск',
         callback: accessLevelRun,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
       },
     ],
   },

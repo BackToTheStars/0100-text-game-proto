@@ -1,9 +1,25 @@
+const { ADMIN_MODE } = require('../../../config/admin');
 const { getError } = require('../../core/services/errors');
 const { runCommand, scripts } = require('../services/scripts');
 
 const list = async (req, res, next) => {
   try {
-    res.json({ items: scripts });
+    const filteredScripts = [];
+    for (const scriptGroup of scripts) {
+      const filteredCommands = [];
+      for (const command of scriptGroup.commands) {
+        if (command.modes.includes(ADMIN_MODE)) {
+          filteredCommands.push(command);
+        }
+      }
+      if (filteredCommands.length > 0) {
+        filteredScripts.push({
+          ...scriptGroup,
+          commands: filteredCommands,
+        });
+      }
+    }
+    res.json({ items: filteredScripts });
   } catch (err) {
     next(err);
   }

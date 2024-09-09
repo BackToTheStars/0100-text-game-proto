@@ -7,14 +7,29 @@ const {
   downloadAudio,
   uploadAudio,
   createAudioTurn,
+  reverseDownloadAudio,
 } = require('./telegram');
 const Game = require('../../game/models/Game');
 const { hashFunc } = require('../../game/services/security');
-const {
-  getUserInfo,
-  STEP_MESSAGE_FORWARD,
-  setUserInfo,
-} = require('../lib/state');
+
+const { addLog, TYPE_BOT_FORWARD_ERROR } = require('../../core/services/log');
+
+const BOT_UPLOAD_DAILY_LIMIT = process.env.BOT_UPLOAD_DAILY_LIMIT || 200000000; // ~200MB
+const dailyUploaded = {};
+const checkUpdateDaylyLimit = (volume) => {
+  const date = new Date();
+  const day = `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(
+    -2
+  )}-${('0' + date.getDate()).slice(-2)}`;
+  if (!dailyUploaded[day]) {
+    dailyUploaded[day] = 0;
+  }
+  if (dailyUploaded[day] + volume > BOT_UPLOAD_DAILY_LIMIT) {
+    return false;
+  }
+  dailyUploaded[day] += volume;
+  return true;
+};
 
 const showGameButtons = async (bot, msg, { telegramUser }) => {
   const games = await Game.find({
@@ -22,86 +37,223 @@ const showGameButtons = async (bot, msg, { telegramUser }) => {
   });
 
   if (!games.length) {
-    bot.sendMessage(msg.chat.id, 'You have no games saved. Enter game code:');
-    return;
-  }
-
-  bot.sendMessage(msg.chat.id, 'Choose game to forward turn:', {
-    reply_markup: {
-      inline_keyboard: [
-        ...games.map((g) => [
-          { text: `${g.name}`, callback_data: `CHG_${g._id}` },
-        ]),
-        [{ text: `Other`, callback_data: `CHG_other` }],
-      ],
-    },
-  });
-};
-
-const saveForwardedTurn = async (bot, msg, { telegramUser, gameId, token }) => {
-  const userInfo = getUserInfo(telegramUser.userId);
-  if (userInfo?.step !== STEP_MESSAGE_FORWARD) {
-    bot.sendMessage(msg.chat.id, 'No turn to forward');
-    return;
-  }
-  const turnData = {
-    gameId,
-    msg: userInfo.msg,
-  };
-
-  if (userInfo.msg.photo) {
-    // добавляем картинку, если она есть в сообщении
-    const file = await bot.getFile(
-      userInfo.msg.photo[userInfo.msg.photo.length - 1].file_id
+    bot.sendMessage(
+      msg.chat.id,
+      'You have no games saved. /start to Enter game code:'
     );
-    const fileUrl = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
-
-    const downloadPath = await downloadImage(fileUrl);
-    turnData.imageUrl = await uploadImage(downloadPath, telegramUser.hash);
-    if (fs.existsSync(downloadPath)) {
-      fs.unlinkSync(downloadPath);
-    }
-  } else if (userInfo.msg.audio) {
-    const file = await bot.getFile(
-      userInfo.msg.audio.file_id
-    )
-    
-    const tgAudioUrl = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
-    if (tgAudioUrl) {
-      bot.sendMessage(msg.chat.id, 'Uploading audio...');
-      const downloadAudioPath = await downloadAudio(tgAudioUrl);
-      turnData.audioUrl = await uploadAudio(
-        downloadAudioPath,
-        telegramUser.hash
-      );
-      
-      await createAudioTurn(turnData);
-      const shortHash = hashFunc(gameId);
-      bot.sendMessage(
-        msg.chat.id,
-        `New turn created. Follow the link:
-    ${CLIENT_URL}/game?hash=${shortHash}`
-      );
-      setUserInfo(telegramUser.userId, null);
-      return;
-    } else {
-      bot.sendMessage(
-        msg.chat.id,
-        'Error uploading audio. Please try again later.')
-    }
     return;
   }
-  await createTurn(turnData);
-  const shortHash = hashFunc(gameId);
+
   bot.sendMessage(
     msg.chat.id,
-    `New turn created. Follow the link:
-    ${CLIENT_URL}/game?hash=${shortHash}`
+    'Choose game to forward turn or /start to forward another one:',
+    {
+      reply_markup: {
+        inline_keyboard: [
+          ...games.map((g) => [
+            { text: `${g.name}`, callback_data: `CHG_${g._id}` },
+          ]),
+          // [{ text: `Other`, callback_data: `CHG_other` }],
+        ],
+      },
+    }
   );
-  setUserInfo(telegramUser.userId, null);
+};
+
+const createTurnByMessageOwnServer = async (
+  bot,
+  msg,
+  { telegramUser, userInfo, gameId, token },
+  {
+    startStep = async () => {}, // start uploading
+    uploadingStep = async () => {}, // save uploaded file
+    uploadedStep = async () => {}, // file uploaded
+    doneStep = async (gameLink) => {}, // turn created
+    errorStep = async (text) => {}, // error
+  }
+) => {
+  const stepsPast = [];
+  try {
+    if (userInfo.msg?.audio) {
+      if (!checkUpdateDaylyLimit(userInfo.msg.audio.file_size)) {
+        await errorStep('Daily upload limit exceeded');
+        return;
+      }
+      await startStep();
+      stepsPast.push('startStep');
+
+      // получение файла сервером ботов
+      const file = await bot.getFile(userInfo.msg.audio.file_id);
+      await uploadingStep();
+      stepsPast.push('uploadingStep');
+      const resultFilePath = await fetch(
+        `${process.env.BOT_STATIC_URL}/get-url`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ file_path: file.file_path }),
+        }
+      );
+
+      if (!resultFilePath.ok) {
+        await errorStep('Error while uploading file');
+        addLog(TYPE_BOT_FORWARD_ERROR, {
+          step: 'uploadingStep',
+          status: resultFilePath.status,
+          statusText: resultFilePath.statusText,
+        });
+        return;
+      }
+      const { host_path } = await resultFilePath.json();
+      const fileUrl = `${process.env.BOT_STATIC_URL}${host_path}`;
+
+      // получение токена для обратной загрузки
+      const audioUrl = await reverseDownloadAudio(fileUrl, telegramUser.hash);
+      await uploadedStep();
+      stepsPast.push('uploadedStep');
+      await createAudioTurn({
+        gameId,
+        msg: userInfo.msg,
+        audioUrl,
+      });
+      const shortHash = hashFunc(gameId);
+      const gameLink = `${CLIENT_URL}/game?hash=${shortHash}`;
+      await doneStep(gameLink);
+    } else if (userInfo.msg?.photo) {
+      if (!checkUpdateDaylyLimit(userInfo.msg.photo.at(-1).file_size)) {
+        await errorStep('Daily upload limit exceeded');
+        return;
+      }
+      await startStep();
+      stepsPast.push('startStep');
+
+      const file = await bot.getFile(userInfo.msg.photo.at(-1).file_id);
+      await uploadingStep();
+      stepsPast.push('uploadingStep');
+      const resultFilePath = await fetch(`${process.env.BOT_STATIC_URL}/get-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ file_path: file.file_path }),
+      });
+
+      if (!resultFilePath.ok) {
+        await errorStep('Error while uploading file');
+        addLog(TYPE_BOT_FORWARD_ERROR, {
+          step: 'uploadingStep',
+          status: resultFilePath.status,
+          statusText: resultFilePath.statusText,
+        });
+        return;
+      }
+
+      const { host_path } = await resultFilePath.json();
+      const fileUrl = `${process.env.BOT_STATIC_URL}${host_path}`;
+      const downloadPath = await downloadImage(fileUrl);
+      
+      const imageUrl = await uploadImage(downloadPath, telegramUser.hash);
+      await uploadedStep();
+      if (fs.existsSync(downloadPath)) {
+        fs.unlinkSync(downloadPath);
+      }
+      await createTurn({
+        gameId,
+        imageUrl,
+        msg: userInfo.msg,
+      });
+      const shortHash = hashFunc(gameId);
+      const gameLink = `${CLIENT_URL}/game?hash=${shortHash}`;
+      await doneStep(gameLink);
+    } else {
+      errorStep('No message to forward');
+    }
+  } catch (error) {
+    addLog(TYPE_BOT_FORWARD_ERROR, {
+      step: 'unknown',
+      code: error?.code,
+      message: error?.message,
+      stepsPast,
+    });
+    errorStep("Can't forward turn");
+  }
+};
+
+const createTurnByMessageStandard = async (
+  bot,
+  msg,
+  { telegramUser, userInfo, gameId, token },
+  {
+    startStep = async () => {}, // start uploading
+    uploadingStep = async () => {}, // save uploaded file
+    uploadedStep = async () => {}, // file uploaded
+    doneStep = async (gameLink) => {}, // turn created
+    errorStep = async (text) => {}, // error
+  }
+) => {
+  try {
+    if (userInfo.msg?.audio) {
+      await startStep();
+      const file = await bot.getFile(userInfo.msg.audio.file_id);
+      const fileUrl = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
+      const downloadPath = await downloadAudio(fileUrl);
+      await uploadingStep();
+      const audioUrl = await uploadAudio(downloadPath, telegramUser.hash);
+      await uploadedStep();
+      if (fs.existsSync(downloadPath)) {
+        fs.unlinkSync(downloadPath);
+      }
+      await createAudioTurn({
+        gameId,
+        msg,
+        audioUrl,
+      });
+      const shortHash = hashFunc(gameId);
+      const gameLink = `${CLIENT_URL}/game?hash=${shortHash}`;
+      await doneStep(gameLink);
+    } else if (userInfo.msg?.photo) {
+      await startStep();
+      const file = await bot.getFile(userInfo.msg.photo.at(-1).file_id);
+      const fileUrl = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
+      const downloadPath = await downloadImage(fileUrl);
+      await uploadingStep();
+      const imageUrl = await uploadImage(downloadPath, telegramUser.hash);
+      await uploadedStep();
+      if (fs.existsSync(downloadPath)) {
+        fs.unlinkSync(downloadPath);
+      }
+      await createTurn({
+        gameId,
+        imageUrl,
+        msg,
+      });
+      const shortHash = hashFunc(gameId);
+      const gameLink = `${CLIENT_URL}/game?hash=${shortHash}`;
+      await doneStep(gameLink);
+    } else {
+      errorStep('No message to forward');
+    }
+  } catch (error) {
+    addLog(TYPE_BOT_FORWARD_ERROR, {
+      code: error?.code,
+      message: error?.message,
+    });
+    errorStep("Can't forward turn");
+  }
+};
+
+const createTurnByMessage = process.env.BOT_BASE_API_URL
+  ? createTurnByMessageOwnServer
+  : createTurnByMessageStandard;
+
+const isMessageToForward = (msg) => {
+  return msg.forward_date || msg.audio;
 };
 
 module.exports = {
-  saveForwardedTurn,
+  createTurnByMessage,
   showGameButtons,
+  isMessageToForward,
 };

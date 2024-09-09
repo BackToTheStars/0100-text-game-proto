@@ -16,11 +16,6 @@ const getUserByChatId = async (chatId) => {
   return telegramUser;
 };
 
-const start = async (bot, msg) => {
-  await getUserByChatId(msg.chat.id);
-  bot.sendMessage(msg.chat.id, 'Send game code');
-};
-
 // возвращает объект game или undefined
 const saveGameCode = async (bot, msg, { telegramUser, returnGameOnlyFlag }) => {
   const chatId = msg.chat.id;
@@ -54,6 +49,5 @@ const saveGameCode = async (bot, msg, { telegramUser, returnGameOnlyFlag }) => {
 
 module.exports = {
   getUserByChatId,
-  start,
   saveGameCode,
 };
