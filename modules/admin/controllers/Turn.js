@@ -1,5 +1,5 @@
 const { default: axios } = require('axios');
-const { STATIC_AUDIO_URL } = require('../../../config/url');
+const { STATIC_MEDIA_URL } = require('../../../config/url');
 const { getError } = require('../../core/services/errors');
 const Turn = require('../../game/models/Turn');
 const { getToken } = require('../../game/services/game');
@@ -59,7 +59,7 @@ const moveAudio = async (req, res, next) => {
     if (
       !audioUrl ||
       turn.audioUrl !== audioUrl ||
-      audioUrl.startsWith(STATIC_AUDIO_URL)
+      audioUrl.startsWith(STATIC_MEDIA_URL)
     ) {
       throw getError('Audio url mismatch', 400);
     }
@@ -76,7 +76,7 @@ const moveAudio = async (req, res, next) => {
     // отправить запрос audios/download-and-save
     const config = {
       method: 'post',
-      url: STATIC_AUDIO_URL + '/audios/download-and-save',
+      url: STATIC_MEDIA_URL + '/audios/download-and-save',
       headers: {
         Authorization: 'Bearer ' + tokenStaticServer,
         'Content-Type': 'application/json',

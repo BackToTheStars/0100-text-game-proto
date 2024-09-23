@@ -8,7 +8,7 @@ const { getToken } = require('../../game/services/game');
 const fs = require('fs');
 
 const Turn = require('../../game/models/Turn');
-const { STATIC_API_URL, STATIC_AUDIO_URL } = require('../../../config/url');
+const { STATIC_MEDIA_URL } = require('../../../config/url');
 
 const tmpBasePath = path.join(__dirname, '../tmp/');
 
@@ -50,7 +50,7 @@ const uploadImage = async (filePath, hash) => {
 
   const config = {
     method: 'post',
-    url: STATIC_API_URL + '/images/upload',
+    url: STATIC_MEDIA_URL + '/images/upload',
     headers: {
       Authorization: 'Bearer ' + tokenStaticServer,
       ...data.getHeaders(),
@@ -75,7 +75,7 @@ const uploadAudio = async (filePath, hash) => {
 
   const config = {
     method: 'post',
-    url: STATIC_AUDIO_URL + '/audios/upload',
+    url: STATIC_MEDIA_URL + '/audios/upload',
     headers: {
       Authorization: 'Bearer ' + tokenStaticServer,
       ...data.getHeaders(),
@@ -97,13 +97,13 @@ const reverseDownloadAudio = async (audioUrl, hash) => {
 
   const config = {
     method: 'post',
-    url: STATIC_AUDIO_URL + '/audios/download-and-save',
+    url: STATIC_MEDIA_URL + '/audios/download-and-save',
     headers: {
       Authorization: 'Bearer ' + tokenStaticServer,
       'Content-Type': 'application/json',
     },
     data: {
-      audioUrl,
+      mediaUrl: audioUrl,
     },
   };
 
