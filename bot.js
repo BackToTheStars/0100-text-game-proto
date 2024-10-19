@@ -51,6 +51,8 @@ const {
   createTurnByMessage,
   showGameButtons,
   isMessageToForward,
+  createYoutubeTurnByMessage,
+  isYoutubeUrl,
 } = require('./modules/bot/services/forwardTurn');
 
 const {
@@ -164,39 +166,67 @@ bot.on('callback_query', async (query) => {
           bot.sendMessage(chatId, MSG_SEND_TURN_FIRST);
           return;
         }
-        createTurnByMessage(
-          bot,
-          query.message,
-          {
-            telegramUser,
-            userInfo,
-            gameId,
-            token,
-          },
-          {
-            startStep: async () => {
-              updateUserInfo(chatId, { step: STEP_UPLOADING });
-              bot.sendMessage(chatId, 'Uploading...');
+        
+        if (isYoutubeUrl(userInfo?.msg?.link_preview_options?.url)) {
+          // without upload
+          createYoutubeTurnByMessage(
+            bot,
+            query.message,
+            {
+              telegramUser,
+              userInfo,
+              gameId,
+              token,
             },
-            uploadingStep: async () => {
-              bot.sendMessage(chatId, 'Saving...');
+            {
+              doneStep: async (gameLink) => {
+                bot.sendMessage(
+                  chatId,
+                  'New turn created. Follow the link:\n' + gameLink
+                );
+              },
+              errorStep: async (text) => {
+                resetUserInfo(chatId);
+                bot.sendMessage(chatId, text);
+              },
+            }
+          );
+        } else {
+          // with upload
+          createTurnByMessage(
+            bot,
+            query.message,
+            {
+              telegramUser,
+              userInfo,
+              gameId,
+              token,
             },
-            uploadedStep: async () => {
-              resetUserInfo(chatId);
-              bot.sendMessage(chatId, 'Done!');
-            },
-            doneStep: async (gameLink) => {
-              bot.sendMessage(
-                chatId,
-                'New turn created. Follow the link:\n' + gameLink
-              );
-            },
-            errorStep: async (text) => {
-              resetUserInfo(chatId);
-              bot.sendMessage(chatId, text);
-            },
-          }
-        );
+            {
+              startStep: async () => {
+                updateUserInfo(chatId, { step: STEP_UPLOADING });
+                bot.sendMessage(chatId, 'Uploading...');
+              },
+              uploadingStep: async () => {
+                bot.sendMessage(chatId, 'Saving...');
+              },
+              uploadedStep: async () => {
+                resetUserInfo(chatId);
+                bot.sendMessage(chatId, 'Done!');
+              },
+              doneStep: async (gameLink) => {
+                bot.sendMessage(
+                  chatId,
+                  'New turn created. Follow the link:\n' + gameLink
+                );
+              },
+              errorStep: async (text) => {
+                resetUserInfo(chatId);
+                bot.sendMessage(chatId, text);
+              },
+            }
+          );
+        }
         break;
       }
       case 'EXG': {

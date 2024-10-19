@@ -7,7 +7,9 @@ const {
   downloadAudio,
   uploadAudio,
   createAudioTurn,
-  reverseDownloadAudio,
+  // reverseDownloadAudio,
+  reverseDownloadMedia,
+  createVideoTurn,
 } = require('./telegram');
 const Game = require('../../game/models/Game');
 const { hashFunc } = require('../../game/services/security');
@@ -60,6 +62,30 @@ const showGameButtons = async (bot, msg, { telegramUser }) => {
   );
 };
 
+const createYoutubeTurnByMessage = async (
+  bot,
+  msg,
+  { telegramUser, userInfo, gameId, token },
+  {
+    doneStep = async (gameLink) => {}, // turn created
+    errorStep = async (text) => {}, // error
+  }
+) => {
+  try {
+    await createVideoTurn({
+      gameId,
+      msg,
+      videoUrl: userInfo.msg.link_preview_options.url,
+    })
+    const shortHash = hashFunc(gameId);
+    const gameLink = `${CLIENT_URL}/game/${shortHash}`;
+    await doneStep(gameLink);
+  } catch (error) {
+    await errorStep(error);
+  }
+}
+    
+
 const createTurnByMessageOwnServer = async (
   bot,
   msg,
@@ -74,102 +100,112 @@ const createTurnByMessageOwnServer = async (
 ) => {
   const stepsPast = [];
   try {
+    let type;
+    let userFile;
     if (userInfo.msg?.audio) {
-      if (!checkUpdateDaylyLimit(userInfo.msg.audio.file_size)) {
-        await errorStep('Daily upload limit exceeded');
-        return;
-      }
-      await startStep();
-      stepsPast.push('startStep');
-
-      // получение файла сервером ботов
-      const file = await bot.getFile(userInfo.msg.audio.file_id);
-      await uploadingStep();
-      stepsPast.push('uploadingStep');
-      const resultFilePath = await fetch(
-        `${process.env.BOT_STATIC_URL}/get-url`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ file_path: file.file_path }),
-        }
-      );
-
-      if (!resultFilePath.ok) {
-        await errorStep('Error while uploading file');
-        addLog(TYPE_BOT_FORWARD_ERROR, {
-          step: 'uploadingStep',
-          status: resultFilePath.status,
-          statusText: resultFilePath.statusText,
-        });
-        return;
-      }
-      const { host_path } = await resultFilePath.json();
-      const fileUrl = `${process.env.BOT_STATIC_URL}${host_path}`;
-
-      // получение токена для обратной загрузки
-      const audioUrl = await reverseDownloadAudio(fileUrl, telegramUser.hash);
-      await uploadedStep();
-      stepsPast.push('uploadedStep');
-      await createAudioTurn({
-        gameId,
-        msg: userInfo.msg,
-        audioUrl,
-      });
-      const shortHash = hashFunc(gameId);
-      const gameLink = `${CLIENT_URL}/game?hash=${shortHash}`;
-      await doneStep(gameLink);
+      type = 'audios';
+      userFile = userInfo.msg.audio;
     } else if (userInfo.msg?.photo) {
-      if (!checkUpdateDaylyLimit(userInfo.msg.photo.at(-1).file_size)) {
-        await errorStep('Daily upload limit exceeded');
-        return;
-      }
-      await startStep();
-      stepsPast.push('startStep');
+      type = 'images';
+      userFile = userInfo.msg.photo[0];
+    } else if (userInfo.msg?.video) {
+      type = 'videos';
+      userFile = userInfo.msg.video;
+    } else {
+      // console.log(userInfo.msg)
+      return errorStep('No file to forward');
+    }
 
-      const file = await bot.getFile(userInfo.msg.photo.at(-1).file_id);
-      await uploadingStep();
-      stepsPast.push('uploadingStep');
-      const resultFilePath = await fetch(`${process.env.BOT_STATIC_URL}/get-url`, {
+    if (!checkUpdateDaylyLimit(userFile.file_size)) {
+      await errorStep('Daily upload limit exceeded');
+      return;
+    }
+    await startStep();
+    stepsPast.push('startStep');
+
+    // получение файла сервером ботов
+    const file = await bot.getFile(userFile.file_id);
+    await uploadingStep();
+    stepsPast.push('uploadingStep');
+    const resultFilePath = await fetch(
+      `${process.env.BOT_STATIC_URL}/get-url`,
+      {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ file_path: file.file_path }),
+      }
+    );
+
+    if (!resultFilePath.ok) {
+      await errorStep('Error while uploading file');
+      addLog(TYPE_BOT_FORWARD_ERROR, {
+        step: 'uploadingStep',
+        status: resultFilePath.status,
+        statusText: resultFilePath.statusText,
       });
+      return;
+    }
+    const { host_path } = await resultFilePath.json();
+    const fileUrl = `${process.env.BOT_STATIC_URL}${host_path}`;
 
-      if (!resultFilePath.ok) {
-        await errorStep('Error while uploading file');
-        addLog(TYPE_BOT_FORWARD_ERROR, {
-          step: 'uploadingStep',
-          status: resultFilePath.status,
-          statusText: resultFilePath.statusText,
-        });
-        return;
-      }
-
-      const { host_path } = await resultFilePath.json();
-      const fileUrl = `${process.env.BOT_STATIC_URL}${host_path}`;
-      const downloadPath = await downloadImage(fileUrl);
-      
-      const imageUrl = await uploadImage(downloadPath, telegramUser.hash);
-      await uploadedStep();
-      if (fs.existsSync(downloadPath)) {
-        fs.unlinkSync(downloadPath);
-      }
+    // получение токена для обратной загрузки
+    const resultUrl = await reverseDownloadMedia(
+      type,
+      fileUrl,
+      telegramUser.hash
+    );
+    await uploadedStep();
+    stepsPast.push('uploadedStep');
+    if (type === 'audios') {
+      await createAudioTurn({
+        gameId,
+        msg: userInfo.msg,
+        audioUrl: resultUrl,
+      });
+    } else if (type === 'photos') {
       await createTurn({
         gameId,
-        imageUrl,
         msg: userInfo.msg,
+        imageUrl: resultUrl,
       });
-      const shortHash = hashFunc(gameId);
-      const gameLink = `${CLIENT_URL}/game?hash=${shortHash}`;
-      await doneStep(gameLink);
-    } else {
-      errorStep('No message to forward');
+    } else if (type === 'videos') {
+      let videoPreview = null;
+      if (userInfo.msg?.video?.thumb) {
+        const imgFile = await bot.getFile(userInfo.msg.video.thumb.file_id);
+        const resultImgFilePath = await fetch(
+          `${process.env.BOT_STATIC_URL}/get-url`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ file_path: imgFile.file_path }),
+          }
+        );
+
+        if (resultImgFilePath.ok) {
+          const { host_path } = await resultImgFilePath.json();
+          const fileUrl = `${process.env.BOT_STATIC_URL}${host_path}`;
+
+          videoPreview = await reverseDownloadMedia(
+            'images',
+            fileUrl,
+            telegramUser.hash
+          );
+        }
+      }
+      await createVideoTurn({
+        gameId,
+        msg: userInfo.msg,
+        videoUrl: resultUrl,
+        videoPreview,
+      });
     }
+    const shortHash = hashFunc(gameId);
+    const gameLink = `${CLIENT_URL}/game?hash=${shortHash}`;
+    await doneStep(gameLink);
   } catch (error) {
     addLog(TYPE_BOT_FORWARD_ERROR, {
       step: 'unknown',
@@ -248,12 +284,27 @@ const createTurnByMessage = process.env.BOT_BASE_API_URL
   ? createTurnByMessageOwnServer
   : createTurnByMessageStandard;
 
+const isYoutubeUrl = (url) => {
+  if (!url) {
+    return false;
+  }
+  return url.includes('youtu.be') || url.includes('youtube.com');
+};
+
 const isMessageToForward = (msg) => {
-  return msg.forward_date || msg.audio;
+  // return msg.forward_date || msg.audio;
+  return (
+    msg?.audio ||
+    msg?.photo ||
+    msg?.video ||
+    isYoutubeUrl(msg?.link_preview_options?.url)
+  );
 };
 
 module.exports = {
+  isYoutubeUrl,
   createTurnByMessage,
+  createYoutubeTurnByMessage,
   showGameButtons,
   isMessageToForward,
 };

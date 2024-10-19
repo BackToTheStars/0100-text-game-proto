@@ -64,6 +64,10 @@ const schema = new Schema(
       type: String,
       required: false,
     },
+    videoPreview: {
+      type: String,
+      required: false,
+    },
     audioUrl: {
       type: String,
       required: false,

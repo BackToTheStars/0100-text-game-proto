@@ -87,6 +87,7 @@ const uploadAudio = async (filePath, hash) => {
   return resp.data.src;
 };
 
+// @deprecated
 const reverseDownloadAudio = async (audioUrl, hash) => {
   const tokenStaticServer = getToken(
     process.env.JWT_SECRET_STATIC,
@@ -109,7 +110,31 @@ const reverseDownloadAudio = async (audioUrl, hash) => {
 
   const resp = await axios(config);
   return resp.data.src;
-}
+};
+
+const reverseDownloadMedia = async (type, mediaUrl, hash) => {
+  const tokenStaticServer = getToken(
+    process.env.JWT_SECRET_STATIC,
+    'download_and_save',
+    new Date().getTime() + 5 * 60 * 1000,
+    hash
+  );
+
+  const config = {
+    method: 'post',
+    url: STATIC_MEDIA_URL + `/${type}/download-and-save`,
+    headers: {
+      Authorization: 'Bearer ' + tokenStaticServer,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      mediaUrl,
+    },
+  };
+
+  const resp = await axios(config);
+  return resp.data.src;
+};
 
 const createTurn = async ({ gameId, msg, imageUrl }) => {
   const lastTurn = await Turn.findOne({
@@ -166,6 +191,39 @@ const createAudioTurn = async ({ gameId, msg, audioUrl }) => {
   return newTurn;
 };
 
+const createVideoTurn = async ({ gameId, msg, videoUrl, videoPreview }) => {
+  const lastTurn = await Turn.findOne({
+    gameId,
+  }).sort({ createdAt: 'desc' });
+
+  const { x = 0, y = 0, width = 0 } = lastTurn || {};
+
+  const header = msg.video?.title || msg.video?.file_name || '';
+  
+  const body = {
+    gameId,
+    width: 400,
+    height:
+      225 +
+      28 + // video + 2spaces
+      (msg?.caption ? 40 + 14 : 0) + // + (text?paragraph + space)
+      (header ? 40 + 14 : 0), // + (header + space)
+    contentType: 'video',
+    header,
+    date: msg.date * 1000,
+    videoUrl,
+    videoPreview,
+    x: x + width + 50,
+    y,
+    dontShowHeader: !!header,
+  };
+  body.paragraph = msg?.caption ? [{ insert: msg?.caption }] : undefined;
+  const newTurn = new Turn(body);
+  await newTurn.save();
+
+  return newTurn;
+};
+
 module.exports = {
   downloadImage,
   uploadImage,
@@ -173,7 +231,9 @@ module.exports = {
   downloadAudio,
   uploadAudio,
   reverseDownloadAudio,
+  reverseDownloadMedia,
 
   createTurn,
   createAudioTurn,
+  createVideoTurn,
 };

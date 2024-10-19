@@ -26,7 +26,7 @@ const toNewFields = (turn) => {
         quotes: turn.quotes.filter((quote) => quote.type === 'picture'),
       },
     ],
-    [WIDGET_VIDEO]: [{ id: 'v_1', show: !!turn.videoUrl, url: turn.videoUrl }],
+    [WIDGET_VIDEO]: [{ id: 'v_1', show: !!turn.videoUrl, url: turn.videoUrl, preview: turn.videoPreview }],
     [WIDGET_AUDIO]: [{ id: 'a_1', show: !!turn.audioUrl, url: turn.audioUrl }],
     [WIDGET_SOURCE]: [
       {
