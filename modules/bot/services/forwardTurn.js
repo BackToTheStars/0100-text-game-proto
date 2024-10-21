@@ -107,7 +107,7 @@ const createTurnByMessageOwnServer = async (
       userFile = userInfo.msg.audio;
     } else if (userInfo.msg?.photo) {
       type = 'images';
-      userFile = userInfo.msg.photo[0];
+      userFile = userInfo.msg.photo.at(-1);
     } else if (userInfo.msg?.video) {
       type = 'videos';
       userFile = userInfo.msg.video;
@@ -164,7 +164,7 @@ const createTurnByMessageOwnServer = async (
         msg: userInfo.msg,
         audioUrl: resultUrl,
       });
-    } else if (type === 'photos') {
+    } else if (type === 'images') {
       await createTurn({
         gameId,
         msg: userInfo.msg,
