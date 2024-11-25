@@ -3,6 +3,8 @@ const Schema = mongoose.Schema;
 
 const QUOTE_TYPE_TEXT = 'text';
 const QUOTE_TYPE_PICTURE = 'picture';
+const QUOTE_TYPE_VIDEO = 'video';
+const QUOTE_TYPE_AUDIO = 'audio';
 
 const schema = new Schema(
   {
@@ -68,9 +70,39 @@ const schema = new Schema(
       type: String,
       required: false,
     },
+    videoQuotes: {
+      type: {
+        connectedTo: String,
+        duration: Number,
+      },
+      required: false,
+      quotes: [
+        {
+          id: Number,
+          text: String,
+          active: Boolean,
+          start: Number,
+        },
+      ],
+    },
     audioUrl: {
       type: String,
       required: false,
+    },
+    audioQuotes: {
+      type: {
+        connectedTo: String,
+        duration: Number,
+      },
+      required: false,
+      quotes: [
+        {
+          id: Number,
+          text: String,
+          active: Boolean,
+          start: Number,
+        },
+      ],
     },
     gameId: {
       type: mongoose.Schema.Types.ObjectId,

@@ -7,6 +7,7 @@ const {
   hashFunc,
   clearGamesCache,
   getHashByGame,
+  getInfo,
 } = require('../services/security');
 
 const {
@@ -14,6 +15,7 @@ const {
   ROLE_GAME_VISITOR,
 } = require('../../../config/game/user');
 const { createGameSnapshot } = require('../../backups/services/snapshots');
+const { getError } = require('../../core/services/errors');
 
 const createGame = async (req, res, next) => {
   try {
@@ -26,6 +28,14 @@ const createGame = async (req, res, next) => {
 
     clearGamesCache();
     await game.save();
+    try {
+      // @todo: optimization
+      const hash = getHashByGame(game);
+      await getInfo(hash);
+    } catch (err) {
+      await game.remove();
+      return next(getError('Game does not created. Try again', 400));
+    }
 
     if (game.accessLevel === 'link') {
       game.codes.push({
@@ -51,6 +61,7 @@ const createGame = async (req, res, next) => {
         code,
       },
     });
+    clearGamesCache();
   } catch (e) {
     next(e);
   }

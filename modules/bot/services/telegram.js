@@ -177,7 +177,7 @@ const createAudioTurn = async ({ gameId, msg, audioUrl }) => {
     width: 400,
     height: 50 + 28 + (msg?.caption ? 40 + 14 : 0), // audio + 2spaces + (text?paragraph + space)
     contentType: 'audio',
-    header: msg.audio?.title || msg.audio?.file_name || '',
+    header: msg.audio?.title || msg.audio?.file_name || 'Аудио',
     date: msg.date * 1000,
     audioUrl,
     x: x + width + 50,
@@ -215,7 +215,7 @@ const createVideoTurn = async ({ gameId, msg, videoUrl, videoPreview }) => {
     videoPreview,
     x: x + width + 50,
     y,
-    dontShowHeader: !!header,
+    dontShowHeader: !header,
   };
   body.paragraph = msg?.caption ? [{ insert: msg?.caption }] : undefined;
   const newTurn = new Turn(body);
