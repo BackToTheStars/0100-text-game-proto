@@ -40,7 +40,7 @@ app.use(express.json());
 
 if (process.env.BOT_MODE === 'hook') {
   const bot = require('./bot');
-  app.use(bot.webhookCallback(`/bot${token}`));
+  app.use(bot.webhookCallback(`/bot${process.env.BOT_TOKEN}`));
 }
 
 // ADMIN ROUTES
