@@ -308,7 +308,8 @@ if (botMode === 'hook') {
   // Режим вебхука (нужно настроить вебхук отдельно)
   bot.launch({
     webhook: {
-      domain: `${API_URL}/bot${token}`, // домен для вебхука
+      domain: API_URL,
+      path: '/bot' + token,
     },
   });
 } else {
