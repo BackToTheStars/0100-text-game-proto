@@ -91,7 +91,7 @@ async function deleteTurn(req, res, next) {
   try {
     const { gameId } = req.gameInfo;
     const { id } = req.params;
-    const turnModel = await Turn.findOneAndRemove({
+    const turnModel = await Turn.findOneAndDelete({
       _id: id,
       gameId,
     }); //функция ищет по ид и удаляет

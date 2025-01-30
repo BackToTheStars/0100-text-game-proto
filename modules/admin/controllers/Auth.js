@@ -1,5 +1,5 @@
 const Admin = require('../models/Admin');
-const bcrypt = require('bcrypt');
+const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 const { getError } = require('../../core/services/errors');
 
@@ -16,7 +16,8 @@ const login = async (req, res, next) => {
       return next(getError('Invalid nickname/password!!!', 401));
     }
 
-    if (!bcrypt.compareSync(password, admin.password)) {
+    // Проверка пароля с использованием argon2
+    if (!(await argon2.verify(admin.password, password))) {
       return next(getError('Invalid nickname/password!!!', 401));
     }
 

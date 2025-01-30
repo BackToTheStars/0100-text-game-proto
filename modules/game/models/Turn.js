@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { AVAILABLE_TEMPLATES } = require('../../../config/turn');
 const Schema = mongoose.Schema;
 
 const QUOTE_TYPE_TEXT = 'text';
@@ -48,6 +49,7 @@ const schema = new Schema(
     },
     contentType: {
       type: String,
+      enum: AVAILABLE_TEMPLATES,
       required: true,
     },
     backgroundColor: {

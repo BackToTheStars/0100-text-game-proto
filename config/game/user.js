@@ -22,6 +22,9 @@ const ROLES = {
   },
 };
 
+// @todo: use in middleware
+const hasRule = (role, rule) => ROLES[role].rules.indexOf(rule) !== -1;
+
 module.exports = {
   ROLE_GAME_VISITOR,
   ROLE_GAME_PLAYER,
@@ -31,4 +34,6 @@ module.exports = {
   RULE_TURNS_CRUD,
   RULE_GAME_EDIT,
   ROLES,
+
+  hasRule,
 }

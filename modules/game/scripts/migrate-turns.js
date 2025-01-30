@@ -15,7 +15,7 @@ const start = async () => {
   const oldTurns = await TurnOld.find({ gameId });
 
   for (let oldTurn of oldTurns) {
-    await Turn.findByIdAndRemove(oldTurn._id);
+    await Turn.findByIdAndDelete(oldTurn._id);
     const body = toNewFields(oldTurn);
     await Turn.create(body);
   }

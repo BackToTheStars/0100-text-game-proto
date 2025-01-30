@@ -4,20 +4,20 @@
   "description": "",
   "main": "server.js",
   "dependencies": {
+    "argon2": "^0.41.1",
     "async-get-file": "^1.0.4",
-    "axios": "^0.27.2",
-    "bcrypt": "^5.0.1",
-    "bunyan": "^1.8.15",
+    "axios": "^1.7.9",
     "cors": "^2.8.5",
     "cron": "^1.8.2",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "images": "^3.2.3",
-    "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.12.0",
-    "node-telegram-bot-api": "^0.59.0",
-    "nodemon": "^2.0.7",
-    "uniqid": "^5.4.0"
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5",
+    "telegraf": "^4.16.3",
+    "uniqid": "^5.4.0",
+    "winston": "^3.17.0",
+    "winston-mongodb": "^6.0.0",
+    "xstate": "^5.19.0"
   },
   "scripts": {
     "bot": "nodemon bot.js",
@@ -28,5 +28,8 @@
   },
   "keywords": [],
   "author": "",
-  "license": "GPL v.3"
+  "license": "GPL v.3",
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
 }

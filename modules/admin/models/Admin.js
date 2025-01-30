@@ -1,8 +1,7 @@
-const bcrypt = require('bcrypt');
-const saltRounds = 10;
+const argon2 = require('argon2');
 
 const Admin = {
-  findOne: (params) => {
+  findOne: async (params) => {
     const { nickname, id } = params;
     if (!nickname && !id) {
       return null;
@@ -16,7 +15,7 @@ const Admin = {
     return {
       _id: 1,
       nickname: process.env.USER_NICKNAME,
-      password: bcrypt.hashSync(process.env.USER_PASSWORD, saltRounds),
+      password: await argon2.hash(process.env.USER_PASSWORD),
     };
   },
 };

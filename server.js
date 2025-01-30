@@ -8,6 +8,7 @@ const adminAuthRoutes = require('./modules/admin/routes/auth');
 const adminGamesRoutes = require('./modules/admin/routes/games');
 const adminTurnsRoutes = require('./modules/admin/routes/turns');
 const adminLogsRoutes = require('./modules/admin/routes/logs');
+const adminTgLogsRoutes = require('./modules/admin/routes/tg-logs');
 
 const adminScriptsRoutes = require('./modules/admin/routes/scripts');
 const backupRoutes = require('./modules/backups/routes/backups');
@@ -21,8 +22,6 @@ const turnRoutes = require('./modules/game/routes/turns');
 const lineRoutes = require('./modules/game/routes/lines');
 const classRoutes = require('./modules/game/routes/classes');
 
-const { API_URL } = require('./config/url');
-
 const {
   gameMiddleware,
 } = require('./modules/game/middlewares/games');
@@ -32,14 +31,6 @@ const {
   isAdmin,
 } = require('./modules/admin/middlewares/auth');
 
-let bot;
-const token = process.env.BOT_TOKEN;
-if (process.env.BOT_MODE === 'hook') {
-  bot = require('./bot');
-  console.log('bot imported');
-  bot.setWebHook(`${API_URL}/bot${token}`);
-}
-
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -48,16 +39,8 @@ app.use(express.static('public'));
 app.use(express.json());
 
 if (process.env.BOT_MODE === 'hook') {
-  app.post(`/bot${token}`, (req, res, next) => {
-    try {
-      bot.processUpdate(req.body);
-      res.sendStatus(200);
-      console.log('hook requested');
-    } catch (error) {
-      console.log(error);
-      next(error);
-    }
-  });
+  const bot = require('./bot');
+  app.use(bot.webhookCallback(`/bot${token}`));
 }
 
 // ADMIN ROUTES
@@ -71,6 +54,7 @@ const adminRoutes = {
   '/admin/snapshots': snapshotRoutes,
 
   '/admin/logs': adminLogsRoutes,
+  '/admin/tg-logs': adminTgLogsRoutes,
 };
 
 // добавляем middleware для всех админских роутов
