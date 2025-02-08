@@ -30,7 +30,7 @@ const setBot = (bot) => {
 
 const isForward = (msg) => {
   return !!msg.forward_date;
-}
+};
 
 const hasMedia = (msg) => {
   return (
@@ -41,7 +41,7 @@ const hasMedia = (msg) => {
     // msg.document ||
     false
   );
-}
+};
 
 const isYoutubeUrl = (url) => {
   if (!url) {
@@ -75,7 +75,7 @@ const getPreviewInfo = (msg) => {
     type,
     url: msg.link_preview_options.url,
   };
-}
+};
 
 const getMediaInfo = (msg) => {
   if (msg.photo) {
@@ -96,7 +96,7 @@ const getMediaInfo = (msg) => {
   } else {
     return null;
   }
-}
+};
 
 const getFileInfo = (message) => {
   let needToUploadMedia = false;
@@ -220,6 +220,45 @@ const calculateHeight = (body) => {
   }
 };
 
+const getParagraphByTextWithEntities = (text, entities) => {
+  const allEntities = [];
+  let currentPos = 0;
+
+  for (let i = 0; i < entities.length; i++) {
+    const entity = entities[i];
+    if (entity.offset > currentPos) {
+      allEntities.push({
+        offset: currentPos,
+        length: entity.offset - currentPos,
+        type: 'plain',
+      });
+    }
+    allEntities.push(entity);
+    currentPos = entity.offset + entity.length;
+  }
+
+  if (currentPos < text.length) {
+    allEntities.push({
+      offset: currentPos,
+      length: text.length - currentPos,
+      type: 'plain',
+    });
+  }
+
+  return allEntities.map((entity) => {
+    const part = {
+      insert: text.slice(entity.offset, entity.offset + entity.length),
+    };
+    if (entity.type === 'text_link') {
+      part.attributes = {
+        link: entity.url,
+      };
+      // other types: bold, italic, underline
+    }
+    return part;
+  });
+};
+
 const prepareTurnByMsg = async (message, uploadedObject) => {
   // Определение типа контента
   let contentType = 'picture';
@@ -253,7 +292,18 @@ const prepareTurnByMsg = async (message, uploadedObject) => {
   const { x = 0, y = 0, width = 0 } = lastTurnExample;
 
   // Заполнение полей хода
-  const header = message.forward_from_chat?.title || message.audio?.title || message.video?.title || '';
+  const header =
+    message.forward_from_chat?.title ||
+    message.audio?.title ||
+    message.video?.title ||
+    '';
+
+  const text = message.caption || message.text || '';
+  const textEntities = message.caption_entities || message.entities;
+  const paragraph = textEntities
+    ? getParagraphByTextWithEntities(text, textEntities)
+    : [{ insert: text }];
+
   const body = {
     // gameId,
     contentType,
@@ -263,8 +313,7 @@ const prepareTurnByMsg = async (message, uploadedObject) => {
     videoUrl: null,
     videoPreview: null,
     audioUrl: null,
-    paragraph: message.caption || message.text ? [{ insert: message.caption || message.text }] : undefined,
-    // paragraphEntities: message.caption_entities || message.entities,
+    paragraph,
     sourceUrl: message.forward_from_message_id
       ? `https://t.me/${message.forward_from_chat.username}/${message.forward_from_message_id}`
       : null,
