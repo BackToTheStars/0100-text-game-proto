@@ -6,9 +6,10 @@
 .idea/*
 /node_modules
 .env
-/dumps
 /selenium
 /dist
 .vs
 file.jpg
 .tmp
+.vscode
+/examples

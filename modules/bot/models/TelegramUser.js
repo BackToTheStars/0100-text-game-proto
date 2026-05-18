@@ -7,10 +7,11 @@ const schema = new Schema(
       type: Number,
     },
     gameId: {
+      // удалить
       type: mongoose.Schema.Types.ObjectId,
     },
     hash: {
-      // нужно удалить, не нужна
+      // удалить
       type: String,
     },
     games: {

@@ -11,7 +11,7 @@ const { toNewFields } = require('./utils');
 const hardCodeId = '633a47993cd2ce0018c24795';
 // @todo: migrate WIDGET_COMPRESSED
 const start = async () => {
-  await Turn.findByIdAndRemove(hardCodeId);
+  await Turn.findByIdAndDelete(hardCodeId);
   const oldTurn = await TurnOld.findById(hardCodeId);
 
   const body = toNewFields(oldTurn);
