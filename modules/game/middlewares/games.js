@@ -15,7 +15,7 @@ const gameMiddleware = async (req, res, next) => {
     }
 
     if (gameToken) {
-      jwt.verify(gameToken, process.env.JWT_SECRET, (err, decoded) => {
+      jwt.verify(gameToken, process.env.JWT_SECRET, { algorithms: ['HS256'] }, (err, decoded) => {
         if (!err) {
           req.gameInfo = {
             gameId,
