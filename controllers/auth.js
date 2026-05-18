@@ -96,7 +96,7 @@ const adminMiddleware = (req, res, next) => {
     token = authorization.split(' ')[1];
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+  jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] }, (err, decoded) => {
     if (!err) {
       req.adminId = decoded.data.id;
     }
