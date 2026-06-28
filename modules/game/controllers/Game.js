@@ -5,10 +5,16 @@ const Turn = require('../models/Turn');
 const Line = require('../models/Line');
 const {
   hashFunc,
+  hashUniqueForGame,
   clearGamesCache,
   getHashByGame,
   getInfo,
 } = require('../services/security');
+const {
+  CODE_HASH_MIN,
+  CODE_HASH_MAX,
+  normalizeCodeHashLength,
+} = require('../../../config/game/code');
 
 const {
   ROLE_GAME_OWNER,
@@ -21,9 +27,20 @@ const createGame = async (req, res, next) => {
   try {
     const { public, name } = req.body;
 
+    const codeHashLength = normalizeCodeHashLength(req.query.codeLength);
+    if (codeHashLength === null) {
+      return next(
+        getError(
+          `codeLength должен быть целым числом в диапазоне [${CODE_HASH_MIN}, ${CODE_HASH_MAX}]`,
+          400
+        )
+      );
+    }
+
     const game = new Game({
       public,
       name,
+      codeHashLength,
     });
 
     clearGamesCache();
@@ -46,7 +63,7 @@ const createGame = async (req, res, next) => {
 
     const code = {
       role: ROLE_GAME_OWNER, // @todo: check if need to use role hash
-      hash: hashFunc(game._id, process.env.GAME_ID_HASH_LENGTH),
+      hash: hashUniqueForGame(game, game.codeHashLength),
     };
 
     game.codes.push(code);
@@ -77,45 +94,58 @@ async function deleteGame(req, res, next) {
     }
     await GameClass.deleteMany({ gameId });
     await Turn.deleteMany({ gameId });
+    await Line.deleteMany({ gameId });
     await Game.findByIdAndDelete(gameId);
+    clearGamesCache(); // иначе hash удалённой игры продолжит резолвиться из кэша
     res.json({ success: true });
   } catch (err) {
     next(err);
   }
 }
 
-const getGame = async (req, res) => {
-  const { gameId, role, nickname } = req.gameInfo;
-  // console.log(req.gameInfo);
-  const fields = {
-    // _id: false,
-    hash: true,
-    name: true,
-    public: true,
-    description: true,
-    image: true,
-    codes: true, // есть ли у него права superAdmin?
-  };
-  const game = await Game.findById(gameId, fields);
+const getGame = async (req, res, next) => {
+  try {
+    const { gameId, role, nickname } = req.gameInfo;
+    // console.log(req.gameInfo);
+    const fields = {
+      // _id: false,
+      hash: true,
+      name: true,
+      public: true,
+      description: true,
+      image: true,
+      codes: true, // есть ли у него права superAdmin?
+    };
+    const game = await Game.findById(gameId, fields);
 
-  // здесь может быть проверка, есть ли у пользователя доступ к игре
-  const gameObj = game.toObject();
-  const roleId = role;
-  if (role !== ROLE_GAME_OWNER) {
-    delete gameObj.codes;
+    // hash мог зарезолвиться из устаревшего кэша на уже удалённую игру:
+    // сбрасываем кэш и отвечаем 404, а не падаем на null.toObject()
+    if (!game) {
+      clearGamesCache();
+      return next(getError('Игра не найдена', 404));
+    }
+
+    // здесь может быть проверка, есть ли у пользователя доступ к игре
+    const gameObj = game.toObject();
+    const roleId = role;
+    if (role !== ROLE_GAME_OWNER) {
+      delete gameObj.codes;
+    }
+
+    const lines = await Line.find({ gameId: gameObj._id }); // вернёт массив
+    delete gameObj._id;
+
+    res.json({
+      item: {
+        ...gameObj,
+        hash: getHashByGame(game),
+        lines: lines.map((line) => ({ ...line.toObject(), gameId: null })),
+        auth: !!nickname,
+      },
+    });
+  } catch (err) {
+    next(err);
   }
-
-  const lines = await Line.find({ gameId: gameObj._id }); // вернёт массив
-  delete gameObj._id;
-
-  res.json({
-    item: {
-      ...gameObj,
-      hash: getHashByGame(game),
-      lines: lines.map((line) => ({ ...line.toObject(), gameId: null })),
-      auth: !!nickname,
-    },
-  });
 };
 
 const editGame = async (req, res, next) => {

@@ -1,7 +1,9 @@
 const Game = require('../../game/models/Game');
 const Turn = require('../../game/models/Turn');
 const GameClass = require('../../game/models/GameClass');
+const Line = require('../../game/models/Line');
 const { createGameSnapshot } = require('../../backups/services/snapshots');
+const { clearGamesCache } = require('../../game/services/security');
 
 const list = async (req, res, next) => {
   try {
@@ -51,7 +53,9 @@ const remove = async (req, res, next) => {
     }
     await GameClass.deleteMany({ gameId: id });
     await Turn.deleteMany({ gameId: id });
+    await Line.deleteMany({ gameId: id });
     await Game.findByIdAndDelete(id);
+    clearGamesCache(); // иначе hash удалённой игры продолжит резолвиться из кэша
     res.json({ success: true });
   } catch (err) {
     next(err);

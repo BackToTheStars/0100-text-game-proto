@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const Turn = require('./Turn');
+const { CODE_HASH_DEFAULT } = require('../../../config/game/code');
 
 const codeSchema = new Schema({
   role: {
@@ -42,6 +43,12 @@ const schema = new Schema(
     codes: {
       type: [codeSchema],
       default: [],
+    },
+    // Длина (extraLength) хеша кодов этой игры; задаётся при создании.
+    // Используется addCode, чтобы новые коды были той же длины, что и исходные.
+    codeHashLength: {
+      type: Number,
+      default: CODE_HASH_DEFAULT,
     },
     public: {
       type: Boolean,

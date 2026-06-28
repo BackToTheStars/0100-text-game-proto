@@ -1,6 +1,9 @@
 require('dotenv').config();
 require('./config/db');
 
+const { assertEnvCodeHashLength } = require('./config/game/code');
+assertEnvCodeHashLength();
+
 const cors = require('cors');
 const express = require('express');
 

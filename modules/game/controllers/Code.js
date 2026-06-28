@@ -1,8 +1,9 @@
 const jwt = require('jsonwebtoken');
 const Game = require('../models/Game');
-const { hashFunc, getHashByGame } = require('../services/security');
+const { hashFunc, hashUniqueForGame, getHashByGame } = require('../services/security');
 const { getError } = require('../../core/services/errors');
 const { ROLE_GAME_PLAYER } = require('../../../config/game/user');
+const { CODE_HASH_DEFAULT } = require('../../../config/game/code');
 const { AUTH_VERSION } = require('../../../config/game/auth');
 const { getToken } = require('../services/game');
 
@@ -96,12 +97,17 @@ const addCode = async (req, res, next) => {
     const { gameId } = req.gameInfo;
     const { role = ROLE_GAME_PLAYER } = req.body;
 
+    const game = await Game.findById(gameId);
+    if (!game) {
+      return next(getError('Game not found', 404));
+    }
+
+    const extraLength = game.codeHashLength || CODE_HASH_DEFAULT;
     const code = {
       role,
-      hash: hashFunc(gameId, process.env.GAME_ID_HASH_LENGTH),
+      hash: hashUniqueForGame(game, extraLength),
     };
 
-    const game = await Game.findById(gameId);
     game.codes.push(code);
     await game.save();
 

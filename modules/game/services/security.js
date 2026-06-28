@@ -24,6 +24,29 @@ const getHashByGame = (game) => {
   return hashFunc(game._id);
 };
 
+// Сгенерировать хеш кода, уникальный в рамках игры: не совпадающий ни с базовым
+// хешем игры, ни с хешами уже существующих кодов. Предотвращает коллизию хешей,
+// при которой codeLogin выбирал первый код с этим хешем → эскалация роли (баг #1).
+const MAX_HASH_ATTEMPTS = 100;
+const hashUniqueForGame = (game, extraLength) => {
+  const taken = new Set([hashFunc(game._id)]);
+  for (const code of game.codes || []) {
+    if (code.hash) {
+      taken.add(code.hash);
+    }
+  }
+  for (let i = 0; i < MAX_HASH_ATTEMPTS; i++) {
+    const hash = hashFunc(game._id, extraLength);
+    if (!taken.has(hash)) {
+      return hash;
+    }
+  }
+  throw getError(
+    'Не удалось сгенерировать уникальный код. Увеличьте длину кода (codeLength).',
+    500
+  );
+};
+
 const clearGamesCache = () => (games = null);
 
 const getInfo = async (hash) => {
@@ -44,8 +67,13 @@ const getInfo = async (hash) => {
             }
           }
           for (const hash of hashes) {
-            if (d[hash] && d[hash] !== game._id) {
-              throw getError(`hash duplicated: ${hash} ids: ${d[hash]}, ${game._id}`, 400);
+            if (d[hash] && '' + d[hash] !== '' + game._id) {
+              // Не валим резолвинг для всего сервера из-за одной "грязной" игры
+              // со старой коллизией: логируем и оставляем первое отображение.
+              console.warn(
+                `hash duplicated: ${hash} ids: ${d[hash]}, ${game._id} (оставлено первое)`
+              );
+              continue;
             }
             d[hash] = game._id;
           }
@@ -64,6 +92,7 @@ const getInfo = async (hash) => {
 
 module.exports = {
   hashFunc,
+  hashUniqueForGame,
   getInfo,
   getHashByGame,
   clearGamesCache,
