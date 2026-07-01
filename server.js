@@ -43,7 +43,24 @@ app.use(express.json());
 
 if (process.env.BOT_MODE === 'hook') {
   const bot = require('./bot');
-  app.use(bot.webhookCallback(`/bot${process.env.BOT_TOKEN}`));
+  const webhookPath = `/bot${process.env.BOT_TOKEN}`;
+  const secretToken = process.env.BOT_WEBHOOK_SECRET || undefined;
+
+  // server.js — единственный владелец webhook (bot.js в hook-режиме себя не запускает).
+  app.use(bot.webhookCallback(webhookPath, { secretToken }));
+
+  // Регистрируем webhook на выделенном домене (BOT_WEBHOOK_BASE_URL), с фолбэком на API_URL.
+  const base =
+    process.env.BOT_WEBHOOK_BASE_URL ||
+    process.env.API_URL ||
+    'http://localhost:3000';
+  bot.telegram
+    .setWebhook(
+      `${base}${webhookPath}`,
+      secretToken ? { secret_token: secretToken } : undefined
+    )
+    .then(() => console.log(`Webhook set: ${base}${webhookPath}`))
+    .catch((err) => console.error('setWebhook failed:', err.message));
 }
 
 // ADMIN ROUTES

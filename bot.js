@@ -14,7 +14,6 @@ const {
 const turnService = require('./modules/bot/lib/turnService');
 
 const { LOG_TYPE } = require('./config/logs');
-const { API_URL } = require('./config/url');
 
 const token = process.env.BOT_TOKEN;
 const customApiUrl = process.env.BOT_BASE_API_URL; // кастомный URL сервера
@@ -37,21 +36,11 @@ const buildAgent = () => {
       },
     };
   return undefined;
-  // const proxyUrl = process.env.PROXY_URL;
-  // if (!proxyUrl) return undefined;
-
-  // console.log(`Using proxy: ${proxyUrl}`);
-  // return proxyUrl.startsWith('socks')
-  //   ? new SocksProxyAgent(proxyUrl)
-  //   : new HttpsProxyAgent(proxyUrl);
 };
 
 const bot = new Telegraf(
   token,
   buildAgent(),
-  // {
-  //   apiRoot: customApiUrl || 'https://api.telegram.org', // Используем кастомный URL, если он задан
-  // },
 );
 
 turnService.setBot(bot);
@@ -333,21 +322,24 @@ bot.catch((err, ctx) => {
   console.log(err);
 });
 
-// Запуск бота
-// Запуск бота в зависимости от режима
-if (botMode === 'hook') {
-  // Режим вебхука (нужно настроить вебхук отдельно)
-  bot.launch({
-    webhook: {
-      domain: API_URL,
-      path: '/bot' + token,
-    },
-  });
-} else {
-  // Режим polling (по умолчанию)
-  bot.launch({
-    polling: true,
-  });
+// Запуск.
+// - polling: bot.js запущен как отдельный процесс (`node bot.js` / `npm run bot`) →
+//   long-polling стартует здесь. Именно так работает связка этапов 3–4 через локальный
+//   telegram-bot-api (см. docs/deploy/3-4-alternative.md) — webhook не нужен.
+// - hook:   webhook монтирует и регистрирует server.js (bot.js в этом случае лишь
+//   импортируется ради экземпляра bot). Здесь НИЧЕГО не запускаем, иначе Telegraf
+//   поднимет второй HTTP-listener и вызовет setWebhook сам (баг двойного запуска).
+if (require.main === module) {
+  if (botMode === 'hook') {
+    console.warn(
+      'BOT_MODE=hook: вебхук обслуживает server.js — отдельный процесс bot.js не нужен, выходим.'
+    );
+    process.exit(0);
+  }
+  bot.launch();
+  console.log(
+    `Bot started (long-polling); apiRoot: ${customApiUrl || 'https://api.telegram.org'}`
+  );
 }
 
 // Graceful shutdown
