@@ -1,6 +1,7 @@
 const { BOT_UPLOAD_DAILY_LIMIT } = require('../../../config/bot');
 const { STATIC_MEDIA_URL } = require('../../../config/url');
 const { getToken } = require('../../game/services/game');
+const xcomService = require('./xcomService');
 const axios = require('axios');
 
 const dailyUploaded = {};
@@ -61,10 +62,13 @@ const getPreviewInfo = (msg) => {
   if (!msg.link_preview_options) {
     return null;
   }
+  const url = msg.link_preview_options.url;
   let type = null;
-  if (isYoutubeUrl(msg.link_preview_options.url)) {
+  if (xcomService.isXcomUrl(url)) {
+    type = 'xcom';
+  } else if (isYoutubeUrl(url)) {
     type = 'video';
-  } else if (isPhotoUrl(msg.link_preview_options.url)) {
+  } else if (isPhotoUrl(url)) {
     type = 'photo';
   }
 
@@ -73,7 +77,7 @@ const getPreviewInfo = (msg) => {
   }
   return {
     type,
-    url: msg.link_preview_options.url,
+    url,
   };
 };
 
@@ -348,6 +352,51 @@ const prepareTurnByMsg = async (message, uploadedObject) => {
   return body;
 };
 
+const prepareXcomTurn = async (message, url, code) => {
+  const data = await xcomService.fetchTweetData(url);
+
+  let uploadedImageUrl = null;
+  if (data.imageUrl) {
+    try {
+      // @todo: учесть в BOT_UPLOAD_DAILY_LIMIT (размер не известен без HEAD)
+      uploadedImageUrl = await reverseDownloadMedia('images', data.imageUrl, code);
+    } catch (err) {
+      console.error('[xcom] image upload failed', err.message);
+    }
+  }
+
+  const hasImage = !!uploadedImageUrl;
+  const contentType = hasImage ? 'picture' : 'comment';
+
+  const paragraph = data.text
+    ? [{ insert: data.text }]
+    : [{ insert: data.normalizedUrl, attributes: { link: data.normalizedUrl } }];
+
+  const header = data.authorName
+    ? data.authorHandle
+      ? `${data.authorName} (@${data.authorHandle})`
+      : data.authorName
+    : '';
+
+  const body = {
+    contentType,
+    header,
+    dontShowHeader: !header,
+    imageUrl: uploadedImageUrl,
+    videoUrl: null,
+    videoPreview: null,
+    audioUrl: null,
+    paragraph,
+    sourceUrl: data.normalizedUrl,
+    date: data.createdAt || (message.date ? message.date * 1000 : null),
+    x: 0,
+    y: 0,
+    width: hasImage ? 600 : 400,
+  };
+  body.height = calculateHeight(body);
+  return body;
+};
+
 module.exports = {
   isForward,
   hasMedia,
@@ -357,5 +406,7 @@ module.exports = {
   getFileInfo,
   prepareUploadedObject,
   prepareTurnByMsg,
+  prepareXcomTurn,
+  reverseDownloadMedia,
   setBot,
 };

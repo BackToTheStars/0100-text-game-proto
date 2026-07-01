@@ -255,6 +255,39 @@ class MessageService {
       this.flashText = 'Preparing data...';
       await this.showMenu();
 
+      const previewInfo = turnService.getPreviewInfo(this.lastMsg);
+      if (previewInfo?.type === 'xcom') {
+        this.flashText = 'Fetching tweet...';
+        this.showMenu();
+        this.isBusy = true;
+        const xcomTimeoutId = setTimeout(() => {
+          this.isBusy = false;
+          this.flashText = 'New turn creation is available (please try again)';
+          this.showMenu();
+        }, BOT_UPLOAD_FILE_TIME_LOCK);
+
+        turnService
+          .prepareXcomTurn(this.lastMsg, previewInfo.url, args.code)
+          .then((turnData) => {
+            clearTimeout(xcomTimeoutId);
+            this.isBusy = false;
+            this.flashText = 'Creating turn...';
+            this.showMenu();
+            this.actorRunCommand(COMMAND.CREATE_TURN, {
+              turnData,
+              turnGameCode: args.code,
+            });
+          })
+          .catch((error) => {
+            clearTimeout(xcomTimeoutId);
+            this.isBusy = false;
+            this.flashText = error.message || 'Failed to fetch tweet';
+            this.showMenu();
+            console.log(error);
+          });
+        return;
+      }
+
       // const message = this.lastMsg;
       const { needToUploadMedia, fileType, fileObj } = turnService.getFileInfo(
         this.lastMsg

@@ -10,6 +10,7 @@
     "cors": "^2.8.6",
     "dotenv": "^16.6.1",
     "express": "^4.22.2",
+    "https-proxy-agent": "^9.1.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.24.0",
     "telegraf": "^4.16.3",

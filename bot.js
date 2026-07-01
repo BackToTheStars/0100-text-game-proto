@@ -1,12 +1,16 @@
 require('dotenv').config();
 require('./config/db');
 const { Telegraf } = require('telegraf');
+const { HttpsProxyAgent } = require('https-proxy-agent');
 const {
   logBotReply,
   logUserMessage,
   logUserCallback,
 } = require('./modules/bot/lib/logger');
-const { getMessageService, COMMAND } = require('./modules/bot/lib/messageService');
+const {
+  getMessageService,
+  COMMAND,
+} = require('./modules/bot/lib/messageService');
 const turnService = require('./modules/bot/lib/turnService');
 
 const { LOG_TYPE } = require('./config/logs');
@@ -15,13 +19,40 @@ const { API_URL } = require('./config/url');
 const token = process.env.BOT_TOKEN;
 const customApiUrl = process.env.BOT_BASE_API_URL; // кастомный URL сервера
 const botMode = process.env.BOT_MODE; // Режим работы бота: 'hook' или 'polling'
+const proxyUrl = process.env.BOT_PROXY_URL; // Прокси для локальной разработки
+
 if (!token) throw new Error('BOT_TOKEN is required');
 
-const bot = new Telegraf(token, {
-  telegram: {
-    apiRoot: customApiUrl || 'https://api.telegram.org', // Используем кастомный URL, если он задан
-  },
-});
+const buildAgent = () => {
+  if (customApiUrl)
+    return {
+      telegram: {
+        apiRoot: customApiUrl,
+      },
+    };
+  if (proxyUrl)
+    return {
+      telegram: {
+        agent: new HttpsProxyAgent(proxyUrl),
+      },
+    };
+  return undefined;
+  // const proxyUrl = process.env.PROXY_URL;
+  // if (!proxyUrl) return undefined;
+
+  // console.log(`Using proxy: ${proxyUrl}`);
+  // return proxyUrl.startsWith('socks')
+  //   ? new SocksProxyAgent(proxyUrl)
+  //   : new HttpsProxyAgent(proxyUrl);
+};
+
+const bot = new Telegraf(
+  token,
+  buildAgent(),
+  // {
+  //   apiRoot: customApiUrl || 'https://api.telegram.org', // Используем кастомный URL, если он задан
+  // },
+);
 
 turnService.setBot(bot);
 
@@ -124,7 +155,7 @@ const getDeps = (ctx) => {
                 msgInfo.botMsgId,
                 undefined,
                 pendingMessage.text,
-                extra
+                extra,
               );
             }
           } else {
@@ -167,7 +198,7 @@ const getDeps = (ctx) => {
         }
       }, 300);
     },
-    getTurnService: () => turnService
+    getTurnService: () => turnService,
   };
 };
 
