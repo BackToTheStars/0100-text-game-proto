@@ -2,6 +2,7 @@ const SCRIPT_SYNC_DATABASE = 'SCRIPT_SYNC_DATABASE';
 const SCRIPT_ACCESS_LEVEL_INIT = 'SCRIPT_ACCESS_LEVEL_INIT';
 const SCRIPT_GAME_COMMON = 'SCRIPT_GAME_COMMON';
 const SCRIPT_BOT = 'SCRIPT_BOT';
+const SCRIPT_MEDIA = 'SCRIPT_MEDIA';
 
 const {
   checkZeroPoints,
@@ -25,6 +26,18 @@ const {
 } = require('./scripts/AccessLevel');
 const { MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION } = require('../../../config/admin');
 const { checkTgCodes, removeTgCodesDuplicates } = require('./scripts/TgBot');
+const {
+  check: mediaRelocateCheck,
+  run: mediaRelocateRun,
+} = require('./scripts/Media');
+
+// Описание параметра команды для UI (name/type/description/required).
+const GAME_ID_PARAM = {
+  name: 'gameId',
+  type: 'string',
+  description: 'ID игры',
+  required: true,
+};
 
 const scripts = [
   {
@@ -114,6 +127,26 @@ const scripts = [
         description: 'Удаление кодов вьюпортов',
         callback: removeCodeViewports,
         modes: [MODE_DEVELOPMENT, MODE_LOCAL],
+      },
+    ],
+  },
+  {
+    name: SCRIPT_MEDIA,
+    description: 'Медиа-файлы игры',
+    commands: [
+      {
+        name: 'checkRelocate',
+        description: 'Проверка: файлы игры не на текущем медиа-сервере (сухой прогон)',
+        callback: mediaRelocateCheck,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
+        params: [GAME_ID_PARAM],
+      },
+      {
+        name: 'relocate',
+        description: 'Перенести файлы игры на текущий медиа-сервер',
+        callback: mediaRelocateRun,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
+        params: [GAME_ID_PARAM],
       },
     ],
   },

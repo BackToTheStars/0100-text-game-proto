@@ -9,7 +9,12 @@ const list = async (req, res, next) => {
       const filteredCommands = [];
       for (const command of scriptGroup.commands) {
         if (command.modes.includes(ADMIN_MODE)) {
-          filteredCommands.push(command);
+          filteredCommands.push({
+            name: command.name,
+            description: command.description,
+            modes: command.modes,
+            params: command.params || [],
+          });
         }
       }
       if (filteredCommands.length > 0) {
