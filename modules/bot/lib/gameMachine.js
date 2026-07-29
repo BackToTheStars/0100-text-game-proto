@@ -194,16 +194,25 @@ const machine = createMachine(
 
 const actors = {};
 
-const getActor = async (userId, deps) => {
+const getActor = (userId, deps) => {
   if (!actors[userId]) {
-    const gameService = getGameService(userId);
-    await gameService.init();
-    const games = gameService.games;
-    const actor = createActor(machine, {
-      input: { userId, games, deps },
+    // сохраняем промис до завершения init(), чтобы параллельные апдейты
+    // не создали два актора на одного пользователя
+    actors[userId] = (async () => {
+      const gameService = getGameService(userId);
+      await gameService.init();
+      const games = gameService.games;
+      const actor = createActor(machine, {
+        input: { userId, games, deps },
+      });
+      actor.start();
+      return actor;
+    })().catch((err) => {
+      // неудачную инициализацию не кэшируем —
+      // следующий апдейт пользователя повторит попытку
+      delete actors[userId];
+      throw err;
     });
-    actor.start();
-    actors[userId] = actor;
   }
   return actors[userId];
 };

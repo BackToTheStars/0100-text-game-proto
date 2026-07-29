@@ -82,6 +82,10 @@ const menuPaths = {
     isAvailableCallback: () => false,
     descriptionCallback: (actorCtx, messageService) => {
       const message = messageService.lastMsg;
+      if (!message) {
+        // состояние потеряно (например, после рестарта бота)
+        return 'No message selected. Please forward the message again.';
+      }
       const isForward = messageService.turnService.isForward(message);
       const mediaInfo = messageService.turnService.getMediaInfo(message);
       const previewInfo = messageService.turnService.getPreviewInfo(message);
@@ -111,11 +115,12 @@ const menuPaths = {
       const lastTurnGameCode = messageService.lastTurnGameCode;
       const game = actorCtx.games.find(({ code }) => code === lastTurnGameCode);
       const gameLink = `${CLIENT_URL}/game?hash=${lastTurnGameCode}`;
+      const gameName = game?.name || lastTurnGameCode || 'game';
       return {
         type: 'markdown',
         text: [
           escapeMarkdownV2('New turn created. Follow the link:'),
-          `[${escapeMarkdownV2(game.name)}](${gameLink})`,
+          `[${escapeMarkdownV2(gameName)}](${gameLink})`,
         ].join('\n'),
       };
     },
@@ -251,6 +256,13 @@ class MessageService {
     }
 
     if (command === COMMAND.SETUP_TURN_CREATION_GAME) {
+      if (!this.lastMsg) {
+        // исходное сообщение потеряно (например, бот был перезапущен)
+        this.path = '/';
+        return await this.showMenuWithFlash(
+          'The original message was lost (bot restarted). Please forward it again.'
+        );
+      }
       this.path = '/create_turn';
       this.flashText = 'Preparing data...';
       await this.showMenu();
@@ -554,11 +566,24 @@ class MessageService {
   }
 }
 
-const getMessageService = async (id, deps) => {
+const getMessageService = (id, deps) => {
   if (!messageServices.has(id)) {
-    const service = new MessageService(id, deps);
-    await service.init();
-    messageServices.set(id, service);
+    // кладём в Map промис до завершения init(), чтобы параллельная обработка
+    // апдейтов (Telegraf обрабатывает пачку через Promise.all) не создала
+    // два экземпляра сервиса на один чат
+    messageServices.set(
+      id,
+      (async () => {
+        const service = new MessageService(id, deps);
+        await service.init();
+        if (!service.actor) {
+          // init() не удался (ошибка обработана внутри, актор не создан) —
+          // убираем сервис из кэша, чтобы следующий апдейт повторил инициализацию
+          messageServices.delete(id);
+        }
+        return service;
+      })()
+    );
   }
   return messageServices.get(id);
 };

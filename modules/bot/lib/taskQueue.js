@@ -16,7 +16,13 @@ class TaskQueue {
 
     while (this.queue.length > 0) {
       const task = this.queue.shift();
-      await task();
+      try {
+        await task();
+      } catch (err) {
+        // упавшая задача не должна заклинивать очередь
+        // и ронять процесс необработанным rejection
+        console.error('TaskQueue task failed:', err);
+      }
     }
 
     this.isProcessing = false;

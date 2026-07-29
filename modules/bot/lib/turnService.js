@@ -29,8 +29,48 @@ const setBot = (bot) => {
   vars.bot = bot;
 };
 
+// Bot API >= 7.0: сведения о форварде лежат в forward_origin,
+// legacy-поле forward_date оставлено как фолбэк для старых серверов
 const isForward = (msg) => {
-  return !!msg.forward_date;
+  return !!(msg?.forward_origin || msg?.forward_date);
+};
+
+const getForwardTitle = (msg) => {
+  const origin = msg?.forward_origin;
+  if (origin) {
+    if (origin.chat?.title) {
+      // type === 'channel'
+      return origin.chat.title;
+    }
+    if (origin.sender_chat?.title) {
+      // type === 'chat' (отправитель от имени чата)
+      return origin.sender_chat.title;
+    }
+    if (origin.sender_user) {
+      // type === 'user'
+      return [origin.sender_user.first_name, origin.sender_user.last_name]
+        .filter(Boolean)
+        .join(' ');
+    }
+    if (origin.sender_user_name) {
+      // type === 'hidden_user'
+      return origin.sender_user_name;
+    }
+  }
+  // legacy Bot API < 7.0
+  return msg?.forward_from_chat?.title || '';
+};
+
+const getForwardSourceUrl = (msg) => {
+  const origin = msg?.forward_origin;
+  if (origin?.type === 'channel' && origin.chat?.username && origin.message_id) {
+    return `https://t.me/${origin.chat.username}/${origin.message_id}`;
+  }
+  // legacy Bot API < 7.0
+  if (msg?.forward_from_message_id && msg?.forward_from_chat?.username) {
+    return `https://t.me/${msg.forward_from_chat.username}/${msg.forward_from_message_id}`;
+  }
+  return null;
 };
 
 const hasMedia = (msg) => {
@@ -189,9 +229,11 @@ const prepareUploadedObject = async (message, fileType, fileObj, code) => {
 
     let filePreview = null;
 
-    if (fileType === 'videos' && message.video.thumb) {
+    // Bot API >= 6.6: thumb переименован в thumbnail
+    const videoThumb = message.video?.thumbnail || message.video?.thumb;
+    if (fileType === 'videos' && videoThumb) {
       filePreview = await getTgFileUrlWithReverseDownload(
-        message.video.thumb.file_id,
+        videoThumb.file_id,
         'images',
         code
       );
@@ -265,7 +307,7 @@ const getParagraphByTextWithEntities = (text, entities) => {
 
 const prepareTurnByMsg = async (message, uploadedObject) => {
   // Определение типа контента
-  let contentType = 'picture';
+  let contentType = null;
   // @todo: упростить
   if (uploadedObject?.fileType) {
     if (uploadedObject.fileType === 'images') {
@@ -291,13 +333,17 @@ const prepareTurnByMsg = async (message, uploadedObject) => {
       contentType = 'picture';
     }
   }
+  if (!contentType) {
+    // текст без медиа и превью (например, форвард текстового сообщения)
+    contentType = 'comment';
+  }
 
   const lastTurnExample = { x: 0, y: 0, width: 0 };
   const { x = 0, y = 0, width = 0 } = lastTurnExample;
 
   // Заполнение полей хода
   const header =
-    message.forward_from_chat?.title ||
+    getForwardTitle(message) ||
     message.audio?.title ||
     message.video?.title ||
     '';
@@ -318,9 +364,7 @@ const prepareTurnByMsg = async (message, uploadedObject) => {
     videoPreview: null,
     audioUrl: null,
     paragraph,
-    sourceUrl: message.forward_from_message_id
-      ? `https://t.me/${message.forward_from_chat.username}/${message.forward_from_message_id}`
-      : null,
+    sourceUrl: getForwardSourceUrl(message),
     date: message.date ? message.date * 1000 : null,
     x: x + width + 50,
     y,

@@ -64,6 +64,109 @@ const getDeps = (ctx) => {
   let pendingMessage = null; // Сообщение, ожидающее отправки
   let isSending = false; // Флаг, указывающий, что сообщение отправляется
 
+  // Отправляет накопленное pendingMessage; если за время отправки пришло
+  // новое сообщение — досылает его следом (см. finally)
+  const sendPending = async () => {
+    const toSend = pendingMessage;
+    pendingMessage = null;
+    if (!toSend) {
+      return;
+    }
+    isSending = true; // Устанавливаем флаг отправки
+
+    try {
+      logBotReply(ctx.chat?.id, {
+        type: LOG_TYPE.BOT_REPLY,
+        text: toSend.text,
+        buttons: toSend.buttons,
+        replyMessageId: toSend.replyMessageId,
+        answerCb: toSend.answerCb,
+      });
+      const msgInfo = ctx.msgInfo;
+      const extra = {
+        parse_mode: 'MarkdownV2',
+      };
+      let currentMsgUpdated = false;
+
+      if (toSend.buttons.length > 0) {
+        extra.reply_markup = {
+          inline_keyboard: toSend.buttons.map((button) => [button]),
+        };
+      }
+
+      // отдельный случай - удаление reply_to_message_id вместе с самим сообщением, так как иначе обновить сообщение не получится
+      if (msgInfo.prevMsgData?.replyMessageId && !toSend.replyMessageId) {
+        try {
+          await bot.telegram.deleteMessage(ctx.chat.id, msgInfo.botMsgId);
+          msgInfo.botMsgId = null;
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      if (msgInfo.botMsgId) {
+        const toChangeText = toSend.text !== msgInfo.prevMsgData?.text;
+        const toChangeButtons =
+          JSON.stringify(toSend.buttons) !==
+          JSON.stringify(msgInfo.prevMsgData?.buttons);
+        const toChangeReplyMessageId =
+          toSend.replyMessageId !== msgInfo.prevMsgData?.replyMessageId;
+
+        if (toChangeText || toChangeButtons || toChangeReplyMessageId) {
+          currentMsgUpdated = true;
+          await bot.telegram.editMessageText(
+            ctx.chat.id,
+            msgInfo.botMsgId,
+            undefined,
+            toSend.text,
+            extra,
+          );
+        }
+      } else {
+        if (toSend.replyMessageId) {
+          // Bot API >= 7.0: reply_to_message_id заменён на reply_parameters
+          extra.reply_parameters = {
+            message_id: toSend.replyMessageId,
+            allow_sending_without_reply: true,
+          };
+        }
+        const msg = await ctx.reply(toSend.text, extra);
+        msgInfo.botMsgId = msg.message_id;
+      }
+
+      if (
+        msgInfo.cbQueryCtx &&
+        !currentMsgUpdated &&
+        msgInfo.botMsgId &&
+        msgInfo.hasCb &&
+        toSend.answerCb
+      ) {
+        await msgInfo.cbQueryCtx.answerCbQuery(toSend.answerCb);
+      }
+
+      msgInfo.hasCb = toSend.buttons.length > 0;
+      msgInfo.prevMsgData = {
+        text: toSend.text,
+        buttons: toSend.buttons,
+        replyMessageId: toSend.replyMessageId,
+      };
+    } catch (error) {
+      console.log(error);
+      try {
+        await bot.telegram.sendMessage(ctx.chat.id, 'Something went wrong');
+      } catch (sendError) {
+        console.log(sendError);
+      }
+    } finally {
+      isSending = false; // Сбрасываем флаг отправки
+
+      // Если за время отправки в очередь попало новое сообщение — досылаем его
+      if (pendingMessage) {
+        timeoutId = setTimeout(sendPending, 300);
+      }
+    }
+  };
+
   return {
     showMessage: async ({
       text,
@@ -71,13 +174,7 @@ const getDeps = (ctx) => {
       replyMessageId = null,
       answerCb = null,
     }) => {
-      // Отменяем предыдущий таймер, если он есть
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-      }
-
-      // Сохраняем новое сообщение в очередь
+      // Сохраняем новое сообщение в очередь (храним только последнее)
       pendingMessage = {
         text,
         buttons,
@@ -85,107 +182,17 @@ const getDeps = (ctx) => {
         answerCb,
       };
 
-      // Если сообщение уже отправляется, просто обновляем очередь
+      // Если сообщение уже отправляется — sendPending дошлёт очередь сам
       if (isSending) {
         return;
       }
 
-      // Устанавливаем таймер на 300 мс
-      timeoutId = setTimeout(async () => {
-        isSending = true; // Устанавливаем флаг отправки
-
-        try {
-          logBotReply(ctx.chat?.id, {
-            type: LOG_TYPE.BOT_REPLY,
-            text,
-            buttons,
-            replyMessageId,
-            answerCb,
-          });
-          const msgInfo = ctx.msgInfo;
-          const extra = {
-            parse_mode: 'MarkdownV2',
-          };
-          let currentMsgUpdated = false;
-
-          if (pendingMessage.buttons.length > 0) {
-            extra.reply_markup = {
-              inline_keyboard: pendingMessage.buttons.map((button) => [button]),
-            };
-          }
-
-          // отдельный случай - удаление reply_to_message_id вместе с самим сообщением, так как иначе обновить сообщение не получится
-          if (
-            msgInfo.prevMsgData?.replyMessageId &&
-            !pendingMessage.replyMessageId
-          ) {
-            try {
-              await bot.telegram.deleteMessage(ctx.chat.id, msgInfo.botMsgId);
-              msgInfo.botMsgId = null;
-            } catch (error) {
-              console.log(error);
-            }
-          }
-
-          if (msgInfo.botMsgId) {
-            const toChangeText =
-              pendingMessage.text !== msgInfo.prevMsgData?.text;
-            const toChangeButtons =
-              JSON.stringify(pendingMessage.buttons) !==
-              JSON.stringify(msgInfo.prevMsgData?.buttons);
-            const toChangeReplyMessageId =
-              pendingMessage.replyMessageId !==
-              msgInfo.prevMsgData?.replyMessageId;
-
-            if (toChangeText || toChangeButtons || toChangeReplyMessageId) {
-              currentMsgUpdated = true;
-              await bot.telegram.editMessageText(
-                ctx.chat.id,
-                msgInfo.botMsgId,
-                undefined,
-                pendingMessage.text,
-                extra,
-              );
-            }
-          } else {
-            if (pendingMessage.replyMessageId) {
-              extra.reply_to_message_id = pendingMessage.replyMessageId;
-            }
-            const msg = await ctx.reply(pendingMessage.text, extra);
-            msgInfo.botMsgId = msg.message_id;
-          }
-
-          if (
-            msgInfo.cbQueryCtx &&
-            !currentMsgUpdated &&
-            msgInfo.botMsgId &&
-            msgInfo.hasCb &&
-            pendingMessage.answerCb
-          ) {
-            await msgInfo.cbQueryCtx.answerCbQuery(pendingMessage.answerCb);
-          }
-
-          msgInfo.hasCb = pendingMessage.buttons.length > 0;
-          msgInfo.prevMsgData = {
-            text: pendingMessage.text,
-            buttons: pendingMessage.buttons,
-            replyMessageId: pendingMessage.replyMessageId,
-          };
-        } catch (error) {
-          console.log(error);
-          await bot.telegram.sendMessage(ctx.chat.id, 'Something went wrong');
-        } finally {
-          isSending = false; // Сбрасываем флаг отправки
-          pendingMessage = null; // Очищаем очередь
-
-          // Если в очереди есть новое сообщение, запускаем его обработку
-          if (pendingMessage) {
-            timeoutId = setTimeout(async () => {
-              await getDeps(ctx).showMessage(pendingMessage);
-            }, 300);
-          }
-        }
-      }, 300);
+      // Откладываем отправку на 300 мс, сбрасывая предыдущий таймер
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+      timeoutId = setTimeout(sendPending, 300);
     },
     getTurnService: () => turnService,
   };
