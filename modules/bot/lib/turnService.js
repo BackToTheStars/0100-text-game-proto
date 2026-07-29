@@ -1,4 +1,7 @@
-const { BOT_UPLOAD_DAILY_LIMIT } = require('../../../config/bot');
+const {
+  BOT_UPLOAD_DAILY_LIMIT,
+  BOT_XCOM_VIDEO_MAX_FILE_SIZE,
+} = require('../../../config/bot');
 const { STATIC_MEDIA_URL } = require('../../../config/url');
 const { getToken } = require('../../game/services/game');
 const xcomService = require('./xcomService');
@@ -396,25 +399,147 @@ const prepareTurnByMsg = async (message, uploadedObject) => {
   return body;
 };
 
+// HEAD-запрос за размером файла; null — размер выяснить не удалось
+const getRemoteFileSize = async (url) => {
+  try {
+    const resp = await axios.head(url, { timeout: 5000, maxRedirects: 3 });
+    const len = parseInt(resp.headers['content-length'], 10);
+    return Number.isFinite(len) && len > 0 ? len : null;
+  } catch (err) {
+    console.error('[xcom] HEAD failed', err.response?.status || err.message);
+    return null;
+  }
+};
+
+// t.co-ссылка на собственные вложения твита (фото/видео) — в тексте не нужна,
+// медиа обрабатывается отдельно
+const isTweetMediaUrl = (expandedUrl) =>
+  !!expandedUrl && /\/status\/\d+\/(photo|video)\/\d+/.test(expandedUrl);
+
+// Текст твита + entities.urls → quill-ops с кликабельными ссылками.
+// Индексы start/end в API v2 считаются в кодпоинтах, не в UTF-16-юнитах
+const getTweetTextOps = (text, urlEntities = []) => {
+  const cps = Array.from(text);
+  const entities = urlEntities
+    .filter(
+      (u) =>
+        Number.isInteger(u.start) &&
+        Number.isInteger(u.end) &&
+        u.start < u.end &&
+        u.end <= cps.length
+    )
+    .sort((a, b) => a.start - b.start);
+
+  const ops = [];
+  let pos = 0;
+  for (const u of entities) {
+    if (u.start < pos) continue; // пересекающиеся — пропускаем
+    if (u.start > pos) {
+      ops.push({ insert: cps.slice(pos, u.start).join('') });
+    }
+    if (!isTweetMediaUrl(u.expanded_url)) {
+      const link = u.expanded_url || u.url;
+      ops.push({ insert: u.display_url || link, attributes: { link } });
+    }
+    pos = u.end;
+  }
+  if (pos < cps.length) {
+    ops.push({ insert: cps.slice(pos).join('') });
+  }
+
+  // хвостовые пробелы/переносы (остаются после вырезания медиа-ссылок)
+  const last = ops[ops.length - 1];
+  if (last && !last.attributes) {
+    last.insert = last.insert.replace(/\s+$/, '');
+    if (!last.insert) ops.pop();
+  }
+  return ops.length ? ops : null;
+};
+
+const buildXcomParagraph = (data) => {
+  const ops = (data.text && getTweetTextOps(data.text, data.urls)) || [
+    { insert: data.normalizedUrl, attributes: { link: data.normalizedUrl } },
+  ];
+
+  // цитируемый твит — одним блоком после текста
+  if (data.quoted?.text) {
+    const q = data.quoted;
+    const qLabel = q.authorHandle ? `@${q.authorHandle}` : q.authorName || 'quote';
+    ops.push({ insert: '\n\n↩ ' });
+    ops.push(
+      q.url ? { insert: qLabel, attributes: { link: q.url } } : { insert: qLabel }
+    );
+    ops.push({ insert: `: ${q.text}` });
+  }
+  return ops;
+};
+
 const prepareXcomTurn = async (message, url, code) => {
   const data = await xcomService.fetchTweetData(url);
 
-  let uploadedImageUrl = null;
-  if (data.imageUrl) {
-    try {
-      // @todo: учесть в BOT_UPLOAD_DAILY_LIMIT (размер не известен без HEAD)
-      uploadedImageUrl = await reverseDownloadMedia('images', data.imageUrl, code);
-    } catch (err) {
-      console.error('[xcom] image upload failed', err.message);
+  // Видео: вариант среднего битрейта, со страховкой от больших файлов —
+  // медиа-сервер грузит файл в память целиком и своих лимитов не имеет,
+  // поэтому при неизвестном размере видео не качаем
+  let uploadedVideoUrl = null;
+  let uploadedVideoPreview = null;
+  if (data.videoUrl) {
+    const size = await getRemoteFileSize(data.videoUrl);
+    if (!size) {
+      console.warn('[xcom] video size unknown, skip download', data.videoUrl);
+    } else if (size > BOT_XCOM_VIDEO_MAX_FILE_SIZE) {
+      console.warn(`[xcom] video too big (${size} bytes), skip download`);
+    } else if (!checkUpdateDaylyLimit(size)) {
+      console.warn('[xcom] daily upload limit reached, skip video');
+    } else {
+      try {
+        uploadedVideoUrl = await reverseDownloadMedia('videos', data.videoUrl, code);
+        if (data.videoPreviewUrl) {
+          try {
+            uploadedVideoPreview = await reverseDownloadMedia(
+              'images',
+              data.videoPreviewUrl,
+              code
+            );
+          } catch (err) {
+            console.error('[xcom] video preview upload failed', err.message);
+          }
+        }
+      } catch (err) {
+        console.error('[xcom] video upload failed', err.message);
+      }
     }
   }
 
-  const hasImage = !!uploadedImageUrl;
-  const contentType = hasImage ? 'picture' : 'comment';
+  // Картинка: фото твита; если видео пропущено/не скачалось — его превью как фолбэк
+  let uploadedImageUrl = null;
+  if (!uploadedVideoUrl) {
+    const imageCandidate = data.imageUrl || data.videoPreviewUrl;
+    if (imageCandidate) {
+      const size = await getRemoteFileSize(imageCandidate);
+      if (size && !checkUpdateDaylyLimit(size)) {
+        console.warn('[xcom] daily upload limit reached, skip image');
+      } else {
+        // неизвестный размер для картинок допустим — они небольшие
+        try {
+          uploadedImageUrl = await reverseDownloadMedia(
+            'images',
+            imageCandidate,
+            code
+          );
+        } catch (err) {
+          console.error('[xcom] image upload failed', err.message);
+        }
+      }
+    }
+  }
 
-  const paragraph = data.text
-    ? [{ insert: data.text }]
-    : [{ insert: data.normalizedUrl, attributes: { link: data.normalizedUrl } }];
+  const contentType = uploadedVideoUrl
+    ? 'video'
+    : uploadedImageUrl
+      ? 'picture'
+      : 'comment';
+
+  const paragraph = buildXcomParagraph(data);
 
   const header = data.authorName
     ? data.authorHandle
@@ -427,15 +552,15 @@ const prepareXcomTurn = async (message, url, code) => {
     header,
     dontShowHeader: !header,
     imageUrl: uploadedImageUrl,
-    videoUrl: null,
-    videoPreview: null,
+    videoUrl: uploadedVideoUrl,
+    videoPreview: uploadedVideoPreview,
     audioUrl: null,
     paragraph,
     sourceUrl: data.normalizedUrl,
     date: data.createdAt || (message.date ? message.date * 1000 : null),
     x: 0,
     y: 0,
-    width: hasImage ? 600 : 400,
+    width: contentType === 'picture' ? 600 : 400,
   };
   body.height = calculateHeight(body);
   return body;
