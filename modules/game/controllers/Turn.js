@@ -161,7 +161,12 @@ async function updateCoordinates(req, res, next) {
       turnModel.y = y;
       turnModel.height = height;
       turnModel.width = width;
-      turnModel.scrollPosition = scrollPosition;
+      // клиент шлёт сюда только геометрию (см. saveField), а позиция скролла
+      // приходит отдельным запросом /turns/scroll-positions — присваивать
+      // undefined нельзя, иначе сохранённый скролл стирается
+      if (scrollPosition !== undefined) {
+        turnModel.scrollPosition = scrollPosition;
+      }
       // turnModel.compressed = !!compressed;
       // if (!!compressedHeight) {
       //   turnModel.compressedHeight = compressedHeight;

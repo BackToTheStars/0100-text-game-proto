@@ -6,6 +6,7 @@ const QUOTE_TYPE_TEXT = 'text';
 const QUOTE_TYPE_PICTURE = 'picture';
 const QUOTE_TYPE_VIDEO = 'video';
 const QUOTE_TYPE_AUDIO = 'audio';
+const QUOTE_TYPE_PDF = 'pdf';
 
 const schema = new Schema(
   {
@@ -91,6 +92,10 @@ const schema = new Schema(
       type: String,
       required: false,
     },
+    pdfUrl: {
+      type: String,
+      required: false,
+    },
     audioQuotes: {
       type: {
         connectedTo: String,
@@ -130,6 +135,10 @@ const schema = new Schema(
         y: Number,
         width: Number,
         height: Number,
+        // только для цитат типа 'pdf': номер страницы документа (с 1).
+        // x/y/width/height у них — проценты от бокса этой страницы,
+        // цитата не пересекает границу страниц
+        page: Number,
       },
     ],
     compressed: {
@@ -151,6 +160,7 @@ const schema = new Schema(
 schema.statics = {
   QUOTE_TYPE_TEXT,
   QUOTE_TYPE_PICTURE,
+  QUOTE_TYPE_PDF,
 };
 
 module.exports = mongoose.model('Turn', schema, 'turns');

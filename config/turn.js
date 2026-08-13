@@ -15,6 +15,7 @@ const WIDGET_HEADER = 'header';
 const WIDGET_VIDEO = 'video';
 const WIDGET_AUDIO = 'audio';
 const WIDGET_SOURCE = 'source';
+const WIDGET_PDF = 'pdf';
 
 const AVAILABLE_TEMPLATES = [
   TEMPLATE_PICTURE,
@@ -22,6 +23,7 @@ const AVAILABLE_TEMPLATES = [
   TEMPLATE_COMMENT,
   TEMPLATE_AUDIO,
   TEMPLATE_PICTURE_ONLY,
+  TEMPLATE_PDF,
 ];
 
 module.exports = {
@@ -44,4 +46,5 @@ module.exports = {
   WIDGET_VIDEO,
   WIDGET_AUDIO,
   WIDGET_SOURCE,
+  WIDGET_PDF,
 };
