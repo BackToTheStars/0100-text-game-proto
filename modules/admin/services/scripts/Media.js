@@ -11,6 +11,7 @@ const TURN_FIELDS = [
   ['videoUrl', 'videos'],
   ['videoPreview', 'images'],
   ['audioUrl', 'audios'],
+  ['pdfUrl', 'pdfs'],
 ];
 const GAME_FIELDS = [
   ['image', 'images'], // обложка самой игры

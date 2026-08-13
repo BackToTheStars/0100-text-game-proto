@@ -3,10 +3,11 @@ const { STATIC_MEDIA_URL } = require('../../../config/url');
 // возвращая новый src на текущем медиа-сервере (тот же путь, что использует бот).
 const { reverseDownloadMedia } = require('../../bot/lib/turnService');
 
-// Типы медиа = сегменты путей media-сервиса (/images/, /videos/, /audios/).
+// Типы медиа = сегменты путей media-сервиса (/images/, /videos/, /audios/, /pdfs/).
 const MEDIA_TYPE_IMAGES = 'images';
 const MEDIA_TYPE_VIDEOS = 'videos';
 const MEDIA_TYPE_AUDIOS = 'audios';
+const MEDIA_TYPE_PDFS = 'pdfs';
 
 // Поддерживаемые расширения по типу — зеркало media/config/media.js (dMediaTypes).
 // При изменении там — синхронизировать здесь.
@@ -14,6 +15,7 @@ const SUPPORTED_EXTENSIONS = {
   images: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'ico'],
   videos: ['mp4', 'webm', 'ogg', 'mov', 'avi'],
   audios: ['mp3', 'm4a', 'wav', 'ogg', 'webm'],
+  pdfs: ['pdf'],
 };
 
 // Известные внешние провайдеры, у которых по прямой ссылке файл не скачать
@@ -153,6 +155,7 @@ module.exports = {
   MEDIA_TYPE_IMAGES,
   MEDIA_TYPE_VIDEOS,
   MEDIA_TYPE_AUDIOS,
+  MEDIA_TYPE_PDFS,
   SUPPORTED_EXTENSIONS,
   getCurrentMediaHost,
   classifyUrl,
