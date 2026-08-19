@@ -34,6 +34,13 @@ const {
   isAdmin,
 } = require('./modules/admin/middlewares/auth');
 
+// Сорвавшийся промис не должен убивать API: в Node >= 15 необработанный reject
+// по умолчанию завершает процесс, и один невалидный документ в базе гасил
+// сервер целиком (см. client/docs/save-field-fix-plan.md).
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled rejection:', reason);
+});
+
 const app = express();
 const port = process.env.PORT || 3000;
 

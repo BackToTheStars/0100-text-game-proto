@@ -3,6 +3,7 @@ const SCRIPT_ACCESS_LEVEL_INIT = 'SCRIPT_ACCESS_LEVEL_INIT';
 const SCRIPT_GAME_COMMON = 'SCRIPT_GAME_COMMON';
 const SCRIPT_BOT = 'SCRIPT_BOT';
 const SCRIPT_MEDIA = 'SCRIPT_MEDIA';
+const SCRIPT_TURN_CONTENT_TYPE = 'SCRIPT_TURN_CONTENT_TYPE';
 
 const {
   checkZeroPoints,
@@ -30,6 +31,10 @@ const {
   check: mediaRelocateCheck,
   run: mediaRelocateRun,
 } = require('./scripts/Media');
+const {
+  check: contentTypeCheck,
+  run: contentTypeRun,
+} = require('./scripts/ContentType');
 
 // Описание параметра команды для UI (name/type/description/required).
 const GAME_ID_PARAM = {
@@ -147,6 +152,25 @@ const scripts = [
         callback: mediaRelocateRun,
         modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
         params: [GAME_ID_PARAM],
+      },
+    ],
+  },
+  {
+    name: SCRIPT_TURN_CONTENT_TYPE,
+    description: 'Типы ходов (contentType)',
+    commands: [
+      {
+        name: 'check',
+        description:
+          'Проверка: ходы с contentType вне списка допустимых (сухой прогон)',
+        callback: contentTypeCheck,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
+      },
+      {
+        name: 'run',
+        description: 'Заменить недопустимые contentType на "picture"',
+        callback: contentTypeRun,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
       },
     ],
   },

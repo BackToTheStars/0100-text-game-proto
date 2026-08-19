@@ -132,57 +132,55 @@ async function createTurn(req, res, next) {
   }
 }
 
+const bulkUpdateTurns = async (gameId, updates) => {
+  const operations = updates
+    .filter(({ _id, $set }) => !!_id && Object.keys($set).length > 0)
+    .map(({ _id, $set }) => ({
+      updateOne: {
+        filter: { _id, gameId },
+        update: { $set },
+      },
+    }));
+
+  if (!operations.length) {
+    return { matchedCount: 0, modifiedCount: 0 };
+  }
+
+  return Turn.bulkWrite(operations, { ordered: false });
+};
+
+const setIfNumber = ($set, key, value) => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    $set[key] = value;
+  }
+};
+
 async function updateCoordinates(req, res, next) {
   try {
     const { gameId } = req.gameInfo;
     const { turns = [] } = req.body;
-    const items = [];
-    for (let turn of turns) {
-      const {
-        _id,
-        x,
-        y,
-        height,
-        // compressed,
-        // compressedHeight,
-        // uncompressedHeight,
-        width,
-        scrollPosition,
-      } = turn;
 
-      // Turn.findOneAndUpdate({
-      //     _id: id
-      // }, {
-      //     x, y, height, width, contentType, scrollPosition
-      // })
-
-      const turnModel = await Turn.findOne({ _id, gameId });
-      turnModel.x = x;
-      turnModel.y = y;
-      turnModel.height = height;
-      turnModel.width = width;
+    const updates = turns.map((turn) => {
+      const { _id, x, y, height, width, scrollPosition } = turn;
+      const $set = {};
+      setIfNumber($set, 'x', x);
+      setIfNumber($set, 'y', y);
+      setIfNumber($set, 'height', height);
+      setIfNumber($set, 'width', width);
       // клиент шлёт сюда только геометрию (см. saveField), а позиция скролла
       // приходит отдельным запросом /turns/scroll-positions — присваивать
       // undefined нельзя, иначе сохранённый скролл стирается
-      if (scrollPosition !== undefined) {
-        turnModel.scrollPosition = scrollPosition;
-      }
-      // turnModel.compressed = !!compressed;
-      // if (!!compressedHeight) {
-      //   turnModel.compressedHeight = compressedHeight;
-      // }
-      // if (!!uncompressedHeight) {
-      //   turnModel.uncompressedHeight = uncompressedHeight;
-      // }
-      turnModel.save();
+      setIfNumber($set, 'scrollPosition', scrollPosition);
+      return { _id, $set };
+    });
 
-      items.push({
-        _id: turnModel._id,
-      });
-    }
+    const result = await bulkUpdateTurns(gameId, updates);
+
     res.json({
       success: true,
-      items,
+      items: updates.map(({ _id }) => ({ _id })),
+      matched: result.matchedCount,
+      modified: result.modifiedCount,
     });
   } catch (error) {
     next(error);
@@ -193,19 +191,21 @@ async function updateScrollPositions(req, res, next) {
   try {
     const { gameId } = req.gameInfo;
     const { turns = [] } = req.body;
-    const items = [];
-    for (let turn of turns) {
-      const { turnId, widgetId, scrollPosition } = turn;
-      const turnModel = await Turn.findOne({ _id: turnId, gameId });
-      turnModel.scrollPosition = scrollPosition;
-      turnModel.save();
-      items.push({
-        _id: turnModel._id,
-      });
-    }
+
+    const updates = turns.map((turn) => {
+      const { turnId, scrollPosition } = turn;
+      const $set = {};
+      setIfNumber($set, 'scrollPosition', scrollPosition);
+      return { _id: turnId, $set };
+    });
+
+    const result = await bulkUpdateTurns(gameId, updates);
+
     res.json({
       success: true,
-      items,
+      items: updates.map(({ _id }) => ({ _id })),
+      matched: result.matchedCount,
+      modified: result.modifiedCount,
     });
   } catch (error) {
     next(error);
