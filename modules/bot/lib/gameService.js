@@ -120,6 +120,39 @@ class GameService {
     }
   }
 
+  // Импорт кодов из файла экспорта: merge — добавляем только новые валидные
+  // коды, по каждому возвращаем результат для отчёта
+  async importGames(codes) {
+    const report = [];
+    let added = 0;
+    for (const code of codes) {
+      const [success, msg] = await this.addGameByHash(code);
+      report.push({ code, success, msg });
+      if (success) {
+        added++;
+      }
+    }
+    return { report, added };
+  }
+
+  // Удаляет все коды пользователя (сами игры и ходы не затрагиваются)
+  async removeAllGames() {
+    try {
+      const count = this.user.games.length;
+      if (!count) {
+        return [false, 'No games to forget'];
+      }
+      this.user.games = [];
+      await this.user.save();
+      await this.reloadGames();
+      return [true, `Forgot ${count} game code(s)`];
+    } catch (err) {
+      // @todo: log
+      console.log(err);
+      return [false, 'Error while removing games'];
+    }
+  }
+
   async creatTurn(turnData, turnGameCode) {
     try {
       const game = this.games.find((g) => g.code === turnGameCode);
@@ -135,7 +168,7 @@ class GameService {
         y,
       });
       await turn.save();
-      return [true, `Turn has been created`];
+      return [true, `Turn has been created`, turn._id];
     } catch (err) {
       console.log(err);
       return [false, 'Error while creating turn'];
@@ -194,15 +227,56 @@ const doRemoveGame = fromPromise(async ({ input }) => {
   });
 });
 
+// Импорт кодов игр из файла экспорта (merge, с пер-кодовым отчётом)
+const doImportGames = fromPromise(async ({ input }) => {
+  const { userId, deps, importCodes } = input;
+  return new Promise(async (resolve, reject) => {
+    try {
+      const gameService = getGameService(userId);
+      const codes = importCodes || [];
+      const { report, added } = await gameService.importGames(codes);
+      deps.setInfo(`Imported ${added} of ${codes.length} game code(s)`);
+      resolve({
+        report,
+        games: gameService.games,
+      });
+    } catch (err) {
+      console.log(err);
+      deps.setError(err.message);
+      reject(err.message);
+    }
+  });
+});
+
+// Удаление всех кодов пользователя (по аналогии с doRemoveGame)
+const doRemoveAllGames = fromPromise(async ({ input }) => {
+  const { userId, deps } = input;
+  return new Promise(async (resolve, reject) => {
+    const gameService = getGameService(userId);
+    const [success, msg] = await gameService.removeAllGames();
+    if (success) {
+      deps.setInfo(msg);
+      resolve({ msg });
+    } else {
+      deps.setError(msg);
+      reject(msg);
+    }
+  });
+});
+
 const doCreateTurn = fromPromise(async ({ input }) => {
   const { userId, deps, turnData, turnGameCode } = input;
   return new Promise(async (resolve, reject) => {
     try {
       const gameService = getGameService(userId);
-      const [success, msg] = await gameService.creatTurn(turnData, turnGameCode);
+      const [success, msg, turnId] = await gameService.creatTurn(
+        turnData,
+        turnGameCode
+      );
       if (success) {
         return resolve({
           msg,
+          turnId,
         });
       } else {
         deps.setError(msg);
@@ -221,4 +295,6 @@ module.exports = {
   doAddGame,
   doRemoveGame,
   doCreateTurn,
+  doImportGames,
+  doRemoveAllGames,
 };

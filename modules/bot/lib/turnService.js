@@ -1,6 +1,8 @@
 const {
   BOT_UPLOAD_DAILY_LIMIT,
   BOT_XCOM_VIDEO_MAX_FILE_SIZE,
+  BOT_PDF_MAX_FILE_SIZE,
+  BOT_IMPORT_FILE_MAX_SIZE,
 } = require('../../../config/bot');
 const { STATIC_MEDIA_URL } = require('../../../config/url');
 const { getToken } = require('../../game/services/game');
@@ -76,13 +78,37 @@ const getForwardSourceUrl = (msg) => {
   return null;
 };
 
+// Документ-pdf: у Telegram pdf приходит как document
+const isPdfDocument = (msg) => {
+  const doc = msg?.document;
+  if (!doc) {
+    return false;
+  }
+  return (
+    doc.mime_type === 'application/pdf' ||
+    /\.pdf$/i.test(doc.file_name || '')
+  );
+};
+
+// Документ-json (файл экспорта кодов игр)
+const isJsonDocument = (msg) => {
+  const doc = msg?.document;
+  if (!doc) {
+    return false;
+  }
+  return (
+    doc.mime_type === 'application/json' ||
+    /\.json$/i.test(doc.file_name || '')
+  );
+};
+
 const hasMedia = (msg) => {
   return (
     !!msg.photo ||
     !!msg.video ||
     !!msg.audio ||
+    isPdfDocument(msg) ||
     // msg.voice ||
-    // msg.document ||
     false
   );
 };
@@ -140,6 +166,11 @@ const getMediaInfo = (msg) => {
       type: 'audio',
       file_size: msg.audio.file_size,
     };
+  } else if (isPdfDocument(msg)) {
+    return {
+      type: 'pdf',
+      file_size: msg.document.file_size,
+    };
   } else {
     return null;
   }
@@ -162,6 +193,10 @@ const getFileInfo = (message) => {
     needToUploadMedia = true;
     fileType = 'images';
     fileObj = message.photo.at(-1);
+  } else if (isPdfDocument(message)) {
+    needToUploadMedia = true;
+    fileType = 'pdfs';
+    fileObj = message.document;
   }
 
   return {
@@ -195,7 +230,8 @@ const reverseDownloadMedia = async (type, mediaUrl, hash) => {
   return resp.data.src;
 };
 
-const getTgFileUrlWithReverseDownload = async (fileId, type, code) => {
+// URL телеграм-файла на static-tg file-server (или null, если получить не удалось)
+const getTgFileHostUrl = async (fileId) => {
   const userFile = await vars.bot.telegram.getFile(fileId);
   const resultFilePath = await fetch(`${process.env.BOT_STATIC_URL}/get-url`, {
     method: 'POST',
@@ -205,20 +241,51 @@ const getTgFileUrlWithReverseDownload = async (fileId, type, code) => {
     body: JSON.stringify({ file_path: userFile.file_path }),
   });
 
-  if (resultFilePath.ok) {
-    const { host_path } = await resultFilePath.json();
-    const fileUrl = `${process.env.BOT_STATIC_URL}${host_path}`;
-
-    const url = await reverseDownloadMedia(type, fileUrl, code);
-    return url;
+  if (!resultFilePath.ok) {
+    return null;
   }
+  const { host_path } = await resultFilePath.json();
+  return `${process.env.BOT_STATIC_URL}${host_path}`;
+};
 
-  return null;
+const getTgFileUrlWithReverseDownload = async (fileId, type, code) => {
+  const fileUrl = await getTgFileHostUrl(fileId);
+  if (!fileUrl) {
+    return null;
+  }
+  return await reverseDownloadMedia(type, fileUrl, code);
+};
+
+// Скачивает небольшой json-документ (файл экспорта кодов игр) и парсит его
+const fetchJsonDocument = async (fileObj) => {
+  if (fileObj.file_size && fileObj.file_size > BOT_IMPORT_FILE_MAX_SIZE) {
+    throw new Error('Import file is too big');
+  }
+  const fileUrl = await getTgFileHostUrl(fileObj.file_id);
+  if (!fileUrl) {
+    throw new Error('Failed to get file URL');
+  }
+  const resp = await fetch(fileUrl);
+  if (!resp.ok) {
+    throw new Error('Failed to download file');
+  }
+  const text = await resp.text();
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    throw new Error('File is not valid JSON');
+  }
 };
 
 const prepareUploadedObject = async (message, fileType, fileObj, code) => {
   try {
     if (!fileObj) {
+      return null;
+    }
+    // download-and-save медиа-сервиса лимитов не применяет и буферизует файл
+    // в памяти целиком — размер pdf проверяем заранее
+    if (fileType === 'pdfs' && fileObj.file_size > BOT_PDF_MAX_FILE_SIZE) {
+      console.warn(`[pdf] file too big (${fileObj.file_size} bytes), skip`);
       return null;
     }
     if (!checkUpdateDaylyLimit(fileObj.file_size)) {
@@ -259,7 +326,9 @@ const calculateHeight = (body) => {
 
   switch (contentType) {
     case 'picture':
-      return 600; // Высота для изображений
+      return 600; // Высота для изображений (и текстовых ходов)
+    case 'pdf':
+      return 600; // Высота для pdf-документов
     case 'audio':
       return 50 + 28 + (paragraph ? 40 + 14 : 0); // Аудио + текст (если есть)
     case 'video':
@@ -309,36 +378,56 @@ const getParagraphByTextWithEntities = (text, entities) => {
 };
 
 const prepareTurnByMsg = async (message, uploadedObject) => {
+  // Медиа-ссылки — до определения типа и размеров хода
+  let imageUrl = null;
+  let videoUrl = null;
+  let videoPreview = null;
+  let audioUrl = null;
+  let pdfUrl = null;
+
+  if (uploadedObject) {
+    if (uploadedObject.fileType === 'images') {
+      imageUrl = uploadedObject.fileUrl;
+    } else if (uploadedObject.fileType === 'videos') {
+      videoUrl = uploadedObject.fileUrl;
+      videoPreview = uploadedObject.filePreview;
+    } else if (uploadedObject.fileType === 'audios') {
+      audioUrl = uploadedObject.fileUrl;
+    } else if (uploadedObject.fileType === 'pdfs') {
+      pdfUrl = uploadedObject.fileUrl;
+    }
+  } else if (message.link_preview_options?.url) {
+    const url = message.link_preview_options.url;
+    if (isYoutubeUrl(url)) {
+      videoUrl = url;
+    } else if (isPhotoUrl(url)) {
+      imageUrl = url;
+    }
+  }
+
   // Определение типа контента
   let contentType = null;
-  // @todo: упростить
-  if (uploadedObject?.fileType) {
-    if (uploadedObject.fileType === 'images') {
-      contentType = 'picture';
-    } else if (uploadedObject.fileType === 'videos') {
-      contentType = 'video';
-    } else if (uploadedObject.fileType === 'audios') {
-      contentType = 'audio';
-    } else {
-      contentType = 'picture';
-    }
+  if (pdfUrl) {
+    contentType = 'pdf';
+  } else if (videoUrl) {
+    contentType = 'video';
+  } else if (audioUrl) {
+    contentType = 'audio';
+  } else if (imageUrl) {
+    contentType = 'picture';
   } else if (message.photo) {
     contentType = 'picture';
   } else if (message.audio) {
     contentType = 'audio';
   } else if (message.video) {
     contentType = 'video';
-  } else if (message.link_preview_options?.url) {
-    const url = message.link_preview_options.url;
-    if (isYoutubeUrl(url)) {
-      contentType = 'video';
-    } else if (isPhotoUrl(url)) {
-      contentType = 'picture';
-    }
+  } else if (isPdfDocument(message)) {
+    contentType = 'pdf';
   }
   if (!contentType) {
-    // текст без медиа и превью (например, форвард текстового сообщения)
-    contentType = 'comment';
+    // текст без медиа и превью (например, форвард текстового сообщения) —
+    // обычный текстовый ход («Text / picture»)
+    contentType = 'picture';
   }
 
   const lastTurnExample = { x: 0, y: 0, width: 0 };
@@ -349,6 +438,7 @@ const prepareTurnByMsg = async (message, uploadedObject) => {
     getForwardTitle(message) ||
     message.audio?.title ||
     message.video?.title ||
+    (isPdfDocument(message) ? message.document.file_name : '') ||
     '';
 
   const text = message.caption || message.text || '';
@@ -361,40 +451,22 @@ const prepareTurnByMsg = async (message, uploadedObject) => {
     // gameId,
     contentType,
     header,
-    dontShowHeader: !header,
-    imageUrl: null,
-    videoUrl: null,
-    videoPreview: null,
-    audioUrl: null,
+    dontShowHeader: !header || uploadedObject?.fileType === 'audios',
+    imageUrl,
+    videoUrl,
+    videoPreview,
+    audioUrl,
+    pdfUrl,
     paragraph,
     sourceUrl: getForwardSourceUrl(message),
     date: message.date ? message.date * 1000 : null,
     x: x + width + 50,
     y,
-    width: contentType === 'picture' ? 600 : 400,
+    // 600 — только для ходов с картинкой; текстовые/pdf/видео — 400
+    width: imageUrl || message.photo ? 600 : 400,
   };
 
   body.height = calculateHeight(body);
-
-  // Заполнение медиа-ссылок
-  if (uploadedObject) {
-    if (uploadedObject.fileType === 'images') {
-      body.imageUrl = uploadedObject.fileUrl;
-    } else if (uploadedObject.fileType === 'videos') {
-      body.videoUrl = uploadedObject.fileUrl;
-      body.videoPreview = uploadedObject.filePreview;
-    } else if (uploadedObject.fileType === 'audios') {
-      body.dontShowHeader = true;
-      body.audioUrl = uploadedObject.fileUrl;
-    }
-  } else if (message.link_preview_options?.url) {
-    const url = message.link_preview_options.url;
-    if (isYoutubeUrl(url)) {
-      body.videoUrl = url;
-    } else if (isPhotoUrl(url)) {
-      body.imageUrl = url;
-    }
-  }
 
   return body;
 };
@@ -533,11 +605,8 @@ const prepareXcomTurn = async (message, url, code) => {
     }
   }
 
-  const contentType = uploadedVideoUrl
-    ? 'video'
-    : uploadedImageUrl
-      ? 'picture'
-      : 'comment';
+  // твит без медиа — обычный текстовый ход («Text / picture»)
+  const contentType = uploadedVideoUrl ? 'video' : 'picture';
 
   const paragraph = buildXcomParagraph(data);
 
@@ -560,7 +629,8 @@ const prepareXcomTurn = async (message, url, code) => {
     date: data.createdAt || (message.date ? message.date * 1000 : null),
     x: 0,
     y: 0,
-    width: contentType === 'picture' ? 600 : 400,
+    // 600 — только для ходов с картинкой; текстовые/видео — 400
+    width: uploadedImageUrl ? 600 : 400,
   };
   body.height = calculateHeight(body);
   return body;
@@ -569,6 +639,8 @@ const prepareXcomTurn = async (message, url, code) => {
 module.exports = {
   isForward,
   hasMedia,
+  isPdfDocument,
+  isJsonDocument,
   getPreviewInfo,
   getMediaInfo,
 
@@ -577,5 +649,6 @@ module.exports = {
   prepareTurnByMsg,
   prepareXcomTurn,
   reverseDownloadMedia,
+  fetchJsonDocument,
   setBot,
 };

@@ -194,6 +194,25 @@ const getDeps = (ctx) => {
       }
       timeoutId = setTimeout(sendPending, 300);
     },
+    // Отправка файла (например, экспорт кодов игр). Документ — отдельное
+    // сообщение; старое меню удаляем, чтобы новое меню оказалось ниже файла
+    sendDocument: async ({ filename, buffer, caption }) => {
+      const msgInfo = ctx.msgInfo;
+      if (msgInfo.botMsgId) {
+        try {
+          await bot.telegram.deleteMessage(ctx.chat.id, msgInfo.botMsgId);
+        } catch (error) {
+          console.log(error);
+        }
+        msgInfo.botMsgId = null;
+        msgInfo.prevMsgData = null;
+      }
+      await bot.telegram.sendDocument(
+        ctx.chat.id,
+        { source: buffer, filename },
+        caption ? { caption } : undefined
+      );
+    },
     getTurnService: () => turnService,
   };
 };
@@ -246,6 +265,10 @@ bot.on('message', async (ctx) => {
   const text = ctx.message.text || '';
   if (text.startsWith('/')) {
     command = ctx.message.text.slice(1);
+  } else if (turnService.isJsonDocument(ctx.message)) {
+    // json-файл экспорта кодов игр — импорт (в том числе форвард файла)
+    command = COMMAND.IMPORT_GAMES_FILE;
+    args.msg = ctx.message;
   } else if (
     turnService.isForward(ctx.message) ||
     turnService.hasMedia(ctx.message) ||

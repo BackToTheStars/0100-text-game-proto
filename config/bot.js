@@ -9,8 +9,20 @@ const BOT_UPLOAD_FILE_TIME_LOCK =
 const BOT_XCOM_VIDEO_MAX_FILE_SIZE =
   Number(process.env.BOT_XCOM_VIDEO_MAX_FILE_SIZE) || 100000000;
 
+// Максимальный размер pdf-документа (~50MB — лимит медиа-сервиса для pdfs).
+// Проверяем на стороне бота: /pdfs/download-and-save лимитов не применяет
+// (multer-лимит стоит только на upload) и буферизует файл в памяти целиком.
+const BOT_PDF_MAX_FILE_SIZE =
+  Number(process.env.BOT_PDF_MAX_FILE_SIZE) || 50 * 1024 * 1024;
+
+// Максимальный размер json-файла экспорта кодов игр для импорта
+const BOT_IMPORT_FILE_MAX_SIZE =
+  Number(process.env.BOT_IMPORT_FILE_MAX_SIZE) || 256 * 1024;
+
 module.exports = {
   BOT_UPLOAD_DAILY_LIMIT,
   BOT_UPLOAD_FILE_TIME_LOCK,
   BOT_XCOM_VIDEO_MAX_FILE_SIZE,
+  BOT_PDF_MAX_FILE_SIZE,
+  BOT_IMPORT_FILE_MAX_SIZE,
 };

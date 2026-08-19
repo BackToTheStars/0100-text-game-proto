@@ -1,11 +1,20 @@
 const { createMachine, createActor, assign } = require('xstate');
-const { doAddGame, doRemoveGame, getGameService, doCreateTurn } = require('./gameService');
+const {
+  doAddGame,
+  doRemoveGame,
+  getGameService,
+  doCreateTurn,
+  doImportGames,
+  doRemoveAllGames,
+} = require('./gameService');
 
 const COMMAND = {
   ADD_GAME: 'add_game',
   REMOVE_GAME: 'remove_game',
   CREATE_TURN: 'create_turn',
   COMPLETE_TURN_CREATION: 'complete_turn_creation',
+  IMPORT_GAMES: 'import_games',
+  REMOVE_ALL_GAMES: 'remove_all_games',
 };
 
 const machine = createMachine(
@@ -23,6 +32,9 @@ const machine = createMachine(
       // Для хранения данных о создаваемом ходе
       turnData: null,
       turnGameCode: null,
+
+      // Коды игр из файла экспорта (импорт)
+      importCodes: null,
     }),
     states: {
       chooseState: {
@@ -38,6 +50,11 @@ const machine = createMachine(
             target: 'adding_game',
             actions: 'addGameSetup',
           },
+          // импорт доступен и без игр — это сценарий восстановления
+          [COMMAND.IMPORT_GAMES]: {
+            target: 'importing_games',
+            actions: 'importGamesSetup',
+          },
         },
       },
       with_games: {
@@ -51,6 +68,13 @@ const machine = createMachine(
             // теперь делаем invoke
             target: 'removing_game',
             actions: 'removeGameSetup', // см. action ниже
+          },
+          [COMMAND.REMOVE_ALL_GAMES]: {
+            target: 'removing_all_games',
+          },
+          [COMMAND.IMPORT_GAMES]: {
+            target: 'importing_games',
+            actions: 'importGamesSetup',
           },
           [COMMAND.CREATE_TURN]: {
             target: 'creating_turn',
@@ -106,6 +130,38 @@ const machine = createMachine(
         },
       },
 
+      importing_games: {
+        tags: ['busy'],
+        invoke: {
+          src: 'doImportGames',
+          input: ({ context }) => context,
+          onDone: {
+            target: 'games_are_changed',
+            actions: 'onImportGamesSuccess',
+          },
+          onError: {
+            target: 'games_are_changed',
+            actions: 'onImportGamesError',
+          },
+        },
+      },
+
+      removing_all_games: {
+        tags: ['busy'],
+        invoke: {
+          src: 'doRemoveAllGames',
+          input: ({ context }) => context,
+          onDone: {
+            target: 'games_are_changed',
+            actions: 'onRemoveAllGamesSuccess',
+          },
+          onError: {
+            target: 'games_are_changed',
+            actions: 'onRemoveAllGamesError',
+          },
+        },
+      },
+
       games_are_changed: {
         always: [
           { target: 'with_games', guard: 'hasGames' },
@@ -119,6 +175,8 @@ const machine = createMachine(
       doAddGame,
       doRemoveGame,
       doCreateTurn,
+      doImportGames,
+      doRemoveAllGames,
     },
     actions: {
       addGameSetup: assign(({ context, event }) => {
@@ -161,6 +219,38 @@ const machine = createMachine(
         context.codeToRemove = null;
         return context;
       }),
+
+      importGamesSetup: assign(({ context, event }) => {
+        return {
+          ...context,
+          importCodes: event.data.codes,
+        };
+      }),
+      onImportGamesSuccess: assign(({ context, event }) => {
+        // flash-сообщение уже установлено внутри doImportGames (setInfo)
+        context.games = event.output.games;
+        context.deps.completeCommand(COMMAND.IMPORT_GAMES, {
+          report: event.output.report,
+        });
+        context.importCodes = null;
+        return context;
+      }),
+      onImportGamesError: assign(({ context, event }) => {
+        context.deps.setError(event?.error || 'Error while importing games');
+        context.importCodes = null;
+        return context;
+      }),
+
+      onRemoveAllGamesSuccess: assign(({ context, event }) => {
+        // flash-сообщение уже установлено внутри doRemoveAllGames (setInfo)
+        context.games = [];
+        context.deps.completeCommand(COMMAND.REMOVE_ALL_GAMES);
+        return context;
+      }),
+      onRemoveAllGamesError: assign(({ context, event }) => {
+        context.deps.setError(event?.error || 'Error while removing games');
+        return context;
+      }),
       // Создание хода
       setupCreatingTurn: assign(({ context, event }) => {
         // Сохраняем медиа и код игры (если хотим сразу знать, куда добавлять)
@@ -173,6 +263,7 @@ const machine = createMachine(
         context.deps.setInfo(event.output?.msg || 'Turn created successfully');
         context.deps.completeCommand(COMMAND.CREATE_TURN, {
           turnGameCode: context.turnGameCode,
+          turnId: event.output?.turnId,
         });
         context.turnData = null;
         context.turnGameCode = null;

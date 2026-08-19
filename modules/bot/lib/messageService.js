@@ -23,8 +23,14 @@ const COMMAND = {
   // actor commands
   ADD_GAME: 'add_game',
   REMOVE_GAME: 'remove_game',
+  REMOVE_ALL_GAMES: 'remove_all_games',
+  IMPORT_GAMES: 'import_games',
 
   CREATE_TURN: 'create_turn',
+
+  // export/import кодов игр (json-файл)
+  EXPORT_GAMES: 'export_games',
+  IMPORT_GAMES_FILE: 'import_games_file',
 };
 
 const ACTION_TYPE = {
@@ -36,7 +42,18 @@ const menuPaths = {
   '/': {
     title: 'Main menu',
     description: 'Choose the action',
-    children: ['/adding_game', '/list_games', '/forgetting_game'],
+    children: [
+      '/adding_game',
+      '/list_games',
+      '/importing_games',
+      '/forgetting_game',
+      '/forgetting_all_games',
+    ],
+    // Export — сразу команда (бот присылает json-файл), а не подменю
+    buttonsCallback: (actorCtx) =>
+      actorCtx.games.length > 0
+        ? [{ text: 'Export games', command: COMMAND.EXPORT_GAMES, args: {} }]
+        : [],
   },
   '/adding_game': {
     title: 'Add game',
@@ -114,7 +131,11 @@ const menuPaths = {
     descriptionCallback: (actorCtx, messageService) => {
       const lastTurnGameCode = messageService.lastTurnGameCode;
       const game = actorCtx.games.find(({ code }) => code === lastTurnGameCode);
-      const gameLink = `${CLIENT_URL}/game?hash=${lastTurnGameCode}`;
+      // ссылка ведёт на сам созданный ход (?turn=<turnId>)
+      const turnParam = messageService.lastTurnId
+        ? `&turn=${messageService.lastTurnId}`
+        : '';
+      const gameLink = `${CLIENT_URL}/game?hash=${lastTurnGameCode}${turnParam}`;
       const gameName = game?.name || lastTurnGameCode || 'game';
       return {
         type: 'markdown',
@@ -141,6 +162,44 @@ const menuPaths = {
       }));
     },
   },
+  '/forgetting_all_games': {
+    title: 'Forget all games',
+    isAvailableCallback: (actorCtx) => actorCtx.games.length > 0,
+    description:
+      'Forget ALL your game codes? Export them first: without the file they cannot be restored. Games and turns are not affected.',
+    buttonsCallback: () => [
+      {
+        text: 'Confirm',
+        command: COMMAND.REMOVE_ALL_GAMES,
+        args: {},
+      },
+    ],
+  },
+  '/importing_games': {
+    title: 'Import games',
+    description:
+      'Send the export file (brain-games-export.json) to restore your game codes',
+  },
+  '/import_report': {
+    title: 'Import report',
+    isAvailableCallback: () => false,
+    descriptionCallback: (actorCtx, messageService) => {
+      const lines = ['Import finished'];
+      if (messageService.lastImportLobbyWarning) {
+        lines.push(messageService.lastImportLobbyWarning);
+      }
+      const report = messageService.lastImportReport || [];
+      // не упираемся в лимит Telegram на длину сообщения (4096)
+      const MAX_REPORT_LINES = 30;
+      for (const item of report.slice(0, MAX_REPORT_LINES)) {
+        lines.push(`${item.code}: ${item.msg}`);
+      }
+      if (report.length > MAX_REPORT_LINES) {
+        lines.push(`...and ${report.length - MAX_REPORT_LINES} more`);
+      }
+      return lines.join('\n');
+    },
+  },
 };
 
 const escapeMarkdownV2 = (text = '') => {
@@ -162,6 +221,9 @@ class MessageService {
   replyMessageId = null;
   lastMsg = null;
   lastTurnGameCode = null;
+  lastTurnId = null;
+  lastImportReport = null;
+  lastImportLobbyWarning = null;
 
   path = '/';
 
@@ -192,7 +254,13 @@ class MessageService {
           this.path = '/';
         } else if (command === COMMAND.CREATE_TURN) {
           this.lastTurnGameCode = result.turnGameCode;
+          this.lastTurnId = result.turnId || null;
           this.path = '/turn_created';
+        } else if (command === COMMAND.IMPORT_GAMES) {
+          this.lastImportReport = result?.report || [];
+          this.path = '/import_report';
+        } else if (command === COMMAND.REMOVE_ALL_GAMES) {
+          this.path = '/';
         }
       },
     };
@@ -362,6 +430,71 @@ class MessageService {
       return;
     }
 
+    // Экспорт кодов игр json-файлом
+    if (command === COMMAND.EXPORT_GAMES) {
+      const games = this.actorCtx.games || [];
+      if (!games.length) {
+        return await this.showMenuWithFlash('No games to export');
+      }
+      const exportData = {
+        type: 'brain-games-export',
+        version: 1,
+        lobbyUrl: CLIENT_URL,
+        exportedAt: new Date().toISOString(),
+        games: games.map(({ code, name }) => ({ code, name })),
+      };
+      try {
+        await this.deps.sendDocument({
+          filename: 'brain-games-export.json',
+          buffer: Buffer.from(JSON.stringify(exportData, null, 2), 'utf8'),
+        });
+      } catch (error) {
+        console.log(error);
+        return await this.showMenuWithFlash('Failed to send export file');
+      }
+      this.path = '/';
+      return await this.showMenuWithFlash('Export file sent');
+    }
+
+    // Импорт кодов игр: пользователь прислал json-файл
+    if (command === COMMAND.IMPORT_GAMES_FILE) {
+      const doc = args.msg?.document;
+      if (!doc) {
+        return await this.showMenuWithFlash('No file in the message');
+      }
+      this.replyMessageId = args.msg.message_id;
+      this.flashText = 'Reading file...';
+      await this.showMenu();
+
+      let data;
+      try {
+        data = await turnService.fetchJsonDocument(doc);
+      } catch (error) {
+        console.log(error);
+        return await this.showMenuWithFlash(
+          error.message || 'Failed to read file'
+        );
+      }
+      if (data?.type !== 'brain-games-export' || !Array.isArray(data.games)) {
+        return await this.showMenuWithFlash(
+          'The file is not a brain-games-export file'
+        );
+      }
+      const codes = data.games
+        .map((game) => (typeof game === 'string' ? game : game?.code))
+        .filter(Boolean);
+      if (!codes.length) {
+        return await this.showMenuWithFlash('No game codes in the file');
+      }
+      // предупреждаем, но импорт продолжаем: чужие коды отсеются как not found
+      this.lastImportLobbyWarning =
+        data.lobbyUrl && data.lobbyUrl !== CLIENT_URL
+          ? `Warning: file lobby URL (${data.lobbyUrl}) differs from current (${CLIENT_URL})`
+          : null;
+      this.actorRunCommand(COMMAND.IMPORT_GAMES, { codes });
+      return;
+    }
+
     // <<< ADDED for remove confirm >>>
     // 1) Нажали на кнопку с названием игры
     if (command === COMMAND.PROMPT_REMOVE_GAME) {
@@ -429,12 +562,16 @@ class MessageService {
 
   actorHasCommand(command) {
     // @todo: перенести в конфиги актора
-    if (command === COMMAND.ADD_GAME) {
+    if ([COMMAND.ADD_GAME, COMMAND.IMPORT_GAMES].includes(command)) {
       return true;
     }
 
     if (
-      [COMMAND.REMOVE_GAME, COMMAND.CREATE_TURN].includes(command) &&
+      [
+        COMMAND.REMOVE_GAME,
+        COMMAND.REMOVE_ALL_GAMES,
+        COMMAND.CREATE_TURN,
+      ].includes(command) &&
       this.actorCtx.games?.length
     ) {
       return true;
