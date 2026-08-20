@@ -3,9 +3,14 @@ const { isValidObjectId } = require('mongoose');
 const { getError } = require('../../core/services/errors');
 const Turn = require('../../game/models/Turn');
 const {
+  classifyUrl,
   relocateUrl,
   relocateDocFields,
+  probeYoutubeVideo,
+  relocateYoutubeVideo,
   MEDIA_TYPE_AUDIOS,
+  MEDIA_TYPE_VIDEOS,
+  PROVIDER_YOUTUBE,
   TURN_FIELDS,
 } = require('../../game/services/mediaRelocate');
 const { hashFunc } = require('../../game/services/security');
@@ -137,9 +142,82 @@ const relocateMedia = async (req, res, next) => {
   }
 };
 
+// Обе youtube-ручки работают только с ходом, у которого videoUrl — ссылка на
+// YouTube, которую слой не умеет забрать напрямую ('deferred'). Проверяем до
+// похода в media: на пустом, на уже перенесённом ('local') и на чужом видео
+// отказываем сами, media при этом не дёргается.
+const requireYoutubeVideoUrl = (turn) => {
+  const { videoUrl } = turn;
+  if (!videoUrl) {
+    throw getError('У хода нет videoUrl', 400);
+  }
+  const cls = classifyUrl(videoUrl, MEDIA_TYPE_VIDEOS);
+  if (cls.status !== 'deferred' || cls.provider !== PROVIDER_YOUTUBE) {
+    throw getError(
+      `videoUrl хода не ссылка на YouTube: ${cls.status}` +
+        (cls.provider ? ` (${cls.provider})` : ''),
+      400
+    );
+  }
+  return videoUrl;
+};
+
+// Варианты ролика для выбора в UI. Тело media пробрасываем как есть
+// ({ title, duration, formats }) — пересобирать его значит завязаться на форму.
+const youtubeProbe = async (req, res, next) => {
+  try {
+    const { turnId } = req.body;
+    const turn = await resolveTurn(turnId);
+    const videoUrl = requireYoutubeVideoUrl(turn);
+
+    const info = await probeYoutubeVideo(videoUrl, hashFunc(turn.gameId));
+
+    res.json({
+      item: info,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Перенос выбранного варианта. Конверт тот же, что у relocateMedia
+// ({ item: { turn, results } }), чтобы UI разбирал оба ответа одинаково.
+// Операция синхронная и долгая (минуты) — см. таймауты в слое и решение 5 BP-4
+// про proxy_read_timeout на этих роутах.
+const youtubeRelocate = async (req, res, next) => {
+  try {
+    const { turnId, formatId } = req.body;
+    const turn = await resolveTurn(turnId);
+    requireYoutubeVideoUrl(turn);
+    // formatId — строка-селектор yt-dlp ('137+140'); проверяем только, что она
+    // есть, разбирать её — дело media.
+    if (!formatId || typeof formatId !== 'string') {
+      throw getError('Не передан formatId', 400);
+    }
+
+    const { changed, results } = await relocateYoutubeVideo(turn, formatId, {
+      hash: hashFunc(turn.gameId),
+    });
+    if (changed) {
+      await turn.save();
+    }
+
+    res.json({
+      item: {
+        turn,
+        results,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   list,
   getById,
   moveAudio,
   relocateMedia,
+  youtubeProbe,
+  youtubeRelocate,
 };

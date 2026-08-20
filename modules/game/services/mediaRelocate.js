@@ -1,7 +1,11 @@
+const axios = require('axios');
+
 const { STATIC_MEDIA_URL } = require('../../../config/url');
+const { getError } = require('../../core/services/errors');
 // Переиспользуем готовый транспорт: media сам скачивает файл по URL и кладёт в GridFS,
 // возвращая новый src на текущем медиа-сервере (тот же путь, что использует бот).
 const { reverseDownloadMedia } = require('../../bot/lib/turnService');
+const { getToken } = require('./game');
 
 // Типы медиа = сегменты путей media-сервиса (/images/, /videos/, /audios/, /pdfs/).
 const MEDIA_TYPE_IMAGES = 'images';
@@ -31,12 +35,15 @@ const SUPPORTED_EXTENSIONS = {
   pdfs: ['pdf'],
 };
 
+const PROVIDER_YOUTUBE = 'youtube';
+
 // Известные внешние провайдеры, у которых по прямой ссылке файл не скачать
-// (нужны спец-библиотеки: yt-dlp и т.п.). Помечаем как 'deferred' — отдельная задача.
-// Точка расширения: сюда же добавлять новых провайдеров и (в будущем) их загрузчики.
+// (нужны спец-библиотеки: yt-dlp и т.п.). Помечаем как 'deferred' — прямого
+// переноса для них нет. Точка расширения: сюда добавляются новые провайдеры, а их
+// загрузчики — вниз файла, рядом с youtube-транспортом.
 const EXTERNAL_PROVIDERS = [
   {
-    name: 'youtube',
+    name: PROVIDER_YOUTUBE,
     test: (h) =>
       h === 'youtu.be' ||
       h.endsWith('youtube.com') ||
@@ -164,11 +171,203 @@ const relocateDocFields = async (doc, fieldTypes, options = {}) => {
   return { changed, results };
 };
 
+// ─── YouTube ────────────────────────────────────────────────────────────────
+// Второй транспорт до media: прямой ссылкой такое видео не забрать, его тянет
+// yt-dlp внутри media (BP-4). Токен тот же сервисный, что у download-and-save,
+// отличается только операция.
+const YOUTUBE_OPERATION = 'youtube';
+const YOUTUBE_TOKEN_TTL = 5 * 60 * 1000;
+
+// У media probe ограничен 60 с, скачивание — 30 мин (media/config/timeouts.js).
+// Свои таймауты держим заведомо больше: пусть до клиента доходит 504 от media с
+// причиной, а не обрыв на нашей стороне. Операция синхронная и долгая — 22 МБ
+// качались 3 мин 23 с, так что таймаут здесь не «на всякий случай» (у axios его
+// по умолчанию нет вовсе), а осознанный потолок.
+const YOUTUBE_PROBE_TIMEOUT = 90 * 1000;
+const YOUTUBE_DOWNLOAD_TIMEOUT = 35 * 60 * 1000;
+
+// Обложка ролика: тот же адрес, что до сих пор собирал клиент
+// (client/modules/turns/components/helpers/videoUrl.js).
+const YOUTUBE_THUMB_HOST = 'img.youtube.com';
+const YOUTUBE_ID_RE = /^[\w-]{6,20}$/;
+
+// id ролика из любых форм ссылки: watch?v=, youtu.be/, /shorts/, /embed/, /live/, /v/.
+const getYoutubeVideoId = (url) => {
+  if (!url) return null;
+  let parsed;
+  try {
+    parsed = new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`);
+  } catch {
+    return null;
+  }
+  const host = parsed.hostname.replace(/^www\./, '').toLowerCase();
+  if (host === 'youtu.be') {
+    const id = parsed.pathname.split('/')[1] || '';
+    return YOUTUBE_ID_RE.test(id) ? id : null;
+  }
+  if (matchExternalProvider(host) !== PROVIDER_YOUTUBE) return null;
+
+  const v = parsed.searchParams.get('v');
+  if (v && YOUTUBE_ID_RE.test(v)) return v;
+  const match = parsed.pathname.match(/^\/(embed|shorts|live|v)\/([\w-]{6,20})/);
+  return match ? match[2] : null;
+};
+
+const getYoutubePreviewUrl = (videoId) =>
+  `https://${YOUTUBE_THUMB_HOST}/vi/${videoId}/hqdefault.jpg`;
+
+const isYoutubeThumbUrl = (url) => {
+  try {
+    return new URL(url).host.toLowerCase() === YOUTUBE_THUMB_HOST;
+  } catch {
+    return false;
+  }
+};
+
+const getYoutubeToken = (hash) =>
+  getToken(
+    process.env.JWT_SECRET_STATIC,
+    YOUTUBE_OPERATION,
+    new Date().getTime() + YOUTUBE_TOKEN_TTL,
+    hash
+  );
+
+// Ошибка обращения к media → ошибка с HTTP-кодом для нашего клиента.
+// Коды media осмысленны (400 — нет варианта / неподдержанный тип, 413 — больше
+// лимита, 502 — yt-dlp/ffmpeg, 504 — таймаут), поэтому пробрасываются как есть:
+// UI нужна причина, а не общая 502. Исключение — 500: наш обработчик ошибок
+// заменяет текст любой 500 на «На сервере произошла ошибка», и причина потерялась
+// бы. Если соединения не случилось — 503; message бывает пустым (AggregateError
+// от happy-eyeballs), тогда причину несёт только code — тот же разбор, что в
+// modules/admin/controllers/Media.js#getStats.
+const mediaRequestError = (err) => {
+  if (err.response) {
+    const message = err.response.data && err.response.data.message;
+    const status = err.response.status === 500 ? 502 : err.response.status;
+    return getError(
+      `Медиа-сервер вернул ошибку (${err.response.status})` +
+        (message ? `: ${message}` : ''),
+      status
+    );
+  }
+  const reason = err.message || err.code || 'причина неизвестна';
+  return getError(`Медиа-сервер недоступен (${STATIC_MEDIA_URL}): ${reason}`, 503);
+};
+
+// Варианты ролика: { title, duration, formats: [...] } — отдаём как есть, тело
+// media не пересобираем, иначе сервер завяжется на его форму.
+const probeYoutubeVideo = async (url, hash) => {
+  try {
+    const resp = await axios({
+      method: 'post',
+      url: STATIC_MEDIA_URL + '/youtube/probe',
+      headers: {
+        Authorization: 'Bearer ' + getYoutubeToken(hash),
+        'Content-Type': 'application/json',
+      },
+      data: { url },
+      timeout: YOUTUBE_PROBE_TIMEOUT,
+    });
+    return resp.data;
+  } catch (err) {
+    throw mediaRequestError(err);
+  }
+};
+
+// formatId — строка-селектор yt-dlp ('137+140'); здесь она не разбирается и
+// уходит в media как есть.
+const downloadYoutubeVideo = async ({ url, formatId, hash, metadata }) => {
+  try {
+    const resp = await axios({
+      method: 'post',
+      url: STATIC_MEDIA_URL + '/youtube/download',
+      headers: {
+        Authorization: 'Bearer ' + getYoutubeToken(hash),
+        'Content-Type': 'application/json',
+      },
+      data: { url, formatId, metadata },
+      timeout: YOUTUBE_DOWNLOAD_TIMEOUT,
+    });
+    return resp.data;
+  } catch (err) {
+    throw mediaRequestError(err);
+  }
+};
+
+// Обложка. Заполненное превью переносим по общим правилам, пустое — собираем по
+// id ролика тем адресом, которым до сих пор пользовался клиент: как только
+// videoUrl станет своим, клиентский фолбэк на img.youtube.com пропадёт, и без
+// videoPreview карточка останется без обложки (BP-4, решение 6).
+const relocateYoutubePreview = async (doc, videoUrl, hash) => {
+  const field = 'videoPreview';
+  const videoId = getYoutubeVideoId(videoUrl);
+  const from = doc[field] || (videoId ? getYoutubePreviewUrl(videoId) : null);
+  if (!from) {
+    return {
+      field,
+      from: doc[field],
+      status: 'unknown',
+      error: 'не удалось определить id ролика',
+    };
+  }
+
+  // img.youtube.com отдаёт прямой jpg, но classifyUrl видит там youtube-хост и
+  // помечает ссылку 'deferred', так что relocateUrl её не возьмёт. Ровно для
+  // этого адреса идём в тот же транспорт напрямую; всё остальное в videoPreview
+  // разбирается общими правилами.
+  if (isYoutubeThumbUrl(from)) {
+    try {
+      const url = await reverseDownloadMedia(MEDIA_TYPE_IMAGES, from, hash);
+      if (!url) return { field, from, status: 'error', error: 'empty src from media' };
+      doc[field] = url;
+      return { field, from, status: 'moved', url };
+    } catch (err) {
+      return { field, from, status: 'error', error: err.message };
+    }
+  }
+
+  const res = await relocateUrl(from, MEDIA_TYPE_IMAGES, hash);
+  if (res.status === 'moved') {
+    doc[field] = res.url;
+  }
+  return { field, from, ...res };
+};
+
+// Перенос YouTube-видео хода вместе с обложкой. Порядок важен: сначала видео,
+// потом превью — неудача превью не отменяет уже перенесённое видео, она ложится
+// отдельной строкой в results. Неудача самого видео — исключение с кодом от media
+// (413 на превышение лимита и т.п.): переносить нечего, и молча считать это
+// успехом нельзя. Формат results тот же, что у relocateDocFields, чтобы UI
+// разбирал оба ответа одинаково. Документ НЕ сохраняется здесь.
+const relocateYoutubeVideo = async (doc, formatId, options = {}) => {
+  const { hash } = options;
+  const from = doc.videoUrl;
+
+  const { src } = await downloadYoutubeVideo({
+    url: from,
+    formatId,
+    hash,
+    metadata: { turnId: String(doc._id), gameId: String(doc.gameId) },
+  });
+  if (!src) {
+    throw getError('Медиа-сервер не вернул ссылку на видео', 502);
+  }
+  doc.videoUrl = src;
+
+  const results = [
+    { field: 'videoUrl', from, status: 'moved', url: src, formatId },
+    await relocateYoutubePreview(doc, from, hash),
+  ];
+
+  return { changed: true, results };
+};
+
 module.exports = {
   MEDIA_TYPE_IMAGES,
   MEDIA_TYPE_VIDEOS,
   MEDIA_TYPE_AUDIOS,
   MEDIA_TYPE_PDFS,
+  PROVIDER_YOUTUBE,
   TURN_FIELDS,
   GAME_FIELDS,
   SUPPORTED_EXTENSIONS,
@@ -177,4 +376,7 @@ module.exports = {
   isForeignMediaUrl,
   relocateUrl,
   relocateDocFields,
+  getYoutubeVideoId,
+  probeYoutubeVideo,
+  relocateYoutubeVideo,
 };
