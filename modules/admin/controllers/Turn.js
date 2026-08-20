@@ -1,3 +1,5 @@
+const { isValidObjectId } = require('mongoose');
+
 const { getError } = require('../../core/services/errors');
 const Turn = require('../../game/models/Turn');
 const {
@@ -44,7 +46,11 @@ const list = async (req, res, next) => {
 const getById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const item = await Turn.findById(id);
+    // битый id роняет findById CastError'ом, отсюда общая 500 вместо 404
+    const item = isValidObjectId(id) ? await Turn.findById(id) : null;
+    if (!item) {
+      throw getError(`Ход ${id} не найден`, 404);
+    }
     res.json({
       item,
     });
@@ -56,7 +62,12 @@ const getById = async (req, res, next) => {
 const moveAudio = async (req, res, next) => {
   try {
     const { turnId, audioUrl } = req.body;
-    const turn = await Turn.findById(turnId);
+    const turn = isValidObjectId(turnId)
+      ? await Turn.findById(turnId)
+      : null;
+    if (!turn) {
+      throw getError(`Ход ${turnId} не найден`, 404);
+    }
     if (!audioUrl || turn.audioUrl !== audioUrl) {
       throw getError('Audio url mismatch', 400);
     }

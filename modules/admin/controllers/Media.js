@@ -41,9 +41,12 @@ const getStats = async (req, res, next) => {
           502
         );
       }
-      // соединения не случилось: media лежит, таймаут, DNS
+      // соединения не случилось: media лежит, таймаут, DNS.
+      // message бывает пустым (AggregateError от happy-eyeballs, когда localhost
+      // резолвится и в ::1, и в 127.0.0.1) — тогда причину несёт только code.
+      const reason = err.message || err.code || 'причина неизвестна';
       throw getError(
-        `Медиа-сервер недоступен (${STATIC_MEDIA_URL}): ${err.message}`,
+        `Медиа-сервер недоступен (${STATIC_MEDIA_URL}): ${reason}`,
         503
       );
     }
