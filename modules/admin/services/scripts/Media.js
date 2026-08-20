@@ -1,21 +1,13 @@
 const Game = require('../../../game/models/Game');
 const Turn = require('../../../game/models/Turn');
+// TURN_FIELDS/GAME_FIELDS живут в самом слое relocate — тот же список берёт
+// точечный перенос медиа хода (`POST /admin/turns/relocate-media`).
 const {
   relocateDocFields,
   getCurrentMediaHost,
+  TURN_FIELDS,
+  GAME_FIELDS,
 } = require('../../../game/services/mediaRelocate');
-
-// Явные поля со ссылками на медиа и их типы (сегмент пути media-сервиса).
-const TURN_FIELDS = [
-  ['imageUrl', 'images'],
-  ['videoUrl', 'videos'],
-  ['videoPreview', 'images'],
-  ['audioUrl', 'audios'],
-  ['pdfUrl', 'pdfs'],
-];
-const GAME_FIELDS = [
-  ['image', 'images'], // обложка самой игры
-];
 
 const resolveGame = async (gameId) => {
   if (!gameId) throw new Error('Не передан gameId');

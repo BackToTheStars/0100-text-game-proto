@@ -9,6 +9,19 @@ const MEDIA_TYPE_VIDEOS = 'videos';
 const MEDIA_TYPE_AUDIOS = 'audios';
 const MEDIA_TYPE_PDFS = 'pdfs';
 
+// Явные поля документов со ссылками на медиа и их типы. Список один на всех
+// потребителей — админский скрипт по всей игре и точечный перенос медиа одного хода.
+const TURN_FIELDS = [
+  ['imageUrl', MEDIA_TYPE_IMAGES],
+  ['videoUrl', MEDIA_TYPE_VIDEOS],
+  ['videoPreview', MEDIA_TYPE_IMAGES],
+  ['audioUrl', MEDIA_TYPE_AUDIOS],
+  ['pdfUrl', MEDIA_TYPE_PDFS],
+];
+const GAME_FIELDS = [
+  ['image', MEDIA_TYPE_IMAGES], // обложка самой игры
+];
+
 // Поддерживаемые расширения по типу — зеркало media/config/media.js (dMediaTypes).
 // При изменении там — синхронизировать здесь.
 const SUPPORTED_EXTENSIONS = {
@@ -156,6 +169,8 @@ module.exports = {
   MEDIA_TYPE_VIDEOS,
   MEDIA_TYPE_AUDIOS,
   MEDIA_TYPE_PDFS,
+  TURN_FIELDS,
+  GAME_FIELDS,
   SUPPORTED_EXTENSIONS,
   getCurrentMediaHost,
   classifyUrl,
