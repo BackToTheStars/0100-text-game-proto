@@ -1,8 +1,9 @@
-const { default: axios } = require('axios');
-const { STATIC_MEDIA_URL } = require('../../../config/url');
 const { getError } = require('../../core/services/errors');
 const Turn = require('../../game/models/Turn');
-const { getToken } = require('../../game/services/game');
+const {
+  relocateUrl,
+  MEDIA_TYPE_AUDIOS,
+} = require('../../game/services/mediaRelocate');
 const { hashFunc } = require('../../game/services/security');
 
 const list = async (req, res, next) => {
@@ -56,44 +57,40 @@ const moveAudio = async (req, res, next) => {
   try {
     const { turnId, audioUrl } = req.body;
     const turn = await Turn.findById(turnId);
-    if (
-      !audioUrl ||
-      turn.audioUrl !== audioUrl ||
-      audioUrl.startsWith(STATIC_MEDIA_URL)
-    ) {
+    if (!audioUrl || turn.audioUrl !== audioUrl) {
       throw getError('Audio url mismatch', 400);
     }
 
-    // получить static token
-    const hash = hashFunc(turn.gameId);
-    const tokenStaticServer = getToken(
-      process.env.JWT_SECRET_STATIC,
-      'download_and_save',
-      new Date().getTime() + 5 * 60 * 1000,
-      hash
+    // Перенос — через общий слой relocate: он же классифицирует ссылку (в том числе
+    // «уже на нашем хосте», с нормальным сравнением хостов), он же держит единственный
+    // транспорт до media (reverseDownloadMedia).
+    const result = await relocateUrl(
+      audioUrl,
+      MEDIA_TYPE_AUDIOS,
+      hashFunc(turn.gameId)
     );
 
-    // отправить запрос audios/download-and-save
-    const config = {
-      method: 'post',
-      url: STATIC_MEDIA_URL + '/audios/download-and-save',
-      headers: {
-        Authorization: 'Bearer ' + tokenStaticServer,
-        'Content-Type': 'application/json',
-      },
-      data: {
-        audioUrl,
-      },
-    };
-    const resp = await axios(config);
-
-    // обновить turn.audioUrl
-    turn.audioUrl = resp.data.src;
-    await turn.save();
-
-    res.json({
-      item: turn,
-    });
+    switch (result.status) {
+      case 'moved':
+        turn.audioUrl = result.url;
+        await turn.save();
+        return res.json({ item: turn });
+      case 'local':
+        throw getError('Аудио уже на текущем медиа-сервере', 400);
+      case 'deferred':
+        throw getError(
+          `Аудио с ${result.provider}: прямое скачивание не поддержано`,
+          400
+        );
+      case 'unknown':
+        throw getError('Ссылка не распознана как аудио-файл', 400);
+      case 'error':
+        throw getError(`Не удалось перенести аудио: ${result.error}`, 502);
+      default:
+        // relocateUrl обзаведётся новыми статусами в BP-4 — молча считать их
+        // успехом нельзя
+        throw getError(`Неизвестный статус переноса: ${result.status}`, 500);
+    }
   } catch (err) {
     next(err);
   }

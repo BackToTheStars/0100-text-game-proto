@@ -282,8 +282,8 @@ const prepareUploadedObject = async (message, fileType, fileObj, code) => {
     if (!fileObj) {
       return null;
     }
-    // download-and-save медиа-сервиса лимитов не применяет и буферизует файл
-    // в памяти целиком — размер pdf проверяем заранее
+    // download-and-save медиа-сервиса свой потолок применяет (413), но файл
+    // буферизует в памяти целиком — размер pdf проверяем заранее
     if (fileType === 'pdfs' && fileObj.file_size > BOT_PDF_MAX_FILE_SIZE) {
       console.warn(`[pdf] file too big (${fileObj.file_size} bytes), skip`);
       return null;
@@ -550,8 +550,8 @@ const prepareXcomTurn = async (message, url, code) => {
   const data = await xcomService.fetchTweetData(url);
 
   // Видео: вариант среднего битрейта, со страховкой от больших файлов —
-  // медиа-сервер грузит файл в память целиком и своих лимитов не имеет,
-  // поэтому при неизвестном размере видео не качаем
+  // медиа-сервер грузит файл в память целиком, а его собственный потолок (413)
+  // выше нашего, поэтому при неизвестном размере видео не качаем
   let uploadedVideoUrl = null;
   let uploadedVideoPreview = null;
   if (data.videoUrl) {
