@@ -206,6 +206,14 @@ const getFileInfo = (message) => {
   };
 };
 
+// Потолок ожидания ответа media. Она отвечает только после полного скачивания
+// файла (это минуты), поэтому потолок щедрый — но он обязан быть: у axios по
+// умолчанию таймаута нет вовсе, и зависшая media держала бы запрос бесконечно.
+// Свой потолок заведомо больше внутренних таймаутов media (HEAD 10 с + простой
+// сокета 60 с на её стороне), чтобы до вызывающего доходил ответ media, а не
+// наш обрыв — тот же принцип, что у youtube-транспортов
+const REVERSE_DOWNLOAD_TIMEOUT = 10 * 60 * 1000;
+
 const reverseDownloadMedia = async (type, mediaUrl, hash) => {
   const tokenStaticServer = getToken(
     process.env.JWT_SECRET_STATIC,
@@ -224,6 +232,7 @@ const reverseDownloadMedia = async (type, mediaUrl, hash) => {
     data: {
       mediaUrl,
     },
+    timeout: REVERSE_DOWNLOAD_TIMEOUT,
   };
 
   const resp = await axios(config);

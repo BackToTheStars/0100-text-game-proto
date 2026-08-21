@@ -238,8 +238,9 @@ const getYoutubeToken = (hash) =>
 // UI нужна причина, а не общая 502. Исключение — 500: наш обработчик ошибок
 // заменяет текст любой 500 на «На сервере произошла ошибка», и причина потерялась
 // бы. Если соединения не случилось — 503; message бывает пустым (AggregateError
-// от happy-eyeballs), тогда причину несёт только code — тот же разбор, что в
-// modules/admin/controllers/Media.js#getStats.
+// от happy-eyeballs), тогда причину несёт только code. Этим же helper'ом
+// пользуется stats-прокси (modules/admin/controllers/Media.js) — разбор ошибок
+// media один на все обращения к ней.
 const mediaRequestError = (err) => {
   if (err.response) {
     const message = err.response.data && err.response.data.message;
@@ -377,6 +378,7 @@ module.exports = {
   relocateUrl,
   relocateDocFields,
   getYoutubeVideoId,
+  mediaRequestError,
   probeYoutubeVideo,
   relocateYoutubeVideo,
 };

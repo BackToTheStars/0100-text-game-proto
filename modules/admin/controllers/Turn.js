@@ -90,7 +90,9 @@ const moveAudio = async (req, res, next) => {
     switch (result.status) {
       case 'moved':
         turn.audioUrl = result.url;
-        await turn.save();
+        // validateModifiedOnly — как в relocateMedia: легаси-contentType не
+        // должен валить сохранение после того, как файл уже перенесён.
+        await turn.save({ validateModifiedOnly: true });
         return res.json({ item: turn });
       case 'local':
         throw getError('Аудио уже на текущем медиа-сервере', 400);
@@ -125,7 +127,11 @@ const relocateMedia = async (req, res, next) => {
       hash: hashFunc(turn.gameId),
     });
     if (changed) {
-      await turn.save();
+      // validateModifiedOnly: голый save() валидирует документ целиком, и ход с
+      // легаси-contentType вне enum (чинится скриптом SCRIPT_TURN_CONTENT_TYPE)
+      // отвечал бы 500 — уже после того, как media сохранила файл, то есть
+      // каждая попытка переноса плодила бы копию в GridFS без потребителя.
+      await turn.save({ validateModifiedOnly: true });
     }
 
     // Результат по каждому полю отдаём как есть (moved / local / deferred / unknown /
@@ -199,7 +205,9 @@ const youtubeRelocate = async (req, res, next) => {
       hash: hashFunc(turn.gameId),
     });
     if (changed) {
-      await turn.save();
+      // validateModifiedOnly — как в relocateMedia: легаси-contentType не
+      // должен валить сохранение после того, как видео уже скачано.
+      await turn.save({ validateModifiedOnly: true });
     }
 
     res.json({

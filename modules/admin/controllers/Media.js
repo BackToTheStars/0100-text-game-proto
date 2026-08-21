@@ -1,6 +1,6 @@
 const { default: axios } = require('axios');
 const { STATIC_MEDIA_URL } = require('../../../config/url');
-const { getError } = require('../../core/services/errors');
+const { mediaRequestError } = require('../../game/services/mediaRelocate');
 const { getToken } = require('../../game/services/game');
 
 // media проверяет на этом роуте только операцию, hash не используется —
@@ -32,23 +32,9 @@ const getStats = async (req, res, next) => {
         timeout: STATS_TIMEOUT,
       });
     } catch (err) {
-      if (err.response) {
-        // media ответила, но не 2xx — её статус пробрасываем как 502
-        const mediaMessage = err.response.data && err.response.data.message;
-        throw getError(
-          `Медиа-сервер вернул ошибку (${err.response.status})` +
-            (mediaMessage ? `: ${mediaMessage}` : ''),
-          502
-        );
-      }
-      // соединения не случилось: media лежит, таймаут, DNS.
-      // message бывает пустым (AggregateError от happy-eyeballs, когда localhost
-      // резолвится и в ::1, и в 127.0.0.1) — тогда причину несёт только code.
-      const reason = err.message || err.code || 'причина неизвестна';
-      throw getError(
-        `Медиа-сервер недоступен (${STATIC_MEDIA_URL}): ${reason}`,
-        503
-      );
+      // Разбор один на все обращения к media (там же — почему 500 отдаётся как
+      // 502 и почему причина недоступности берётся из message || code).
+      throw mediaRequestError(err);
     }
 
     res.json({
