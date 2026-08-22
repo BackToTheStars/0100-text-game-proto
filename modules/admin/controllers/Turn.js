@@ -4,11 +4,9 @@ const { getError } = require('../../core/services/errors');
 const Turn = require('../../game/models/Turn');
 const {
   classifyUrl,
-  relocateUrl,
   relocateDocFields,
   probeYoutubeVideo,
   relocateYoutubeVideo,
-  MEDIA_TYPE_AUDIOS,
   MEDIA_TYPE_VIDEOS,
   PROVIDER_YOUTUBE,
   TURN_FIELDS,
@@ -70,54 +68,9 @@ const getById = async (req, res, next) => {
   }
 };
 
-const moveAudio = async (req, res, next) => {
-  try {
-    const { turnId, audioUrl } = req.body;
-    const turn = await resolveTurn(turnId);
-    if (!audioUrl || turn.audioUrl !== audioUrl) {
-      throw getError('Audio url mismatch', 400);
-    }
-
-    // Перенос — через общий слой relocate: он же классифицирует ссылку (в том числе
-    // «уже на нашем хосте», с нормальным сравнением хостов), он же держит единственный
-    // транспорт до media (reverseDownloadMedia).
-    const result = await relocateUrl(
-      audioUrl,
-      MEDIA_TYPE_AUDIOS,
-      hashFunc(turn.gameId)
-    );
-
-    switch (result.status) {
-      case 'moved':
-        turn.audioUrl = result.url;
-        // validateModifiedOnly — как в relocateMedia: легаси-contentType не
-        // должен валить сохранение после того, как файл уже перенесён.
-        await turn.save({ validateModifiedOnly: true });
-        return res.json({ item: turn });
-      case 'local':
-        throw getError('Аудио уже на текущем медиа-сервере', 400);
-      case 'deferred':
-        throw getError(
-          `Аудио с ${result.provider}: прямое скачивание не поддержано`,
-          400
-        );
-      case 'unknown':
-        throw getError('Ссылка не распознана как аудио-файл', 400);
-      case 'error':
-        throw getError(`Не удалось перенести аудио: ${result.error}`, 502);
-      default:
-        // relocateUrl обзаведётся новыми статусами в BP-4 — молча считать их
-        // успехом нельзя
-        throw getError(`Неизвестный статус переноса: ${result.status}`, 500);
-    }
-  } catch (err) {
-    next(err);
-  }
-};
-
 // Перенос всех «чужих» медиа хода одним вызовом. Аудио-специфики в слое relocate нет:
 // он одинаково обрабатывает все пять полей хода (TURN_FIELDS), поэтому отдельная ручка
-// на каждое поле не нужна. moveAudio остаётся до переезда клиента на этот эндпоинт.
+// на каждое поле не нужна.
 const relocateMedia = async (req, res, next) => {
   try {
     const { turnId } = req.body;
@@ -224,7 +177,6 @@ const youtubeRelocate = async (req, res, next) => {
 module.exports = {
   list,
   getById,
-  moveAudio,
   relocateMedia,
   youtubeProbe,
   youtubeRelocate,
