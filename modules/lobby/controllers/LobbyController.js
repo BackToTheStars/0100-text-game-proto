@@ -40,7 +40,12 @@ const getGames = async (req, res, next) => {
       const games = await Game.find({ public: true }, fields).sort({
         updatedAt: -1,
       });
-      res.json({ items: games });
+      res.json({
+        items: games.map((g) => ({
+          ...g.toObject(),
+          hash: getHashByGame(g),
+        })),
+      });
       return;
     }
 
