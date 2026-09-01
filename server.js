@@ -7,6 +7,8 @@ assertEnvCodeHashLength();
 const cors = require('cors');
 const express = require('express');
 
+const { getCorsOptions } = require('./config/cors');
+
 const adminAuthRoutes = require('./modules/admin/routes/auth');
 const adminGamesRoutes = require('./modules/admin/routes/games');
 const adminTurnsRoutes = require('./modules/admin/routes/turns');
@@ -51,7 +53,10 @@ const port = process.env.PORT || 3000;
 // не используется — req.ip/req.protocol в коде не читаются.
 app.set('trust proxy', 1);
 
-app.use(cors());
+// Без CORS_ORIGINS API отвечает всем, как и раньше; со списком origin'ов —
+// только перечисленным (config/cors.js). Публичные GET /lobby/* открыты всегда:
+// у них свой cors() внутри modules/lobby/routes/lobby.js.
+app.use(cors(getCorsOptions()));
 app.use(express.static('public'));
 app.use(express.json());
 
