@@ -43,7 +43,6 @@ const createGame = async (req, res, next) => {
       codeHashLength,
     });
 
-    clearGamesCache();
     await game.save();
     try {
       // @todo: optimization
@@ -70,6 +69,10 @@ const createGame = async (req, res, next) => {
     await game.save();
     // await Game.addZeroPointTurn(game._id);
 
+    // Один сброс кэша — после успешного сохранения игры с кодами: до save
+    // сбрасывать было нечего (новых хешей ещё нет в базе).
+    clearGamesCache();
+
     res.json({
       item: {
         name: game.name,
@@ -78,7 +81,6 @@ const createGame = async (req, res, next) => {
         code,
       },
     });
-    clearGamesCache();
   } catch (e) {
     next(e);
   }

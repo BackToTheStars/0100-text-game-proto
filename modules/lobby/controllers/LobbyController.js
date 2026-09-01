@@ -3,6 +3,11 @@ const Turn = require('../../game/models/Turn');
 const Game = require('../../game/models/Game');
 const { getHashByGame, getInfo } = require('../../game/services/security');
 
+// chosen приходит из query строкой: '0' и 'false' — это «выключено», а не истина.
+// Раньше проверялось просто `if (!chosen)`, и любая непустая строка (в том числе
+// 'false') включала режим «только игры кодов».
+const isChosen = (value) => value === '1' || value === 'true';
+
 const getCodesInfo = (codes) => {
   return codes
     .split(',')
@@ -58,7 +63,7 @@ const getGames = async (req, res, next) => {
         },
       },
     ];
-    if (!chosen) {
+    if (!isChosen(chosen)) {
       idCriterias.push({
         public: true,
       });
@@ -99,7 +104,7 @@ const getTurns = async (req, res, next) => {
         },
       },
     ];
-    if (!chosen) {
+    if (!isChosen(chosen)) {
       idCriterias.push({
         public: true,
       });

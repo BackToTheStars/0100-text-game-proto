@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { ROLE_GAME_VISITOR } = require('../../../config/game/user');
 const { getError } = require('../../core/services/errors');
 const Game = require('../models/Game');
@@ -5,10 +6,14 @@ const Game = require('../models/Game');
 // @todo: заменить на кэширование
 let games;
 
+// Случайная часть хеша кода. Криптостойкий источник вместо Math.random:
+// коды короткие (extraLength по умолчанию 6 hex), и предсказуемый PRNG
+// позволял бы их угадывать.
 const getRandHex = (exp) => {
-  return Math.floor(Math.random() * Math.pow(16, exp))
-    .toString(16)
-    .padStart(exp, '0');
+  return crypto
+    .randomBytes(Math.ceil(exp / 2))
+    .toString('hex')
+    .slice(0, exp);
 };
 
 const hashFunc = (_id, extraLength = 0) => {

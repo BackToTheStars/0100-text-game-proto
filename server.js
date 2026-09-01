@@ -45,6 +45,12 @@ process.on('unhandledRejection', (reason) => {
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Прод стоит за nginx (ровно один хоп, порты контейнеров опубликованы только на
+// loopback): доверяем последнему прокси, чтобы rate-limit на ручках логина видел
+// клиентский IP из X-Forwarded-For, а не адрес nginx. Больше `trust proxy` нигде
+// не используется — req.ip/req.protocol в коде не читаются.
+app.set('trust proxy', 1);
+
 app.use(cors());
 app.use(express.static('public'));
 app.use(express.json());

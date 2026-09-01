@@ -8,7 +8,7 @@ const RULE_VIEW = 1;
 const RULE_TURNS_CRUD = 2; // включает CLASSES и LINES
 // const RULE_CLASSES_CRUD = 3;
 // const RULE_LINES_CRUD = 4;
-const RULE_GAME_EDIT = 5; // добавление скриншота, переименования, отправки приглашений
+const RULE_GAME_EDIT = 5; // правка игры (PUT /game), удаление игры (DELETE /game), выдача кодов (POST /codes/add)
 
 const ROLES = {
   [ROLE_GAME_VISITOR]: {

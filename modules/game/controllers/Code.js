@@ -120,13 +120,28 @@ const addCode = async (req, res, next) => {
   }
 };
 
+// Белый список операций media, которые клиент вправе запросить через эту ручку.
+// Всё остальное (list / stats / youtube / delete / download_and_save) сервер
+// подписывает сам — боту, relocate и админскому прокси эта ручка не нужна.
+// Без списка любой игрок любой игры выписывал себе токен на административную
+// операцию media и шёл в media напрямую.
+const CLIENT_ACTIONS = ['upload'];
+
 const getStaticToken = async (req, res, next) => {
   try {
+    const { action } = req.body;
+
+    if (!CLIENT_ACTIONS.includes(action)) {
+      return next(
+        getError(`Invalid action. Allowed: ${CLIENT_ACTIONS.join(', ')}`, 400)
+      );
+    }
+
     const hash = hashFunc(req.gameInfo.gameId);
 
     const token = getToken(
       process.env.JWT_SECRET_STATIC,
-      req.body.action,
+      action,
       new Date().getTime() + 5 * 60 * 1000,
       hash
     );

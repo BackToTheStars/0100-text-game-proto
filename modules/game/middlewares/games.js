@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { ROLES, ROLE_GAME_VISITOR } = require('../../../config/game/user');
 const { getInfo } = require('../services/security');
+const { getError } = require('../../core/services/errors');
 
 const gameMiddleware = async (req, res, next) => {
   try {
@@ -24,8 +25,14 @@ const gameMiddleware = async (req, res, next) => {
             nickname: decoded.data.nickname || 'Unknown', // проверка того, что пользователь зашёл
             v: decoded.data?.v,
           };
-        } else {
+        } else if (err.name === 'TokenExpiredError') {
+          // Протухший токен — штатная ситуация: клиент обновляет его через
+          // POST /codes/refresh, поэтому продолжаем как посетитель.
           req.gameInfo = { gameId, role };
+        } else {
+          // Подделанная подпись или битый токен раньше молча превращались
+          // в посетителя — ошибка была не видна.
+          return next(getError('Некорректный game-token', 401));
         }
         next();
       });

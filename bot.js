@@ -355,7 +355,7 @@ bot.catch((err, ctx) => {
 // Запуск.
 // - polling: bot.js запущен как отдельный процесс (`node bot.js` / `npm run bot`) →
 //   long-polling стартует здесь. Именно так работает связка этапов 3–4 через локальный
-//   telegram-bot-api (см. docs/deploy/3-4-alternative.md) — webhook не нужен.
+//   telegram-bot-api (см. brain-platform/docs/deploy/3-4-alternative.md) — webhook не нужен.
 // - hook:   webhook монтирует и регистрирует server.js (bot.js в этом случае лишь
 //   импортируется ради экземпляра bot). Здесь НИЧЕГО не запускаем, иначе Telegraf
 //   поднимет второй HTTP-listener и вызовет setWebhook сам (баг двойного запуска).
