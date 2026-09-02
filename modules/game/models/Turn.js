@@ -77,16 +77,18 @@ const schema = new Schema(
       type: {
         connectedTo: String,
         duration: Number,
+        // quotes объявлен внутри type, а не рядом с ним: рядом mongoose его
+        // просто не видит и молча выбрасывает цитаты таймлайна из запроса.
+        quotes: [
+          {
+            id: Number,
+            text: String,
+            active: Boolean,
+            start: Number,
+          },
+        ],
       },
       required: false,
-      quotes: [
-        {
-          id: Number,
-          text: String,
-          active: Boolean,
-          start: Number,
-        },
-      ],
     },
     audioUrl: {
       type: String,
@@ -100,16 +102,17 @@ const schema = new Schema(
       type: {
         connectedTo: String,
         duration: Number,
+        // см. videoQuotes: quotes обязан лежать внутри type
+        quotes: [
+          {
+            id: Number,
+            text: String,
+            active: Boolean,
+            start: Number,
+          },
+        ],
       },
       required: false,
-      quotes: [
-        {
-          id: Number,
-          text: String,
-          active: Boolean,
-          start: Number,
-        },
-      ],
     },
     gameId: {
       type: mongoose.Schema.Types.ObjectId,

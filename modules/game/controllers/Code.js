@@ -26,9 +26,13 @@ const codeLogin = async (req, res, next) => {
     const codeObj = game.codes.find((codeItem) => codeItem.hash === code);
     const cookieExp = Date.now() + 7 * 24 * 3600000;
 
+    // gameId в теле токена — то, чем gameMiddleware сверяет, что токен выписан
+    // именно на игру из запроса. Без этого поля роль из токена действовала в
+    // любой игре, чей адрес известен.
     const data = {
       v: AUTH_VERSION,
-      // hash: getHashByGame(game),
+      gameId: '' + game._id,
+      hash: getHashByGame(game),
       code,
       nickname,
       role: codeObj.role,
@@ -44,10 +48,7 @@ const codeLogin = async (req, res, next) => {
     res.json({
       success: true,
       expires: Math.floor(cookieExp / 1000),
-      info: {
-        ...data,
-        hash: getHashByGame(game)
-      },
+      info: { ...data },
       token,
     });
   } catch (error) {
@@ -65,7 +66,8 @@ const refreshCode = async (req, res, next) => {
 
     const data = {
       v: AUTH_VERSION,
-      // hash: getHashByGame(game),
+      gameId: '' + game._id,
+      hash: getHashByGame(game),
       code,
       nickname,
       role,
@@ -81,10 +83,7 @@ const refreshCode = async (req, res, next) => {
     res.json({
       success: true,
       expires: Math.floor(cookieExp / 1000),
-      info: {
-        ...data,
-        hash: getHashByGame(game),
-      },
+      info: { ...data },
       token,
     });
   } catch (error) {

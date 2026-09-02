@@ -211,6 +211,12 @@ const getGamesByHashes = async (req, res, next) => {
     const notFoundHashes = [];
     for (const hash of arrHashes) {
       const gameInfo = await getInfo(hash);
+      if (gameInfo.ambiguous) {
+        // Этот адрес занят больше чем одной игрой; какая из них «та самая»,
+        // сервер решать не вправе — раньше он молча отдавал старшую.
+        res.status(409).json({ message: 'Хеш игры неоднозначен' });
+        return;
+      }
       if (gameInfo.gameId) {
         ids.push(gameInfo.gameId);
       } else {
@@ -234,6 +240,10 @@ const checkGame = async (req, res, next) => {
   try {
     const { hash } = req.query;
     const gameInfo = await getInfo(hash);
+    if (gameInfo.ambiguous) {
+      res.status(409).json({ message: 'Хеш игры неоднозначен' });
+      return;
+    }
     res.json({ item: gameInfo });
   } catch (error) {
     next(error);

@@ -6,6 +6,7 @@ const Line = require('../models/Line');
 const {
   hashFunc,
   hashUniqueForGame,
+  generateFreeGameId,
   clearGamesCache,
   getHashByGame,
   getInfo,
@@ -37,7 +38,11 @@ const createGame = async (req, res, next) => {
       );
     }
 
+    // Адрес игры — последние три символа её _id, то есть на всю базу 4096
+    // вариантов. Без подбора свободного адреса новая игра садилась на чужой:
+    // по своей ссылке она уже недостижима, а ссылка ведёт в чужую игру.
     const game = new Game({
+      _id: await generateFreeGameId(),
       public,
       name,
       codeHashLength,
@@ -47,10 +52,21 @@ const createGame = async (req, res, next) => {
     try {
       // @todo: optimization
       const hash = getHashByGame(game);
-      await getInfo(hash);
+      const info = await getInfo(hash);
+      if (info.ambiguous) {
+        // Подбор адреса читает базу напрямую, а этот словарь мог устареть:
+        // страховка на случай, когда адрес всё же оказался спорным.
+        throw getError('Хеш игры неоднозначен', 409);
+      }
     } catch (err) {
-      await game.remove();
-      return next(getError('Game does not created. Try again', 400));
+      // deleteOne, а не remove: метод документа remove убран в mongoose 7,
+      // и откат сам падал с TypeError, оставляя игру в базе.
+      await game.deleteOne();
+      return next(
+        err.statusCode === 409
+          ? err
+          : getError('Game does not created. Try again', 400)
+      );
     }
 
     if (game.accessLevel === 'link') {
