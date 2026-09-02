@@ -4,10 +4,13 @@ require('./config/db');
 const { assertEnvCodeHashLength } = require('./config/game/code');
 assertEnvCodeHashLength();
 
+const { assertEnvLoginRateLimit } = require('./modules/core/middlewares/rateLimit');
+assertEnvLoginRateLimit();
+
 const cors = require('cors');
 const express = require('express');
 
-const { getCorsOptions } = require('./config/cors');
+const { corsOptionsDelegate } = require('./config/cors');
 
 const adminAuthRoutes = require('./modules/admin/routes/auth');
 const adminGamesRoutes = require('./modules/admin/routes/games');
@@ -39,7 +42,7 @@ const {
 
 // Сорвавшийся промис не должен убивать API: в Node >= 15 необработанный reject
 // по умолчанию завершает процесс, и один невалидный документ в базе гасил
-// сервер целиком (см. client/docs/save-field-fix-plan.md).
+// сервер целиком (см. brain-platform/docs/archive/save-field-fix-plan.md).
 process.on('unhandledRejection', (reason) => {
   console.error('Unhandled rejection:', reason);
 });
@@ -54,9 +57,9 @@ const port = process.env.PORT || 3000;
 app.set('trust proxy', 1);
 
 // Без CORS_ORIGINS API отвечает всем, как и раньше; со списком origin'ов —
-// только перечисленным (config/cors.js). Публичные GET /lobby/* открыты всегда:
-// у них свой cors() внутри modules/lobby/routes/lobby.js.
-app.use(cors(getCorsOptions()));
+// только перечисленным. Публичные GET /lobby/* (и их preflight) открыты
+// всегда — делегат сам решает по пути запроса, см. config/cors.js.
+app.use(cors(corsOptionsDelegate));
 app.use(express.static('public'));
 app.use(express.json());
 

@@ -173,7 +173,7 @@ const relocateDocFields = async (doc, fieldTypes, options = {}) => {
 
 // ─── YouTube ────────────────────────────────────────────────────────────────
 // Второй транспорт до media: прямой ссылкой такое видео не забрать, его тянет
-// yt-dlp внутри media (BP-4). Токен тот же сервисный, что у download-and-save,
+// yt-dlp внутри media. Токен тот же сервисный, что у download-and-save,
 // отличается только операция.
 const YOUTUBE_OPERATION = 'youtube';
 const YOUTUBE_TOKEN_TTL = 5 * 60 * 1000;
@@ -298,7 +298,7 @@ const downloadYoutubeVideo = async ({ url, formatId, hash, metadata }) => {
 // Обложка. Заполненное превью переносим по общим правилам, пустое — собираем по
 // id ролика тем адресом, которым до сих пор пользовался клиент: как только
 // videoUrl станет своим, клиентский фолбэк на img.youtube.com пропадёт, и без
-// videoPreview карточка останется без обложки (BP-4, решение 6).
+// videoPreview карточка останется без обложки.
 const relocateYoutubePreview = async (doc, videoUrl, hash) => {
   const field = 'videoPreview';
   const videoId = getYoutubeVideoId(videoUrl);

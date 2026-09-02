@@ -255,8 +255,8 @@ const youtubeProbe = async (req, res, next) => {
 
 // Перенос выбранного варианта. Конверт тот же, что у relocateMedia
 // ({ item: { turn, results } }), чтобы UI разбирал оба ответа одинаково.
-// Операция синхронная и долгая (минуты) — см. таймауты в слое и решение 5 BP-4
-// про proxy_read_timeout на этих роутах.
+// Операция синхронная и долгая (минуты) — таймауты в слое и proxy_read_timeout
+// на этих роутах описаны в youtube-relocate.md в brain-platform.
 const youtubeRelocate = async (req, res, next) => {
   try {
     const { turnId, formatId } = req.body;

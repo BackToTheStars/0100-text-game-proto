@@ -202,6 +202,10 @@ const getTurns = async (req, res, next) => {
 const getGamesByHashes = async (req, res, next) => {
   try {
     const { hashes } = req.query;
+    if (!hashes) {
+      res.status(400).json({ message: 'hashes is required' });
+      return;
+    }
     const arrHashes = hashes.split(',');
     const ids = [];
     const notFoundHashes = [];
