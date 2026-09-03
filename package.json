@@ -20,6 +20,9 @@
     "winston-mongodb": "^6.0.0",
     "xstate": "^5.32.0"
   },
+  "overrides": {
+    "qs": "^6.16.0"
+  },
   "scripts": {
     "bot": "nodemon bot.js",
     "server": "nodemon server.js",
