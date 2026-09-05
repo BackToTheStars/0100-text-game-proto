@@ -7,6 +7,7 @@ assertEnvCodeHashLength();
 const { assertEnvLoginRateLimit } = require('./modules/core/middlewares/rateLimit');
 assertEnvLoginRateLimit();
 
+const http = require('http');
 const cors = require('cors');
 const express = require('express');
 
@@ -34,6 +35,8 @@ const classRoutes = require('./modules/game/routes/classes');
 const {
   gameMiddleware,
 } = require('./modules/game/middlewares/games');
+
+const { attachPresence } = require('./modules/presence/ws');
 
 const {
   adminMiddleware,
@@ -131,6 +134,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(port, () => {
+// Явный http.Server вместо app.listen: на нём же висит сокет присутствия
+// (путь /ws, тот же порт), см. modules/presence/ws.js.
+const server = http.createServer(app);
+attachPresence(server);
+server.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Presence socket is listening on ws://localhost:${port}/ws`);
 });

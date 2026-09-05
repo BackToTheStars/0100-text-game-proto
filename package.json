@@ -18,6 +18,7 @@
     "uniqid": "^5.4.0",
     "winston": "^3.19.0",
     "winston-mongodb": "^6.0.0",
+    "ws": "^8.21.3",
     "xstate": "^5.32.0"
   },
   "overrides": {
@@ -27,6 +28,7 @@
     "bot": "nodemon bot.js",
     "server": "nodemon server.js",
     "start": "node server.js",
+    "test": "node --test \"tests/**/*.test.js\"",
     "backup": "node ./scripts/db_dump.js",
     "restore": "node ./scripts/db_restore.js"
   },
