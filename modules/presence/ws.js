@@ -1,15 +1,25 @@
 const crypto = require('crypto');
 const { WebSocketServer, WebSocket } = require('ws');
 const { parseCorsOrigins } = require('../../config/cors');
+const { ROLE_GAME_OWNER, ROLE_GAME_PLAYER } = require('../../config/game/user');
 const { resolveGameAccess } = require('../game/services/access');
 const { createRooms } = require('./services/rooms');
-const { HELLO_TIMEOUT_MS, HEARTBEAT_MS, MAX_PAYLOAD } = require('./config');
+const { createBucket } = require('./services/rateLimit');
+const {
+  HELLO_TIMEOUT_MS,
+  HEARTBEAT_MS,
+  MAX_PAYLOAD,
+  TOUR_GRACE_MS,
+  CAST_RATE_PER_SEC,
+  CAST_BURST,
+} = require('./config');
 
-// Сокет присутствия: кто онлайн в игре, режим ведущего и трансляция его
-// команд подписчикам. Живёт в процессе API на том же порту по пути /ws.
+// Сокет присутствия: кто онлайн в игре, экскурсия и трансляция её ведущего
+// подписчикам. Живёт в процессе API на том же порту по пути /ws.
 // Протокол (сообщения, коды закрытия, ошибки) — brain-platform/docs/presence.md;
 // здесь — его серверная половина. Состояние — в services/rooms.js, тут только
-// сеть: апгрейд, рукопожатие, heartbeat, разбор JSON и маршрутизация по `t`.
+// сеть и время: апгрейд, рукопожатие, heartbeat, разбор JSON, маршрутизация
+// по `t`, ожидание вернувшегося гида и ограничение частоты трансляции.
 //
 // Авторизация: токен не в URL (он попал бы в access-логи nginx), а первым
 // сообщением hello; проверяется той же функцией, что у gameMiddleware.
@@ -35,6 +45,24 @@ const CLOSE_BY_STATUS = {
 
 const isObject = (value) =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
+
+// Тело кадра трансляции, которое уйдёт подписчикам, или null — тогда отказ
+// bad-cast. Координаты всех видов — координаты холста; курсор дополнительно
+// умеет «убран» (мышь ушла с холста, показ выключен, экскурсия закончена).
+const castBody = ({ kind, x, y, off }) => {
+  if (kind === 'viewport' && Number.isFinite(x) && Number.isFinite(y)) {
+    return { kind, x, y };
+  }
+  if (kind === 'cursor') {
+    if (off === true) {
+      return { kind, off: true };
+    }
+    if (Number.isFinite(x) && Number.isFinite(y)) {
+      return { kind, x, y };
+    }
+  }
+  return null;
+};
 
 const attachPresence = (server) => {
   const wss = new WebSocketServer({ noServer: true, maxPayload: MAX_PAYLOAD });
@@ -65,6 +93,7 @@ const attachPresence = (server) => {
   };
 
   // Полный снимок всем в игре — после любого изменения состава или ролей.
+  // Опустевшая игра переживается молча: снимок пуст, слать некому.
   const broadcastMembers = (gameId) => {
     const members = rooms.snapshot(gameId);
     const frame = JSON.stringify({ t: 'members', members });
@@ -74,6 +103,34 @@ const attachPresence = (server) => {
         client.send(frame);
       }
     }
+  };
+
+  // Экскурсии, ждущие вернувшегося гида: "gameId:tourId" → таймер. Время живёт
+  // здесь, а не в rooms.js, чтобы состояние проверялось тестами без ожиданий.
+  const graceTimers = new Map();
+
+  const clearGrace = (gameId, tourId) => {
+    const key = `${gameId}:${tourId}`;
+    const timer = graceTimers.get(key);
+    if (timer) {
+      clearTimeout(timer);
+      graceTimers.delete(key);
+    }
+  };
+
+  const startGrace = (gameId, tourId) => {
+    clearGrace(gameId, tourId);
+    console.log(`presence: tour ${tourId} grace gameId=${gameId}`);
+    graceTimers.set(
+      `${gameId}:${tourId}`,
+      setTimeout(() => {
+        graceTimers.delete(`${gameId}:${tourId}`);
+        if (rooms.expireTour(gameId, tourId)) {
+          console.log(`presence: tour ${tourId} expired gameId=${gameId}`);
+          broadcastMembers(gameId);
+        }
+      }, TOUR_GRACE_MS)
+    );
   };
 
   server.on('upgrade', (req, socket, head) => {
@@ -107,6 +164,12 @@ const attachPresence = (server) => {
     let sid = null;
     // hello → auth (ждём проверку токена) → ready (команды принимаются)
     let phase = 'hello';
+    // Своё ведро на соединение: поток курсора одного гида не должен съедать
+    // квоту остальных.
+    const castBucket = createBucket({
+      capacity: CAST_BURST,
+      refillPerSec: CAST_RATE_PER_SEC,
+    });
 
     const helloTimer = setTimeout(() => {
       close(ws, CLOSE_TIMEOUT, 'timeout');
@@ -186,17 +249,51 @@ const attachPresence = (server) => {
             sendError(ws, 'bad-message', '"on" must be true or false');
             return;
           }
-          rooms.setLeader(gameId, sid, message.on);
+          if (!message.on) {
+            rooms.setLeader(gameId, sid, false);
+            broadcastMembers(gameId);
+            return;
+          }
+          if (message.tour !== undefined && typeof message.tour !== 'string') {
+            sendError(ws, 'bad-message', '"tour" must be a string');
+            return;
+          }
+          const me = rooms.get(gameId, sid);
+          if (!me) {
+            return;
+          }
+          // Роль — из токена, она приехала с hello. Вести экскурсию может
+          // только владелец игры или игрок: посетителю отказ без изменения
+          // состояния.
+          if (me.role !== ROLE_GAME_OWNER && me.role !== ROLE_GAME_PLAYER) {
+            sendError(
+              ws,
+              'role',
+              'Only players and the owner can start a tour'
+            );
+            return;
+          }
+          const guide = rooms.setLeader(gameId, sid, true, message.tour);
+          if (guide && guide.tour) {
+            // Гид вернулся к своей экскурсии — ждать его больше незачем.
+            // Для только что начатой экскурсии таймера нет, и снятие холостое.
+            if (message.tour && guide.tour === message.tour) {
+              console.log(
+                `presence: tour ${guide.tour} reclaimed gameId=${gameId} sid=${sid}`
+              );
+            }
+            clearGrace(gameId, guide.tour);
+          }
           broadcastMembers(gameId);
           return;
         }
         case 'follow': {
-          if (message.sid !== null && typeof message.sid !== 'string') {
-            sendError(ws, 'bad-message', '"sid" must be a string or null');
+          if (message.tour !== null && typeof message.tour !== 'string') {
+            sendError(ws, 'bad-message', '"tour" must be a string or null');
             return;
           }
           try {
-            rooms.follow(gameId, sid, message.sid);
+            rooms.follow(gameId, sid, message.tour);
           } catch (err) {
             if (!err.code) {
               throw err;
@@ -208,28 +305,24 @@ const attachPresence = (server) => {
           return;
         }
         case 'cast': {
-          const me = rooms.get(gameId, sid);
-          if (!me || !me.leader) {
-            sendError(ws, 'not-leader', 'Turn leader mode on to cast');
+          // Лимит частоты — до всего остального: поток курсора не должен
+          // оборачиваться потоком ошибок в обратную сторону.
+          if (!castBucket.take()) {
             return;
           }
-          if (
-            message.kind !== 'viewport' ||
-            !Number.isFinite(message.x) ||
-            !Number.isFinite(message.y)
-          ) {
+          const me = rooms.get(gameId, sid);
+          if (!me || !me.leader) {
+            sendError(ws, 'not-leader', 'Start a tour to cast');
+            return;
+          }
+          const body = castBody(message);
+          if (!body) {
             sendError(ws, 'bad-cast', 'Unknown kind or non-numeric x/y');
             return;
           }
           // По текущему состоянию на момент приёма; состав не меняется,
           // поэтому members не рассылается.
-          const frame = JSON.stringify({
-            t: 'cast',
-            from: sid,
-            kind: message.kind,
-            x: message.x,
-            y: message.y,
-          });
+          const frame = JSON.stringify({ t: 'cast', from: sid, ...body });
           for (const follower of rooms.followersOf(gameId, sid)) {
             const client = sockets.get(follower.sid);
             if (client && client.readyState === WebSocket.OPEN) {
@@ -284,7 +377,17 @@ const attachPresence = (server) => {
       clearTimeout(helloTimer);
       if (sid) {
         sockets.delete(sid);
-        rooms.leave(gameId, sid);
+        const left = rooms.leave(gameId, sid);
+        if (left) {
+          // Игра опустела — ждать в ней некого и некому.
+          for (const tourId of left.closed) {
+            clearGrace(gameId, tourId);
+          }
+          if (left.tour) {
+            // Ушёл гид: экскурсия и её ведомые ждут его возвращения.
+            startGrace(gameId, left.tour);
+          }
+        }
         broadcastMembers(gameId);
       }
       console.log(
@@ -309,6 +412,10 @@ const attachPresence = (server) => {
 
   // Штатная остановка HTTP-сервера: клиенты получают 1012 и переподключаются.
   server.on('close', () => {
+    for (const timer of graceTimers.values()) {
+      clearTimeout(timer);
+    }
+    graceTimers.clear();
     for (const client of wss.clients) {
       close(client, CLOSE_RESTART, 'restart');
     }

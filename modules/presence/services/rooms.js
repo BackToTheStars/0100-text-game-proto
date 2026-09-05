@@ -1,14 +1,24 @@
-const { MAX_MEMBERS_PER_GAME } = require('../config');
+const crypto = require('crypto');
+const { MAX_MEMBERS_PER_GAME, TOUR_ID_BYTES } = require('../config');
 
-// Состояние присутствия: кто сейчас онлайн в какой игре, кто ведёт и кто за
-// кем следует. Только память процесса и никакой сети: сокеты держит ws.js,
-// он же после каждой операции рассылает всем в игре снимок snapshot(). Так
-// состояние проверяется тестами без единого соединения. Сервер запускается
-// в одном экземпляре, поэтому Map в памяти достаточно.
+// Состояние присутствия: кто сейчас онлайн в какой игре, кто ведёт экскурсию
+// и кто на неё подписан. Только память процесса, никакой сети и ни одного
+// таймера: сокеты держит ws.js, он же отсчитывает ожидание вернувшегося гида
+// и после каждой операции рассылает всем в игре снимок snapshot(). Так
+// состояние проверяется тестами без единого соединения и без ожиданий.
+// Сервер запускается в одном экземпляре, поэтому Map в памяти достаточно.
 //
-// Участник (member): { sid, nickname, role, leader, following }, где sid —
-// идентификатор соединения (две вкладки одного человека — два участника),
-// role — число из config/game/user.js, following — sid ведущего или null.
+// Участник (member): { sid, nickname, role, leader, tour, following }, где
+// sid — идентификатор соединения (две вкладки одного человека — два
+// участника), role — число из config/game/user.js, tour — id экскурсии,
+// которую я веду, following — id экскурсии, за которой я слежу, или null.
+//
+// Экскурсия хранится в комнате отдельно от участника:
+// tours: Map<tourId, { sid, nickname, role }>. Подписка указывает на неё, а не
+// на соединение гида, и потому переживает обрыв: при уходе гида запись
+// остаётся с sid: null (ждёт возвращения), ведомые всё это время подписаны, а
+// вернувшийся гид получает ту же экскурсию с новым sid. Снимает ожидание
+// ws.js вызовом expireTour.
 
 const refuse = (code, message) => {
   const error = new Error(message);
@@ -21,55 +31,84 @@ const toPublic = (member) => ({
   nickname: member.nickname,
   role: member.role,
   leader: member.leader,
+  tour: member.tour,
   following: member.following,
 });
 
 const createRooms = ({ maxMembers = MAX_MEMBERS_PER_GAME } = {}) => {
-  // '' + gameId → Map<sid, member>; ключ — строка, потому что gameId
-  // приходит ObjectId'ом, а Map сравнивает объекты по ссылке.
+  // '' + gameId → { members: Map<sid, member>, tours: Map<tourId, tour> };
+  // ключ — строка, потому что gameId приходит ObjectId'ом, а Map сравнивает
+  // объекты по ссылке.
   const games = new Map();
 
   const roomOf = (gameId) => games.get('' + gameId);
 
   const find = (gameId, sid) => {
     const room = roomOf(gameId);
-    return (room && room.get(sid)) || null;
+    return (room && room.members.get(sid)) || null;
   };
 
-  // Все, кто следовал за sid, остаются без ведущего.
-  const dropFollowers = (room, sid) => {
-    for (const member of room.values()) {
-      if (member.following === sid) {
+  // Все, кто следил за этой экскурсией, остаются без неё.
+  const dropFollowers = (room, tourId) => {
+    for (const member of room.members.values()) {
+      if (member.following === tourId) {
         member.following = null;
       }
     }
   };
 
+  const newTourId = (room) => {
+    let id = crypto.randomBytes(TOUR_ID_BYTES).toString('hex');
+    while (room.tours.has(id)) {
+      id = crypto.randomBytes(TOUR_ID_BYTES).toString('hex');
+    }
+    return id;
+  };
+
   const join = (gameId, { sid, nickname, role }) => {
     let room = roomOf(gameId);
-    if (room && room.size >= maxMembers) {
+    if (room && room.members.size >= maxMembers) {
       throw refuse('full', `The game already has ${maxMembers} connections`);
     }
     if (!room) {
-      room = new Map();
+      room = { members: new Map(), tours: new Map() };
       games.set('' + gameId, room);
     }
-    const member = { sid, nickname, role, leader: false, following: null };
-    room.set(sid, member);
+    const member = {
+      sid,
+      nickname,
+      role,
+      leader: false,
+      tour: null,
+      following: null,
+    };
+    room.members.set(sid, member);
     return toPublic(member);
   };
 
+  // Уход участника. Возвращает { tour, closed } или null, если такого участника
+  // в игре не было. tour — экскурсия, которая осталась ждать своего гида
+  // (ws.js заводит на неё таймер); closed — экскурсии опустевшей комнаты,
+  // удалённые вместе с ней (ws.js снимает их таймеры).
   const leave = (gameId, sid) => {
     const room = roomOf(gameId);
-    if (!room || !room.has(sid)) {
-      return false;
+    if (!room || !room.members.has(sid)) {
+      return null;
     }
-    room.delete(sid);
-    dropFollowers(room, sid);
-    if (room.size === 0) {
+    const member = room.members.get(sid);
+    room.members.delete(sid);
+    if (room.members.size === 0) {
+      const closed = [...room.tours.keys()];
       games.delete('' + gameId);
+      return { tour: null, closed };
     }
-    return true;
+    // Ведомых ушедшего гида не трогаем: экскурсия ждёт его возвращения.
+    let tour = null;
+    if (member.tour && room.tours.has(member.tour)) {
+      room.tours.get(member.tour).sid = null;
+      tour = member.tour;
+    }
+    return { tour, closed: [] };
   };
 
   const get = (gameId, sid) => {
@@ -77,65 +116,120 @@ const createRooms = ({ maxMembers = MAX_MEMBERS_PER_GAME } = {}) => {
     return member ? toPublic(member) : null;
   };
 
-  const setLeader = (gameId, sid, on) => {
+  // on: true — начать экскурсию. tourId — id прежней экскурсии у вернувшегося
+  // после обрыва гида: он получает её обратно вместе с ведомыми, если она ещё
+  // ждёт и ник с ролью те же. Иначе (id не назван, неизвестен, истёк, чужой
+  // живой или ник другой) начинается новая экскурсия с новым id — клиент
+  // узнаёт его из снимка. Проверка роли — в ws.js: состояние про права
+  // не знает.
+  // on: false — экскурсия закончена: подписки сняты, запись удалена.
+  const setLeader = (gameId, sid, on, tourId) => {
+    const room = roomOf(gameId);
     const member = find(gameId, sid);
     if (!member) {
       return null;
     }
-    if (on) {
-      member.leader = true;
-      member.following = null;
-    } else {
-      member.leader = false;
-      dropFollowers(roomOf(gameId), sid);
+    if (!on) {
+      if (member.leader) {
+        dropFollowers(room, member.tour);
+        room.tours.delete(member.tour);
+        member.tour = null;
+        member.leader = false;
+      }
+      return toPublic(member);
     }
+    if (member.leader) {
+      // Уже веду: повторное включение ничего не меняет и id не переписывает.
+      return toPublic(member);
+    }
+    const kept = typeof tourId === 'string' ? room.tours.get(tourId) : null;
+    if (
+      kept &&
+      kept.sid === null &&
+      kept.nickname === member.nickname &&
+      kept.role === member.role
+    ) {
+      kept.sid = sid;
+      member.tour = tourId;
+    } else {
+      const id = newTourId(room);
+      room.tours.set(id, { sid, nickname: member.nickname, role: member.role });
+      member.tour = id;
+    }
+    member.leader = true;
+    member.following = null;
     return toPublic(member);
   };
 
-  // targetSid = null — отписка; она разрешена всем, в том числе ведущему,
-  // у которого следовать и так не за кем.
-  const follow = (gameId, sid, targetSid) => {
+  // tourId = null — отписка; она разрешена всем, в том числе гиду, которому
+  // и так следовать не за кем. Экскурсия, ждущая своего гида, подписку
+  // принимает: ведомый дождётся его возвращения.
+  const follow = (gameId, sid, tourId) => {
+    const room = roomOf(gameId);
     const member = find(gameId, sid);
     if (!member) {
       return null;
     }
-    if (targetSid === null) {
+    if (tourId === null) {
       member.following = null;
       return toPublic(member);
     }
     if (member.leader) {
-      throw refuse('leader', 'A leader cannot follow anyone: turn leader mode off first');
+      throw refuse(
+        'leader',
+        'A guide cannot join a tour: end your own tour first'
+      );
     }
-    if (targetSid === sid) {
-      throw refuse('self', 'You cannot follow yourself');
+    if (!room.tours.has(tourId)) {
+      throw refuse('no-leader', 'That tour is over');
     }
-    const target = find(gameId, targetSid);
-    if (!target || !target.leader) {
-      throw refuse('no-leader', 'That member is not leading now');
-    }
-    member.following = targetSid;
+    member.following = tourId;
     return toPublic(member);
+  };
+
+  // Ожидание вернувшегося гида истекло. true — экскурсия и правда была снята;
+  // false — гид уже вернулся (sid снова наш) или записи давно нет, и рассылать
+  // снимок незачем.
+  const expireTour = (gameId, tourId) => {
+    const room = roomOf(gameId);
+    if (!room) {
+      return false;
+    }
+    const tour = room.tours.get(tourId);
+    if (!tour || tour.sid !== null) {
+      return false;
+    }
+    dropFollowers(room, tourId);
+    room.tours.delete(tourId);
+    return true;
   };
 
   const followersOf = (gameId, sid) => {
     const room = roomOf(gameId);
-    if (!room) {
+    const member = find(gameId, sid);
+    if (!room || !member || !member.tour) {
       return [];
     }
-    return [...room.values()]
-      .filter((member) => member.following === sid)
+    return [...room.members.values()]
+      .filter((other) => other.following === member.tour)
       .map(toPublic);
+  };
+
+  // Идентификаторы всех экскурсий игры — ws.js сверяет по ним свои таймеры.
+  const toursOf = (gameId) => {
+    const room = roomOf(gameId);
+    return room ? [...room.tours.keys()] : [];
   };
 
   // Полный снимок игры в порядке входа; копии, а не сами записи.
   const snapshot = (gameId) => {
     const room = roomOf(gameId);
-    return room ? [...room.values()].map(toPublic) : [];
+    return room ? [...room.members.values()].map(toPublic) : [];
   };
 
   const size = (gameId) => {
     const room = roomOf(gameId);
-    return room ? room.size : 0;
+    return room ? room.members.size : 0;
   };
 
   return {
@@ -144,7 +238,9 @@ const createRooms = ({ maxMembers = MAX_MEMBERS_PER_GAME } = {}) => {
     get,
     setLeader,
     follow,
+    expireTour,
     followersOf,
+    toursOf,
     snapshot,
     size,
   };

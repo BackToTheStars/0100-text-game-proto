@@ -1,8 +1,13 @@
 #!/usr/bin/env node
 // Живой сценарий сокета присутствия против запущенного сервера:
-// своя игра → два соединения (владелец и посетитель) → ведущий, подписка,
-// трансляция центра вьюпорта, отказы, уход → удаление игры своим же токеном.
+// своя игра → два соединения (владелец и посетитель) → экскурсия и её гид,
+// подписка, трансляция центра вьюпорта и курсора, лимит частоты, отказы,
+// обрыв гида и возвращение к своей экскурсии, конец экскурсии, уход →
+// удаление игры своим же токеном.
 // Печатает PASS/FAIL по шагам; код возврата 1 при любом провале.
+//
+// Истечение ожидания вернувшегося гида (минута) здесь не проверяется — на него
+// есть тест состояния в tests/presence/rooms.test.js.
 //
 //   node scripts/ws-smoke.js                       # http://localhost:3000
 //   API_URL=https://server.brain-dance.net node scripts/ws-smoke.js
@@ -61,6 +66,15 @@ const openSocket = (name) =>
       ws,
       closed,
       send: (message) => ws.send(JSON.stringify(message)),
+      // Забрать из очереди всё подходящее разом — для проверок «сколько
+      // кадров дошло», где ждать нечего, всё уже прилетело.
+      drain: (match) => {
+        const taken = queue.filter(match);
+        for (const message of taken) {
+          queue.splice(queue.indexOf(message), 1);
+        }
+        return taken;
+      },
       expect: (match, label, timeout = WAIT_MS) =>
         new Promise((done, fail) => {
           const index = queue.findIndex(match);
@@ -92,6 +106,8 @@ const assert = (condition, text) => {
 
 const membersWhere = (predicate) => (message) =>
   message.t === 'members' && predicate(message.members);
+
+const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
 
 const main = async () => {
   const results = [];
@@ -160,7 +176,10 @@ const main = async () => {
     const [me] = welcome.members;
     assert(me.sid === welcome.sid, 'my sid is not in members');
     assert(me.nickname === 'smoke-owner' && me.role === 3, 'nickname/role are not from the token');
-    assert(me.leader === false && me.following === null, 'fresh member must not lead or follow');
+    assert(
+      me.leader === false && me.tour === null && me.following === null,
+      'a fresh member must neither guide a tour nor follow one'
+    );
     ctx.ownerSid = welcome.sid;
   });
 
@@ -175,23 +194,45 @@ const main = async () => {
     await ctx.owner.expect(membersWhere((list) => list.length === 2), 'members ×2');
   });
 
-  await step('owner: lead on → both get members with the owner as leader', async () => {
+  await step('owner: lead on → both get members with an 8-hex tour on the owner', async () => {
     ctx.owner.send({ t: 'lead', on: true });
-    const isLeader = (list) => list.some((m) => m.sid === ctx.ownerSid && m.leader === true);
-    await ctx.owner.expect(membersWhere(isLeader), 'members with leader');
-    await ctx.visitor.expect(membersWhere(isLeader), 'members with leader');
+    const guides = (list) => list.some((m) => m.sid === ctx.ownerSid && m.leader === true);
+    const { members } = await ctx.owner.expect(membersWhere(guides), 'members with a guide');
+    const me = members.find((m) => m.sid === ctx.ownerSid);
+    assert(/^[0-9a-f]{8}$/.test(me.tour), `tour "${me.tour}" is not 8 hex characters`);
+    ctx.tour = me.tour;
+    const { members: seen } = await ctx.visitor.expect(
+      membersWhere(guides),
+      'members with a guide'
+    );
+    const guide = seen.find((m) => m.sid === ctx.ownerSid);
+    const visitor = seen.find((m) => m.sid === ctx.visitorSid);
+    assert(guide.tour === ctx.tour, 'the visitor sees another tour id');
+    assert(visitor.following === null, 'the visitor follows the tour without asking');
   });
 
-  await step('visitor: follow owner → both see following = owner sid', async () => {
-    ctx.visitor.send({ t: 'follow', sid: ctx.ownerSid });
+  await step('visitor (not a player): lead on → error "role"', async () => {
+    ctx.visitor.send({ t: 'lead', on: true });
+    const error = await ctx.visitor.expect((m) => m.t === 'error', 'error');
+    assert(error.code === 'role', `expected code "role", got "${error.code}"`);
+  });
+
+  await step('visitor: follow the tour → both see following = tour', async () => {
+    ctx.visitor.send({ t: 'follow', tour: ctx.tour });
     const follows = (list) =>
-      list.some((m) => m.sid === ctx.visitorSid && m.following === ctx.ownerSid);
+      list.some((m) => m.sid === ctx.visitorSid && m.following === ctx.tour);
     await ctx.owner.expect(membersWhere(follows), 'members with following');
     await ctx.visitor.expect(membersWhere(follows), 'members with following');
   });
 
-  await step('owner (leader): follow visitor → error "leader"', async () => {
-    ctx.owner.send({ t: 'follow', sid: ctx.visitorSid });
+  await step('visitor: follow a made-up tour → error "no-leader"', async () => {
+    ctx.visitor.send({ t: 'follow', tour: 'deadbeef' });
+    const error = await ctx.visitor.expect((m) => m.t === 'error', 'error');
+    assert(error.code === 'no-leader', `expected code "no-leader", got "${error.code}"`);
+  });
+
+  await step('owner (guide): follow their own tour → error "leader"', async () => {
+    ctx.owner.send({ t: 'follow', tour: ctx.tour });
     const error = await ctx.owner.expect((m) => m.t === 'error', 'error');
     assert(error.code === 'leader', `expected code "leader", got "${error.code}"`);
   });
@@ -204,15 +245,63 @@ const main = async () => {
 
   await step('owner: cast viewport {100, 200} → visitor gets cast with from', async () => {
     ctx.owner.send({ t: 'cast', kind: 'viewport', x: 100, y: 200 });
-    const cast = await ctx.visitor.expect((m) => m.t === 'cast', 'cast');
+    const cast = await ctx.visitor.expect(
+      (m) => m.t === 'cast' && m.kind === 'viewport',
+      'cast viewport'
+    );
     assert(cast.from === ctx.ownerSid, 'cast.from is not the owner sid');
-    assert(cast.kind === 'viewport' && cast.x === 100 && cast.y === 200, 'cast body differs');
+    assert(cast.x === 100 && cast.y === 200, 'cast body differs');
+  });
+
+  await step('owner: cast cursor {10, 20} → visitor gets cast cursor with from', async () => {
+    ctx.owner.send({ t: 'cast', kind: 'cursor', x: 10, y: 20 });
+    const cast = await ctx.visitor.expect(
+      (m) => m.t === 'cast' && m.kind === 'cursor',
+      'cast cursor'
+    );
+    assert(cast.from === ctx.ownerSid, 'cast.from is not the owner sid');
+    assert(cast.x === 10 && cast.y === 20, 'cursor coordinates differ');
+    assert(cast.off === undefined, 'a moving cursor must not carry off');
+  });
+
+  await step('owner: cast cursor off → visitor gets off: true', async () => {
+    ctx.owner.send({ t: 'cast', kind: 'cursor', off: true });
+    const cast = await ctx.visitor.expect(
+      (m) => m.t === 'cast' && m.kind === 'cursor' && m.off === true,
+      'cast cursor off'
+    );
+    assert(cast.from === ctx.ownerSid, 'cast.from is not the owner sid');
+    assert(cast.x === undefined && cast.y === undefined, 'off must carry no coordinates');
+  });
+
+  await step('owner: cast cursor with a non-numeric x → error "bad-cast"', async () => {
+    ctx.owner.send({ t: 'cast', kind: 'cursor', x: 'a', y: 2 });
+    const error = await ctx.owner.expect((m) => m.t === 'error', 'error');
+    assert(error.code === 'bad-cast', `expected code "bad-cast", got "${error.code}"`);
   });
 
   await step('owner: cast with bad body → error "bad-cast"', async () => {
     ctx.owner.send({ t: 'cast', kind: 'viewport', x: 'a', y: 2 });
     const error = await ctx.owner.expect((m) => m.t === 'error', 'error');
     assert(error.code === 'bad-cast', `expected code "bad-cast", got "${error.code}"`);
+  });
+
+  await step('owner: 100 cast cursor in a row → no more than 45 reach the visitor', async () => {
+    // Ведро наполняется секундой тишины, чтобы счёт был про лимит, а не про
+    // остаток от предыдущих шагов.
+    await sleep(1100);
+    ctx.owner.drain((m) => m.t === 'error');
+    ctx.visitor.drain((m) => m.t === 'cast');
+    for (let i = 0; i < 100; i++) {
+      ctx.owner.send({ t: 'cast', kind: 'cursor', x: i, y: i });
+    }
+    await sleep(500);
+    const got = ctx.visitor.drain((m) => m.t === 'cast').length;
+    const errors = ctx.owner.drain((m) => m.t === 'error');
+    assert(got > 0, 'not a single cast reached the visitor');
+    assert(got <= 45, `expected at most 45 casts, got ${got}`);
+    assert(errors.length === 0, `the dropped frames answered with ${errors.length} error(s)`);
+    assert(ctx.owner.ws.readyState === WebSocket.OPEN, 'the socket was closed over the limit');
   });
 
   await step('unknown message type → error "bad-message", socket stays open', async () => {
@@ -242,6 +331,48 @@ const main = async () => {
     lost.send({ t: 'hello', hash: 'zzz', token: ctx.ownerToken });
     const { code, reason } = await lost.closed;
     assert(code === 4404 && reason === 'game', `expected 4404 "game", got ${code} "${reason}"`);
+  });
+
+  await step('owner closes the socket → the visitor keeps following the tour', async () => {
+    ctx.owner.ws.close(1000, 'bye');
+    const { members } = await ctx.visitor.expect(
+      membersWhere((list) => list.length === 1),
+      'members ×1',
+      1000
+    );
+    assert(members[0].sid === ctx.visitorSid, 'the remaining member is not the visitor');
+    assert(
+      members[0].following === ctx.tour,
+      `following changed to "${members[0].following}" while the guide was away`
+    );
+  });
+
+  await step('owner reconnects with lead { tour } → the same tour with a new sid', async () => {
+    ctx.owner = await openSocket('owner-again');
+    ctx.owner.send({ t: 'hello', hash: ctx.hash, token: ctx.ownerToken });
+    const welcome = await ctx.owner.expect((m) => m.t === 'welcome', 'welcome');
+    assert(welcome.sid !== ctx.ownerSid, 'the new connection reused the old sid');
+    ctx.ownerSid = welcome.sid;
+
+    ctx.owner.send({ t: 'lead', on: true, tour: ctx.tour });
+    const reclaimed = (list) =>
+      list.some((m) => m.sid === ctx.ownerSid && m.leader === true && m.tour === ctx.tour);
+    await ctx.owner.expect(membersWhere(reclaimed), 'members with the tour back');
+    const { members } = await ctx.visitor.expect(
+      membersWhere(reclaimed),
+      'members with the tour back'
+    );
+    const visitor = members.find((m) => m.sid === ctx.visitorSid);
+    assert(visitor.following === ctx.tour, 'the visitor lost the tour while the guide was away');
+  });
+
+  await step('owner: lead off → the visitor stops following, the tour is gone', async () => {
+    ctx.owner.send({ t: 'lead', on: false });
+    const ended = (list) =>
+      list.some((m) => m.sid === ctx.ownerSid && m.leader === false && m.tour === null) &&
+      list.some((m) => m.sid === ctx.visitorSid && m.following === null);
+    await ctx.owner.expect(membersWhere(ended), 'members without the tour');
+    await ctx.visitor.expect(membersWhere(ended), 'members without the tour');
   });
 
   await step('visitor closes → owner gets members with one within 2 s', async () => {
