@@ -7,11 +7,12 @@ const {
   DRAW_ID_MAX_LENGTH,
 } = require('../../modules/presence/config');
 
-// Валидация тела cast: форма кадра, который уйдёт подписчикам гида, — без
-// сети и без состояния комнаты (то, гид ли отправитель, проверяет ws.js).
-// Виды viewport и cursor — прежнее поведение волны 21, здесь для полноты;
-// draw — пять операций штриха карандаша по контракту. Запуск: npm test
-// (node --test).
+// Валидация тела cast: форма кадра, который уйдёт адресатам, — без сети и
+// без состояния комнаты (кто отправитель и кому кадр адресован, решает
+// ws.js). Виды viewport и cursor — прежнее поведение волны 21, здесь для
+// полноты; draw — пять операций штриха карандаша по контракту;
+// viewport-report — видимая область спутника для миникарты ведущего; saved —
+// сигнал ведущего «поле сохранено». Запуск: npm test (node --test).
 
 describe('cast body: viewport and cursor (unchanged behaviour)', () => {
   it('viewport passes through finite x/y and drops unknown fields', () => {
@@ -175,5 +176,89 @@ describe('cast body: draw', () => {
 
   it('an unknown kind is refused', () => {
     assert.equal(castBody({ kind: 'sparkle', x: 1, y: 2 }), null);
+  });
+});
+
+describe('cast body: viewport-report (follower → guide)', () => {
+  it('passes finite x, y, width, height and drops unknown fields', () => {
+    assert.deepEqual(
+      castBody({
+        kind: 'viewport-report',
+        x: -120,
+        y: 48.5,
+        width: 1280,
+        height: 720,
+        off: true,
+        id: 'a',
+        points: [1, 2],
+      }),
+      { kind: 'viewport-report', x: -120, y: 48.5, width: 1280, height: 720 }
+    );
+  });
+
+  it('refuses a missing width or height', () => {
+    assert.equal(
+      castBody({ kind: 'viewport-report', x: 1, y: 2, height: 3 }),
+      null
+    );
+    assert.equal(
+      castBody({ kind: 'viewport-report', x: 1, y: 2, width: 3 }),
+      null
+    );
+    assert.equal(castBody({ kind: 'viewport-report', x: 1, y: 2 }), null);
+  });
+
+  it('refuses a zero or negative size', () => {
+    assert.equal(
+      castBody({ kind: 'viewport-report', x: 1, y: 2, width: 0, height: 3 }),
+      null
+    );
+    assert.equal(
+      castBody({ kind: 'viewport-report', x: 1, y: 2, width: 3, height: 0 }),
+      null
+    );
+    assert.equal(
+      castBody({ kind: 'viewport-report', x: 1, y: 2, width: -3, height: 3 }),
+      null
+    );
+  });
+
+  it('refuses a NaN, an Infinity, or a string in any field', () => {
+    assert.equal(
+      castBody({ kind: 'viewport-report', x: NaN, y: 2, width: 3, height: 4 }),
+      null
+    );
+    assert.equal(
+      castBody({ kind: 'viewport-report', x: 1, y: 2, width: NaN, height: 4 }),
+      null
+    );
+    assert.equal(
+      castBody({ kind: 'viewport-report', x: 1, y: 2, width: 3, height: Infinity }),
+      null
+    );
+    assert.equal(
+      castBody({ kind: 'viewport-report', x: 1, y: '2', width: 3, height: 4 }),
+      null
+    );
+  });
+
+  it('refuses a missing coordinate', () => {
+    assert.equal(
+      castBody({ kind: 'viewport-report', x: 1, width: 3, height: 4 }),
+      null
+    );
+  });
+});
+
+describe('cast body: saved (guide → followers)', () => {
+  it('passes with no fields at all', () => {
+    assert.deepEqual(castBody({ kind: 'saved' }), { kind: 'saved' });
+  });
+
+  it('drops every extra field', () => {
+    assert.deepEqual(
+      castBody({ kind: 'saved', x: 1, y: 2, width: 3, height: 4, op: 'clear', id: 'a' }),
+      { kind: 'saved' }
+    );
   });
 });

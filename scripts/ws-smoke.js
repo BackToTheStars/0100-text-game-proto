@@ -2,9 +2,11 @@
 // Живой сценарий сокета присутствия против запущенного сервера:
 // своя игра → два соединения (владелец и посетитель) → экскурсия и её гид,
 // подписка, трансляция центра вьюпорта и курсора, штрих карандаша (пять
-// операций и их отказы), лимит частоты, отказы, обрыв гида и возвращение к
-// своей экскурсии, конец экскурсии, уход → удаление игры своим же токеном.
-// Печатает PASS/FAIL по шагам; код возврата 1 при любом провале.
+// операций и их отказы), видимая область спутника ведущему и сигнал
+// «поле сохранено» спутникам (и их отказы), лимит частоты, отказы, обрыв гида
+// (кадр спутника в это время пропадает молча) и возвращение к своей экскурсии
+// (кадр доходит под новым sid), конец экскурсии, уход → удаление игры своим же
+// токеном. Печатает PASS/FAIL по шагам; код возврата 1 при любом провале.
 //
 // Истечение ожидания вернувшегося гида (минута) здесь не проверяется — на него
 // есть тест состояния в tests/presence/rooms.test.js.
@@ -354,6 +356,64 @@ const main = async () => {
     assert(error.code === 'not-leader', `expected code "not-leader", got "${error.code}"`);
   });
 
+  await step('visitor (follower): cast viewport-report → owner gets it with from and four numbers', async () => {
+    ctx.visitor.send({
+      t: 'cast',
+      kind: 'viewport-report',
+      x: -120,
+      y: 48,
+      width: 1280,
+      height: 720,
+      stray: 'dropped',
+    });
+    const cast = await ctx.owner.expect(
+      (m) => m.t === 'cast' && m.kind === 'viewport-report',
+      'cast viewport-report'
+    );
+    assert(cast.from === ctx.visitorSid, 'cast.from is not the visitor sid');
+    assert(
+      cast.x === -120 && cast.y === 48 && cast.width === 1280 && cast.height === 720,
+      'viewport-report body differs'
+    );
+    assert(
+      Object.keys(cast).sort().join() === 'from,height,kind,t,width,x,y',
+      `unexpected fields: ${Object.keys(cast).join()}`
+    );
+  });
+
+  await step('owner (guide, follows nobody): cast viewport-report → error "not-following"', async () => {
+    ctx.owner.send({ t: 'cast', kind: 'viewport-report', x: 0, y: 0, width: 800, height: 600 });
+    const error = await ctx.owner.expect((m) => m.t === 'error', 'error');
+    assert(error.code === 'not-following', `expected code "not-following", got "${error.code}"`);
+    assert(ctx.owner.ws.readyState === WebSocket.OPEN, 'socket closed');
+  });
+
+  await step('visitor: cast viewport-report with width: 0 → error "bad-cast"', async () => {
+    ctx.visitor.send({ t: 'cast', kind: 'viewport-report', x: 0, y: 0, width: 0, height: 600 });
+    const error = await ctx.visitor.expect((m) => m.t === 'error', 'error');
+    assert(error.code === 'bad-cast', `expected code "bad-cast", got "${error.code}"`);
+    assert(ctx.visitor.ws.readyState === WebSocket.OPEN, 'socket closed');
+  });
+
+  await step('owner: cast saved with a stray field → visitor gets cast saved with from and nothing else', async () => {
+    ctx.owner.send({ t: 'cast', kind: 'saved', x: 1, points: [1, 2] });
+    const cast = await ctx.visitor.expect(
+      (m) => m.t === 'cast' && m.kind === 'saved',
+      'cast saved'
+    );
+    assert(cast.from === ctx.ownerSid, 'cast.from is not the owner sid');
+    assert(
+      Object.keys(cast).sort().join() === 'from,kind,t',
+      `saved must carry no other fields, got: ${Object.keys(cast).join()}`
+    );
+  });
+
+  await step('visitor (not a guide): cast saved → error "not-leader"', async () => {
+    ctx.visitor.send({ t: 'cast', kind: 'saved' });
+    const error = await ctx.visitor.expect((m) => m.t === 'error', 'error');
+    assert(error.code === 'not-leader', `expected code "not-leader", got "${error.code}"`);
+  });
+
   await step('owner: 100 cast cursor in a row → no more than 45 reach the visitor', async () => {
     // Ведро наполняется секундой тишины, чтобы счёт был про лимит, а не про
     // остаток от предыдущих шагов.
@@ -415,6 +475,17 @@ const main = async () => {
     );
   });
 
+  await step('visitor: cast viewport-report while the guide is away → silence within 500 ms, no error', async () => {
+    ctx.visitor.drain((m) => m.t === 'error' || m.t === 'cast');
+    ctx.visitor.send({ t: 'cast', kind: 'viewport-report', x: 10, y: 20, width: 800, height: 600 });
+    await sleep(500);
+    const errors = ctx.visitor.drain((m) => m.t === 'error');
+    const casts = ctx.visitor.drain((m) => m.t === 'cast');
+    assert(errors.length === 0, `expected silence, got error "${errors[0] && errors[0].code}"`);
+    assert(casts.length === 0, `expected silence, got ${casts.length} cast(s)`);
+    assert(ctx.visitor.ws.readyState === WebSocket.OPEN, 'socket closed');
+  });
+
   await step('owner reconnects with lead { tour } → the same tour with a new sid', async () => {
     ctx.owner = await openSocket('owner-again');
     ctx.owner.send({ t: 'hello', hash: ctx.hash, token: ctx.ownerToken });
@@ -432,6 +503,16 @@ const main = async () => {
     );
     const visitor = members.find((m) => m.sid === ctx.visitorSid);
     assert(visitor.following === ctx.tour, 'the visitor lost the tour while the guide was away');
+  });
+
+  await step('visitor: cast viewport-report → the returned guide gets it under the new sid', async () => {
+    ctx.visitor.send({ t: 'cast', kind: 'viewport-report', x: 30, y: 40, width: 800, height: 600 });
+    const cast = await ctx.owner.expect(
+      (m) => m.t === 'cast' && m.kind === 'viewport-report',
+      'cast viewport-report'
+    );
+    assert(cast.from === ctx.visitorSid, 'cast.from is not the visitor sid');
+    assert(cast.x === 30 && cast.y === 40, 'viewport-report body differs');
   });
 
   await step('owner: lead off → the visitor stops following, the tour is gone', async () => {

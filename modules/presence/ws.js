@@ -15,8 +15,9 @@ const {
   CAST_BURST,
 } = require('./config');
 
-// Сокет присутствия: кто онлайн в игре, экскурсия и трансляция её ведущего
-// подписчикам. Живёт в процессе API на том же порту по пути /ws.
+// Сокет присутствия: кто онлайн в игре, экскурсия, трансляция её ведущего
+// спутникам и кадры видимой области от спутников ведущему. Живёт в процессе
+// API на том же порту по пути /ws.
 // Протокол (сообщения, коды закрытия, ошибки) — brain-platform/docs/presence.md;
 // здесь — его серверная половина. Состояние — в services/rooms.js, тут только
 // сеть и время: апгрейд, рукопожатие, heartbeat, разбор JSON, маршрутизация
@@ -294,6 +295,33 @@ const attachPresence = (server) => {
             return;
           }
           const me = rooms.get(gameId, sid);
+          if (message.kind === 'viewport-report') {
+            // Кадр идёт в обратную сторону: спутник сообщает свою видимую
+            // область одному адресату — ведущему своей экскурсии (у того она
+            // ложится на миникарту). Ведущий и все, кто ни за кем не следует,
+            // получают отказ.
+            if (!me || !me.following) {
+              sendError(ws, 'not-following', 'Join a tour to report your viewport');
+              return;
+            }
+            const body = castBody(message);
+            if (!body) {
+              sendError(ws, 'bad-cast', 'Unknown kind or a badly shaped cast body');
+              return;
+            }
+            const guide = rooms.guideOf(gameId, sid);
+            if (!guide) {
+              // Ведущий оборвался, экскурсия ждёт его возвращения: слать
+              // некому, а спутник ни в чём не виноват — кадр отбрасывается
+              // молча, без ошибки. Вернувшись, ведущий получит новые кадры.
+              return;
+            }
+            const client = sockets.get(guide.sid);
+            if (client && client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify({ t: 'cast', from: sid, ...body }));
+            }
+            return;
+          }
           if (!me || !me.leader) {
             sendError(ws, 'not-leader', 'Start a tour to cast');
             return;

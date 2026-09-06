@@ -302,6 +302,82 @@ describe('follow', () => {
   });
 });
 
+describe('guideOf: the guide of the tour I follow', () => {
+  it('a follower gets the public record of their guide', () => {
+    const rooms = seeded();
+    const tour = lead(rooms, GAME, owner.sid);
+    rooms.follow(GAME, player.sid, tour);
+    assert.deepEqual(rooms.guideOf(GAME, player.sid), {
+      sid: 'sid-owner',
+      nickname: 'Owner',
+      role: 3,
+      leader: true,
+      tour,
+      following: null,
+    });
+    assert.deepEqual(rooms.guideOf(GAME, player.sid), rooms.get(GAME, owner.sid));
+  });
+
+  it('someone following nobody gets null, the guide included', () => {
+    const rooms = seeded();
+    const tour = lead(rooms, GAME, owner.sid);
+    rooms.follow(GAME, player.sid, tour);
+    assert.equal(rooms.guideOf(GAME, visitor.sid), null);
+    assert.equal(rooms.guideOf(GAME, owner.sid), null);
+    assert.equal(rooms.guideOf(GAME, 'sid-unknown'), null);
+    assert.equal(rooms.guideOf('game-empty', player.sid), null);
+  });
+
+  it('a guide waiting to come back is null; once back, the new record', () => {
+    const rooms = seeded();
+    const tour = lead(rooms, GAME, owner.sid);
+    rooms.follow(GAME, player.sid, tour);
+    rooms.leave(GAME, owner.sid);
+    assert.equal(rooms.get(GAME, player.sid).following, tour);
+    assert.equal(rooms.guideOf(GAME, player.sid), null);
+
+    rooms.join(GAME, { sid: 'sid-owner-2', nickname: 'Owner', role: 3 });
+    rooms.setLeader(GAME, 'sid-owner-2', true, tour);
+    assert.equal(rooms.guideOf(GAME, player.sid).sid, 'sid-owner-2');
+    assert.equal(rooms.guideOf(GAME, player.sid).tour, tour);
+  });
+
+  it('null after the tour ends or expires, and after unfollowing', () => {
+    const rooms = seeded();
+    const tour = lead(rooms, GAME, owner.sid);
+    rooms.follow(GAME, player.sid, tour);
+    rooms.follow(GAME, visitor.sid, tour);
+
+    rooms.follow(GAME, visitor.sid, null);
+    assert.equal(rooms.guideOf(GAME, visitor.sid), null);
+
+    rooms.setLeader(GAME, owner.sid, false);
+    assert.equal(rooms.guideOf(GAME, player.sid), null);
+
+    const again = lead(rooms, GAME, owner.sid);
+    rooms.follow(GAME, player.sid, again);
+    rooms.leave(GAME, owner.sid);
+    rooms.expireTour(GAME, again);
+    assert.equal(rooms.guideOf(GAME, player.sid), null);
+  });
+
+  it('follows the switch to another tour and is a copy, not the state', () => {
+    const rooms = seeded();
+    const ownerTour = lead(rooms, GAME, owner.sid);
+    const playerTour = lead(rooms, GAME, player.sid);
+    rooms.follow(GAME, visitor.sid, ownerTour);
+    assert.equal(rooms.guideOf(GAME, visitor.sid).sid, 'sid-owner');
+    rooms.follow(GAME, visitor.sid, playerTour);
+    assert.equal(rooms.guideOf(GAME, visitor.sid).sid, 'sid-player');
+
+    const copy = rooms.guideOf(GAME, visitor.sid);
+    copy.leader = false;
+    copy.tour = 'hacked';
+    assert.equal(rooms.get(GAME, player.sid).leader, true);
+    assert.equal(rooms.get(GAME, player.sid).tour, playerTour);
+  });
+});
+
 describe('snapshot', () => {
   it('has exactly the member fields and is a copy of the state', () => {
     const rooms = seeded();

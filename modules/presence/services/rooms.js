@@ -215,6 +215,24 @@ const createRooms = ({ maxMembers = MAX_MEMBERS_PER_GAME } = {}) => {
       .map(toPublic);
   };
 
+  // Ведущий экскурсии, за которой следует sid: публичная копия его записи
+  // участника — по ней ws.js адресует кадры спутника (видимая область для
+  // миникарты). null — sid никому не следует, или ведущий ушёл и экскурсия
+  // ждёт его возвращения (sid записи null): слать некому.
+  const guideOf = (gameId, sid) => {
+    const room = roomOf(gameId);
+    const member = find(gameId, sid);
+    if (!room || !member || !member.following) {
+      return null;
+    }
+    const tour = room.tours.get(member.following);
+    if (!tour || tour.sid === null) {
+      return null;
+    }
+    const guide = room.members.get(tour.sid);
+    return guide ? toPublic(guide) : null;
+  };
+
   // Идентификаторы всех экскурсий игры — ws.js сверяет по ним свои таймеры.
   const toursOf = (gameId) => {
     const room = roomOf(gameId);
@@ -240,6 +258,7 @@ const createRooms = ({ maxMembers = MAX_MEMBERS_PER_GAME } = {}) => {
     follow,
     expireTour,
     followersOf,
+    guideOf,
     toursOf,
     snapshot,
     size,

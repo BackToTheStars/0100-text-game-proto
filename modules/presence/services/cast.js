@@ -1,8 +1,10 @@
-// Тело кадра трансляции гида, которое уйдёт подписчикам, или null — тогда
-// отказ bad-cast. Чистая функция без сети и без состояния (вынесена из
-// ws.js, чтобы валидация тестировалась без сокетов): решает только форму
-// сообщения, не касается того, гид ли отправитель, — это проверяет ws.js.
-// Координаты всех видов — координаты холста.
+// Тело кадра cast, которое уйдёт адресатам, или null — тогда отказ bad-cast.
+// Чистая функция без сети и без состояния (вынесена из ws.js, чтобы валидация
+// тестировалась без сокетов): решает только форму сообщения, не касается того,
+// кто отправитель и кому кадр адресован, — это проверяет и решает ws.js.
+// Координаты всех видов — координаты холста. Виды viewport, cursor, draw и
+// saved шлёт ведущий своим спутникам; viewport-report — спутник своему
+// ведущему (видимая область для миникарты).
 
 const { DRAW_MAX_NUMBERS, DRAW_ID_MAX_LENGTH } = require('../config');
 
@@ -46,7 +48,7 @@ const drawBody = ({ op, id, x, y, points }) => {
   }
 };
 
-const castBody = ({ kind, x, y, off, op, id, points }) => {
+const castBody = ({ kind, x, y, off, op, id, points, width, height }) => {
   if (kind === 'viewport' && Number.isFinite(x) && Number.isFinite(y)) {
     return { kind, x, y };
   }
@@ -61,6 +63,23 @@ const castBody = ({ kind, x, y, off, op, id, points }) => {
   }
   if (kind === 'draw') {
     return drawBody({ op, id, x, y, points });
+  }
+  // Видимая область спутника: левый верхний угол и размер. Нулевой или
+  // отрицательный размер — не прямоугольник, такой кадр отвергается.
+  if (
+    kind === 'viewport-report' &&
+    Number.isFinite(x) &&
+    Number.isFinite(y) &&
+    Number.isFinite(width) &&
+    Number.isFinite(height) &&
+    width > 0 &&
+    height > 0
+  ) {
+    return { kind, x, y, width, height };
+  }
+  // Поле сохранено: сигнал без данных, спутники перезапрашивают сами.
+  if (kind === 'saved') {
+    return { kind };
   }
   return null;
 };
