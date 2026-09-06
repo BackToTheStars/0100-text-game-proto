@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // Живой сценарий сокета присутствия против запущенного сервера:
 // своя игра → два соединения (владелец и посетитель) → экскурсия и её гид,
-// подписка, трансляция центра вьюпорта и курсора, лимит частоты, отказы,
-// обрыв гида и возвращение к своей экскурсии, конец экскурсии, уход →
-// удаление игры своим же токеном.
+// подписка, трансляция центра вьюпорта и курсора, штрих карандаша (пять
+// операций и их отказы), лимит частоты, отказы, обрыв гида и возвращение к
+// своей экскурсии, конец экскурсии, уход → удаление игры своим же токеном.
 // Печатает PASS/FAIL по шагам; код возврата 1 при любом провале.
 //
 // Истечение ожидания вернувшегося гида (минута) здесь не проверяется — на него
@@ -284,6 +284,74 @@ const main = async () => {
     ctx.owner.send({ t: 'cast', kind: 'viewport', x: 'a', y: 2 });
     const error = await ctx.owner.expect((m) => m.t === 'error', 'error');
     assert(error.code === 'bad-cast', `expected code "bad-cast", got "${error.code}"`);
+  });
+
+  await step('owner: cast draw start → visitor gets it with from', async () => {
+    ctx.strokeId = 'a1b2c3d4';
+    ctx.owner.send({ t: 'cast', kind: 'draw', op: 'start', id: ctx.strokeId, x: 5, y: 6 });
+    const cast = await ctx.visitor.expect(
+      (m) => m.t === 'cast' && m.kind === 'draw' && m.op === 'start',
+      'cast draw start'
+    );
+    assert(cast.from === ctx.ownerSid, 'cast.from is not the owner sid');
+    assert(cast.id === ctx.strokeId && cast.x === 5 && cast.y === 6, 'draw start body differs');
+  });
+
+  await step('owner: cast draw move with 150 points → visitor gets exactly that many numbers', async () => {
+    const points = Array.from({ length: 300 }, (_, i) => i);
+    ctx.owner.send({ t: 'cast', kind: 'draw', op: 'move', id: ctx.strokeId, points });
+    const cast = await ctx.visitor.expect(
+      (m) => m.t === 'cast' && m.kind === 'draw' && m.op === 'move',
+      'cast draw move'
+    );
+    assert(cast.id === ctx.strokeId, 'draw move id differs');
+    assert(cast.points.length === 300, `expected 300 numbers, got ${cast.points.length}`);
+  });
+
+  await step('owner: cast draw move with 151 points → error "bad-cast"', async () => {
+    const points = Array.from({ length: 302 }, (_, i) => i);
+    ctx.owner.send({ t: 'cast', kind: 'draw', op: 'move', id: ctx.strokeId, points });
+    const error = await ctx.owner.expect((m) => m.t === 'error', 'error');
+    assert(error.code === 'bad-cast', `expected code "bad-cast", got "${error.code}"`);
+  });
+
+  await step('owner: cast draw move with an odd-length points array → error "bad-cast"', async () => {
+    ctx.owner.send({ t: 'cast', kind: 'draw', op: 'move', id: ctx.strokeId, points: [1, 2, 3] });
+    const error = await ctx.owner.expect((m) => m.t === 'error', 'error');
+    assert(error.code === 'bad-cast', `expected code "bad-cast", got "${error.code}"`);
+  });
+
+  await step('owner: cast draw end → visitor gets it', async () => {
+    ctx.owner.send({ t: 'cast', kind: 'draw', op: 'end', id: ctx.strokeId });
+    const cast = await ctx.visitor.expect(
+      (m) => m.t === 'cast' && m.kind === 'draw' && m.op === 'end',
+      'cast draw end'
+    );
+    assert(cast.id === ctx.strokeId, 'draw end id differs');
+  });
+
+  await step('owner: cast draw remove → visitor gets it', async () => {
+    ctx.owner.send({ t: 'cast', kind: 'draw', op: 'remove', id: ctx.strokeId });
+    const cast = await ctx.visitor.expect(
+      (m) => m.t === 'cast' && m.kind === 'draw' && m.op === 'remove',
+      'cast draw remove'
+    );
+    assert(cast.id === ctx.strokeId, 'draw remove id differs');
+  });
+
+  await step('owner: cast draw clear → visitor gets it with no id', async () => {
+    ctx.owner.send({ t: 'cast', kind: 'draw', op: 'clear' });
+    const cast = await ctx.visitor.expect(
+      (m) => m.t === 'cast' && m.kind === 'draw' && m.op === 'clear',
+      'cast draw clear'
+    );
+    assert(cast.id === undefined, 'draw clear must carry no id');
+  });
+
+  await step('visitor (not a guide): cast draw start → error "not-leader"', async () => {
+    ctx.visitor.send({ t: 'cast', kind: 'draw', op: 'start', id: 'ffffffff', x: 1, y: 1 });
+    const error = await ctx.visitor.expect((m) => m.t === 'error', 'error');
+    assert(error.code === 'not-leader', `expected code "not-leader", got "${error.code}"`);
   });
 
   await step('owner: 100 cast cursor in a row → no more than 45 reach the visitor', async () => {

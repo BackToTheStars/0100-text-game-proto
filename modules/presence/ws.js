@@ -5,6 +5,7 @@ const { ROLE_GAME_OWNER, ROLE_GAME_PLAYER } = require('../../config/game/user');
 const { resolveGameAccess } = require('../game/services/access');
 const { createRooms } = require('./services/rooms');
 const { createBucket } = require('./services/rateLimit');
+const { castBody } = require('./services/cast');
 const {
   HELLO_TIMEOUT_MS,
   HEARTBEAT_MS,
@@ -45,24 +46,6 @@ const CLOSE_BY_STATUS = {
 
 const isObject = (value) =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
-
-// Тело кадра трансляции, которое уйдёт подписчикам, или null — тогда отказ
-// bad-cast. Координаты всех видов — координаты холста; курсор дополнительно
-// умеет «убран» (мышь ушла с холста, показ выключен, экскурсия закончена).
-const castBody = ({ kind, x, y, off }) => {
-  if (kind === 'viewport' && Number.isFinite(x) && Number.isFinite(y)) {
-    return { kind, x, y };
-  }
-  if (kind === 'cursor') {
-    if (off === true) {
-      return { kind, off: true };
-    }
-    if (Number.isFinite(x) && Number.isFinite(y)) {
-      return { kind, x, y };
-    }
-  }
-  return null;
-};
 
 const attachPresence = (server) => {
   const wss = new WebSocketServer({ noServer: true, maxPayload: MAX_PAYLOAD });
@@ -317,7 +300,7 @@ const attachPresence = (server) => {
           }
           const body = castBody(message);
           if (!body) {
-            sendError(ws, 'bad-cast', 'Unknown kind or non-numeric x/y');
+            sendError(ws, 'bad-cast', 'Unknown kind or a badly shaped cast body');
             return;
           }
           // По текущему состоянию на момент приёма; состав не меняется,
