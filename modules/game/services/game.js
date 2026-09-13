@@ -1,16 +1,20 @@
 const jwt = require('jsonwebtoken');
 
 module.exports = {
-   getToken: function (secret, operation, timestamp, hash)
+   // gameId необязателен: у админских токенов игры нет, и тогда ключа в
+   // полезной нагрузке не будет вовсе — «нет привязки» читается по его отсутствию.
+   getToken: function (secret, operation, timestamp, hash, gameId)
    {
-     return jwt.sign(
-       {
-         operation: operation,
-         timestamp: timestamp,
-         hash: hash
-       },
-       secret
-     )
+     const payload = {
+       operation: operation,
+       timestamp: timestamp,
+       hash: hash
+     };
+     if (gameId) {
+       payload.gameId = '' + gameId;
+     }
+
+     return jwt.sign(payload, secret)
     },
    checkToken: function (secret, token)
    {

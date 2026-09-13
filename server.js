@@ -7,6 +7,9 @@ assertEnvCodeHashLength();
 const { assertEnvLoginRateLimit } = require('./modules/core/middlewares/rateLimit');
 assertEnvLoginRateLimit();
 
+const { assertEnvGameTokenTtl } = require('./config/game/auth');
+assertEnvGameTokenTtl();
+
 const http = require('http');
 const cors = require('cors');
 const express = require('express');
@@ -126,11 +129,14 @@ app.use('*', (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  const { statusCode = 500, message } = err;
+  const { statusCode = 500, message, errorCode } = err;
   console.log({ err });
   res.status(statusCode).send({
     // проверяем статус и выставляем сообщение в зависимости от него
     message: statusCode === 500 ? 'На сервере произошла ошибка' : message,
+    // Машинный код отказа, когда обработчик его назвал: текст отказа
+    // виден пользователю и меняется, код — нет.
+    ...(errorCode ? { errorCode } : {}),
   });
 });
 

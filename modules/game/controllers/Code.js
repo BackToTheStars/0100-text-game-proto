@@ -4,8 +4,36 @@ const { hashFunc, hashUniqueForGame, getHashByGame } = require('../services/secu
 const { getError } = require('../../core/services/errors');
 const { ROLE_GAME_PLAYER } = require('../../../config/game/user');
 const { CODE_HASH_DEFAULT } = require('../../../config/game/code');
-const { AUTH_VERSION } = require('../../../config/game/auth');
+const {
+  AUTH_VERSION,
+  GAME_TOKEN_TTL_MS,
+} = require('../../../config/game/auth');
 const { getToken } = require('../services/game');
+
+// Один вид токена игры на оба обработчика, его выписывающих: срок был зашит
+// числом в каждом из них.
+//
+// gameId в теле токена — то, чем gameMiddleware сверяет, что токен выписан
+// именно на игру из запроса. Без этого поля роль из токена действовала в
+// любой игре, чей адрес известен.
+const issueGameToken = ({ game, code, nickname, role }) => {
+  const expires = Math.floor((Date.now() + GAME_TOKEN_TTL_MS) / 1000);
+  const data = {
+    v: AUTH_VERSION,
+    gameId: '' + game._id,
+    hash: getHashByGame(game),
+    code,
+    nickname,
+    role,
+  };
+
+  return {
+    success: true,
+    expires,
+    info: { ...data },
+    token: jwt.sign({ exp: expires, data }, process.env.JWT_SECRET),
+  };
+};
 
 const codeLogin = async (req, res, next) => {
   try {
@@ -24,68 +52,25 @@ const codeLogin = async (req, res, next) => {
     }
 
     const codeObj = game.codes.find((codeItem) => codeItem.hash === code);
-    const cookieExp = Date.now() + 7 * 24 * 3600000;
 
-    // gameId в теле токена — то, чем gameMiddleware сверяет, что токен выписан
-    // именно на игру из запроса. Без этого поля роль из токена действовала в
-    // любой игре, чей адрес известен.
-    const data = {
-      v: AUTH_VERSION,
-      gameId: '' + game._id,
-      hash: getHashByGame(game),
-      code,
-      nickname,
-      role: codeObj.role,
-    };
-    const token = jwt.sign(
-      {
-        exp: Math.floor(cookieExp / 1000),
-        data,
-      },
-      process.env.JWT_SECRET
-    );
-
-    res.json({
-      success: true,
-      expires: Math.floor(cookieExp / 1000),
-      info: { ...data },
-      token,
-    });
+    res.json(issueGameToken({ game, code, nickname, role: codeObj.role }));
   } catch (error) {
     next(error);
   }
 };
 
+// Токен здесь живой (gameMiddlewareLiveToken), поэтому роль и код — из его
+// полезной нагрузки: поиск кода по роли отдавал первый код этой роли в игре.
 const refreshCode = async (req, res, next) => {
   try {
-    const { gameId, role } = req.gameInfo;
+    const { gameId, role, code } = req.gameInfo;
     const game = await Game.findById(gameId);
-    const { nickname } = req.body;
-    const cookieExp = Date.now() + 7 * 24 * 3600000;
-    const code = game.codes.find((codeItem) => codeItem.role === role).hash;
+    if (!game) {
+      return next(getError('Игра не найдена', 404, 'game-not-found'));
+    }
+    const nickname = req.body.nickname || req.gameInfo.nickname;
 
-    const data = {
-      v: AUTH_VERSION,
-      gameId: '' + game._id,
-      hash: getHashByGame(game),
-      code,
-      nickname,
-      role,
-    };
-    const token = jwt.sign(
-      {
-        exp: Math.floor(cookieExp / 1000),
-        data,
-      },
-      process.env.JWT_SECRET
-    );
-
-    res.json({
-      success: true,
-      expires: Math.floor(cookieExp / 1000),
-      info: { ...data },
-      token,
-    });
+    res.json(issueGameToken({ game, code, nickname, role }));
   } catch (error) {
     next(error);
   }
@@ -136,13 +121,14 @@ const getStaticToken = async (req, res, next) => {
       );
     }
 
-    const hash = hashFunc(req.gameInfo.gameId);
+    const { gameId } = req.gameInfo;
 
     const token = getToken(
       process.env.JWT_SECRET_STATIC,
       action,
       new Date().getTime() + 5 * 60 * 1000,
-      hash
+      hashFunc(gameId),
+      gameId
     );
 
     res.json({
