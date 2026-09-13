@@ -8,6 +8,7 @@ const {
   TURN_FIELDS,
   GAME_FIELDS,
 } = require('../../../game/services/mediaRelocate');
+const { hashFunc } = require('../../../game/services/security');
 
 const resolveGame = async (gameId) => {
   if (!gameId) throw new Error('Не передан gameId');
@@ -69,8 +70,10 @@ const run = async ({ gameId } = {}) => {
     const counts = { moved: 0, deferred: 0, unknown: 0 };
     const errors = [];
 
+    const mediaGame = { hash: hashFunc(game._id), gameId: String(game._id) };
+
     const process = async (doc, fields, label) => {
-      const res = await relocateDocFields(doc, fields);
+      const res = await relocateDocFields(doc, fields, mediaGame);
       if (res.changed) await doc.save();
       for (const r of res.results) {
         if (r.status === 'moved') counts.moved++;

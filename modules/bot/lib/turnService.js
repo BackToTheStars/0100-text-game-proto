@@ -6,6 +6,8 @@ const {
 } = require('../../../config/bot');
 const { STATIC_MEDIA_URL } = require('../../../config/url');
 const { getToken } = require('../../game/services/game');
+const { hashFunc } = require('../../game/services/security');
+const Game = require('../../game/models/Game');
 const xcomService = require('./xcomService');
 const axios = require('axios');
 
@@ -214,12 +216,13 @@ const getFileInfo = (message) => {
 // наш обрыв — тот же принцип, что у youtube-транспортов
 const REVERSE_DOWNLOAD_TIMEOUT = 10 * 60 * 1000;
 
-const reverseDownloadMedia = async (type, mediaUrl, hash) => {
+const reverseDownloadMedia = async (type, mediaUrl, hash, gameId) => {
   const tokenStaticServer = getToken(
     process.env.JWT_SECRET_STATIC,
     'download_and_save',
     new Date().getTime() + 5 * 60 * 1000,
-    hash
+    hash,
+    gameId
   );
 
   const config = {
@@ -257,12 +260,24 @@ const getTgFileHostUrl = async (fileId) => {
   return `${process.env.BOT_STATIC_URL}${host_path}`;
 };
 
-const getTgFileUrlWithReverseDownload = async (fileId, type, code) => {
+// Игру бот выбирает кодом доступа, а не адресом, поэтому в токен media уходил
+// код — секрет, по которому файл к игре не привязать. Нет игры — нет и ключей.
+const resolveGameForMedia = async (code) => {
+  const game = await Game.findOne({ 'codes.hash': code })
+    .select({ _id: 1 })
+    .lean();
+  if (!game) {
+    return {};
+  }
+  return { hash: hashFunc(game._id), gameId: String(game._id) };
+};
+
+const getTgFileUrlWithReverseDownload = async (fileId, type, game) => {
   const fileUrl = await getTgFileHostUrl(fileId);
   if (!fileUrl) {
     return null;
   }
-  return await reverseDownloadMedia(type, fileUrl, code);
+  return await reverseDownloadMedia(type, fileUrl, game.hash, game.gameId);
 };
 
 // Скачивает небольшой json-документ (файл экспорта кодов игр) и парсит его
@@ -300,10 +315,11 @@ const prepareUploadedObject = async (message, fileType, fileObj, code) => {
     if (!checkUpdateDaylyLimit(fileObj.file_size)) {
       return null;
     }
+    const game = await resolveGameForMedia(code);
     const fileUrl = await getTgFileUrlWithReverseDownload(
       fileObj.file_id,
       fileType,
-      code
+      game
     );
 
     let filePreview = null;
@@ -314,7 +330,7 @@ const prepareUploadedObject = async (message, fileType, fileObj, code) => {
       filePreview = await getTgFileUrlWithReverseDownload(
         videoThumb.file_id,
         'images',
-        code
+        game
       );
     }
 
@@ -557,6 +573,7 @@ const buildXcomParagraph = (data) => {
 
 const prepareXcomTurn = async (message, url, code) => {
   const data = await xcomService.fetchTweetData(url);
+  const game = await resolveGameForMedia(code);
 
   // Видео: вариант среднего битрейта, со страховкой от больших файлов —
   // медиа-сервер грузит файл в память целиком, а его собственный потолок (413)
@@ -573,13 +590,19 @@ const prepareXcomTurn = async (message, url, code) => {
       console.warn('[xcom] daily upload limit reached, skip video');
     } else {
       try {
-        uploadedVideoUrl = await reverseDownloadMedia('videos', data.videoUrl, code);
+        uploadedVideoUrl = await reverseDownloadMedia(
+          'videos',
+          data.videoUrl,
+          game.hash,
+          game.gameId
+        );
         if (data.videoPreviewUrl) {
           try {
             uploadedVideoPreview = await reverseDownloadMedia(
               'images',
               data.videoPreviewUrl,
-              code
+              game.hash,
+              game.gameId
             );
           } catch (err) {
             console.error('[xcom] video preview upload failed', err.message);
@@ -605,7 +628,8 @@ const prepareXcomTurn = async (message, url, code) => {
           uploadedImageUrl = await reverseDownloadMedia(
             'images',
             imageCandidate,
-            code
+            game.hash,
+            game.gameId
           );
         } catch (err) {
           console.error('[xcom] image upload failed', err.message);
@@ -658,6 +682,7 @@ module.exports = {
   prepareTurnByMsg,
   prepareXcomTurn,
   reverseDownloadMedia,
+  resolveGameForMedia,
   fetchJsonDocument,
   setBot,
 };

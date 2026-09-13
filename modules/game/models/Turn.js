@@ -48,6 +48,10 @@ const schema = new Schema(
       type: Number,
       required: false, // temp bug
     },
+    splitHeight: {
+      type: Number,
+      required: false,
+    },
     contentType: {
       type: String,
       enum: AVAILABLE_TEMPLATES,
@@ -97,6 +101,18 @@ const schema = new Schema(
     pdfUrl: {
       type: String,
       required: false,
+    },
+    pdfCrop: {
+      // см. videoQuotes выше: вложенные поля обязаны лежать внутри type,
+      // иначе mongoose примет их за опции схемы и молча отбросит.
+      type: {
+        left: Number,
+        right: Number,
+        top: Number,
+        bottom: Number,
+      },
+      required: false,
+      _id: false, // иначе mongoose сам добавит в объект лишний _id
     },
     audioQuotes: {
       type: {

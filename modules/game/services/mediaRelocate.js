@@ -122,13 +122,13 @@ const isForeignMediaUrl = (url, type) => classifyUrl(url, type).status === 'fore
 // Перенести один URL, если он 'foreign'. Возвращает status из classifyUrl,
 // а для прямого файла — 'moved' (+ url) или 'error' (+ error):
 //   'local' | 'deferred'(+provider) | 'unknown' | 'moved'(+url) | 'error'(+error)
-const relocateUrl = async (url, type, hash = 'admin-relocate') => {
+const relocateUrl = async (url, type, hash = 'admin-relocate', gameId) => {
   const cls = classifyUrl(url, type);
   if (cls.status !== 'foreign') {
     return { status: cls.status, provider: cls.provider };
   }
   try {
-    const newUrl = await reverseDownloadMedia(type, url, hash);
+    const newUrl = await reverseDownloadMedia(type, url, hash, gameId);
     if (!newUrl) return { status: 'error', error: 'empty src from media' };
     return { status: 'moved', url: newUrl };
   } catch (err) {
@@ -142,7 +142,7 @@ const relocateUrl = async (url, type, hash = 'admin-relocate') => {
 // Возвращает { changed, results: [{ field, from, status, provider?, url?, error? }] }.
 // Документ НЕ сохраняется здесь — вызывающий сам решает, звать ли doc.save().
 const relocateDocFields = async (doc, fieldTypes, options = {}) => {
-  const { mutate = true, hash } = options;
+  const { mutate = true, hash, gameId } = options;
   const results = [];
   let changed = false;
 
@@ -160,7 +160,7 @@ const relocateDocFields = async (doc, fieldTypes, options = {}) => {
       continue;
     }
 
-    const res = await relocateUrl(from, type, hash);
+    const res = await relocateUrl(from, type, hash, gameId);
     if (res.status === 'moved') {
       doc[field] = res.url;
       changed = true;
@@ -224,12 +224,13 @@ const isYoutubeThumbUrl = (url) => {
   }
 };
 
-const getYoutubeToken = (hash) =>
+const getYoutubeToken = (hash, gameId) =>
   getToken(
     process.env.JWT_SECRET_STATIC,
     YOUTUBE_OPERATION,
     new Date().getTime() + YOUTUBE_TOKEN_TTL,
-    hash
+    hash,
+    gameId
   );
 
 // Ошибка обращения к media → ошибка с HTTP-кодом для нашего клиента.
@@ -257,13 +258,13 @@ const mediaRequestError = (err) => {
 
 // Варианты ролика: { title, duration, formats: [...] } — отдаём как есть, тело
 // media не пересобираем, иначе сервер завяжется на его форму.
-const probeYoutubeVideo = async (url, hash) => {
+const probeYoutubeVideo = async (url, hash, gameId) => {
   try {
     const resp = await axios({
       method: 'post',
       url: STATIC_MEDIA_URL + '/youtube/probe',
       headers: {
-        Authorization: 'Bearer ' + getYoutubeToken(hash),
+        Authorization: 'Bearer ' + getYoutubeToken(hash, gameId),
         'Content-Type': 'application/json',
       },
       data: { url },
@@ -277,13 +278,19 @@ const probeYoutubeVideo = async (url, hash) => {
 
 // formatId — строка-селектор yt-dlp ('137+140'); здесь она не разбирается и
 // уходит в media как есть.
-const downloadYoutubeVideo = async ({ url, formatId, hash, metadata }) => {
+const downloadYoutubeVideo = async ({
+  url,
+  formatId,
+  hash,
+  gameId,
+  metadata,
+}) => {
   try {
     const resp = await axios({
       method: 'post',
       url: STATIC_MEDIA_URL + '/youtube/download',
       headers: {
-        Authorization: 'Bearer ' + getYoutubeToken(hash),
+        Authorization: 'Bearer ' + getYoutubeToken(hash, gameId),
         'Content-Type': 'application/json',
       },
       data: { url, formatId, metadata },
@@ -299,7 +306,7 @@ const downloadYoutubeVideo = async ({ url, formatId, hash, metadata }) => {
 // id ролика тем адресом, которым до сих пор пользовался клиент: как только
 // videoUrl станет своим, клиентский фолбэк на img.youtube.com пропадёт, и без
 // videoPreview карточка останется без обложки.
-const relocateYoutubePreview = async (doc, videoUrl, hash) => {
+const relocateYoutubePreview = async (doc, videoUrl, hash, gameId) => {
   const field = 'videoPreview';
   const videoId = getYoutubeVideoId(videoUrl);
   const from = doc[field] || (videoId ? getYoutubePreviewUrl(videoId) : null);
@@ -318,7 +325,12 @@ const relocateYoutubePreview = async (doc, videoUrl, hash) => {
   // разбирается общими правилами.
   if (isYoutubeThumbUrl(from)) {
     try {
-      const url = await reverseDownloadMedia(MEDIA_TYPE_IMAGES, from, hash);
+      const url = await reverseDownloadMedia(
+        MEDIA_TYPE_IMAGES,
+        from,
+        hash,
+        gameId
+      );
       if (!url) return { field, from, status: 'error', error: 'empty src from media' };
       doc[field] = url;
       return { field, from, status: 'moved', url };
@@ -327,7 +339,7 @@ const relocateYoutubePreview = async (doc, videoUrl, hash) => {
     }
   }
 
-  const res = await relocateUrl(from, MEDIA_TYPE_IMAGES, hash);
+  const res = await relocateUrl(from, MEDIA_TYPE_IMAGES, hash, gameId);
   if (res.status === 'moved') {
     doc[field] = res.url;
   }
@@ -341,13 +353,14 @@ const relocateYoutubePreview = async (doc, videoUrl, hash) => {
 // успехом нельзя. Формат results тот же, что у relocateDocFields, чтобы UI
 // разбирал оба ответа одинаково. Документ НЕ сохраняется здесь.
 const relocateYoutubeVideo = async (doc, formatId, options = {}) => {
-  const { hash } = options;
+  const { hash, gameId } = options;
   const from = doc.videoUrl;
 
   const { src } = await downloadYoutubeVideo({
     url: from,
     formatId,
     hash,
+    gameId,
     metadata: { turnId: String(doc._id), gameId: String(doc.gameId) },
   });
   if (!src) {
@@ -357,7 +370,7 @@ const relocateYoutubeVideo = async (doc, formatId, options = {}) => {
 
   const results = [
     { field: 'videoUrl', from, status: 'moved', url: src, formatId },
-    await relocateYoutubePreview(doc, from, hash),
+    await relocateYoutubePreview(doc, from, hash, gameId),
   ];
 
   return { changed: true, results };

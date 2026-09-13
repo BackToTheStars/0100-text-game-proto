@@ -192,6 +192,7 @@ const relocateMedia = async (req, res, next) => {
 
     const { changed, results } = await relocateDocFields(turn, TURN_FIELDS, {
       hash: hashFunc(turn.gameId),
+      gameId: String(turn.gameId),
     });
     if (changed) {
       // validateModifiedOnly: голый save() валидирует документ целиком, и ход с
@@ -243,7 +244,11 @@ const youtubeProbe = async (req, res, next) => {
     const turn = await resolveTurn(turnId);
     const videoUrl = requireYoutubeVideoUrl(turn);
 
-    const info = await probeYoutubeVideo(videoUrl, hashFunc(turn.gameId));
+    const info = await probeYoutubeVideo(
+      videoUrl,
+      hashFunc(turn.gameId),
+      String(turn.gameId)
+    );
 
     res.json({
       item: info,
@@ -270,6 +275,7 @@ const youtubeRelocate = async (req, res, next) => {
 
     const { changed, results } = await relocateYoutubeVideo(turn, formatId, {
       hash: hashFunc(turn.gameId),
+      gameId: String(turn.gameId),
     });
     if (changed) {
       // validateModifiedOnly — как в relocateMedia: легаси-contentType не

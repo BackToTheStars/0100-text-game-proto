@@ -161,7 +161,7 @@ async function updateCoordinates(req, res, next) {
     const { turns = [] } = req.body;
 
     const updates = turns.map((turn) => {
-      const { _id, x, y, height, width, scrollPosition } = turn;
+      const { _id, x, y, height, width, scrollPosition, splitHeight } = turn;
       const $set = {};
       setIfNumber($set, 'x', x);
       setIfNumber($set, 'y', y);
@@ -171,6 +171,7 @@ async function updateCoordinates(req, res, next) {
       // приходит отдельным запросом /turns/scroll-positions — присваивать
       // undefined нельзя, иначе сохранённый скролл стирается
       setIfNumber($set, 'scrollPosition', scrollPosition);
+      setIfNumber($set, 'splitHeight', splitHeight);
       return { _id, $set };
     });
 
