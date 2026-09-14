@@ -5,7 +5,7 @@ const { getError } = require('../../core/services/errors');
 // Переиспользуем готовый транспорт: media сам скачивает файл по URL и кладёт в GridFS,
 // возвращая новый src на текущем медиа-сервере (тот же путь, что использует бот).
 const { reverseDownloadMedia } = require('../../bot/lib/turnService');
-const { getToken } = require('./game');
+const { getServiceToken } = require('./game');
 
 // Типы медиа = сегменты путей media-сервиса (/images/, /videos/, /audios/, /pdfs/).
 const MEDIA_TYPE_IMAGES = 'images';
@@ -119,10 +119,39 @@ const classifyUrl = (url, type) => {
 // Совместимый булев хелпер: «переносим ли этот URL».
 const isForeignMediaUrl = (url, type) => classifyUrl(url, type).status === 'foreign';
 
+// Файл своей media: { type, filename } для адреса вида <хост media>/<тип>/<имя>, иначе null.
+const parseMediaUrl = (url, mediaHost = getCurrentMediaHost()) => {
+  if (typeof url !== 'string' || !url || !mediaHost) return null;
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
+  if (parsed.host !== mediaHost) return null;
+
+  const segments = parsed.pathname.split('/');
+  if (segments.length !== 3 || segments[0] !== '') return null;
+  const [, type, rawName] = segments;
+  if (!Object.hasOwn(SUPPORTED_EXTENSIONS, type)) return null;
+
+  let filename;
+  try {
+    filename = decodeURIComponent(rawName);
+  } catch {
+    return null;
+  }
+  if (!filename || filename === '.' || filename === '..' || /[/\\]/.test(filename)) {
+    return null;
+  }
+  return { type, filename };
+};
+
 // Перенести один URL, если он 'foreign'. Возвращает status из classifyUrl,
 // а для прямого файла — 'moved' (+ url) или 'error' (+ error):
 //   'local' | 'deferred'(+provider) | 'unknown' | 'moved'(+url) | 'error'(+error)
-const relocateUrl = async (url, type, hash = 'admin-relocate', gameId) => {
+const relocateUrl = async (url, type, hash, gameId) => {
   const cls = classifyUrl(url, type);
   if (cls.status !== 'foreign') {
     return { status: cls.status, provider: cls.provider };
@@ -176,7 +205,6 @@ const relocateDocFields = async (doc, fieldTypes, options = {}) => {
 // yt-dlp внутри media. Токен тот же сервисный, что у download-and-save,
 // отличается только операция.
 const YOUTUBE_OPERATION = 'youtube';
-const YOUTUBE_TOKEN_TTL = 5 * 60 * 1000;
 
 // У media probe ограничен 60 с, скачивание — 30 мин (media/config/timeouts.js).
 // Свои таймауты держим заведомо больше: пусть до клиента доходит 504 от media с
@@ -225,13 +253,7 @@ const isYoutubeThumbUrl = (url) => {
 };
 
 const getYoutubeToken = (hash, gameId) =>
-  getToken(
-    process.env.JWT_SECRET_STATIC,
-    YOUTUBE_OPERATION,
-    new Date().getTime() + YOUTUBE_TOKEN_TTL,
-    hash,
-    gameId
-  );
+  getServiceToken(YOUTUBE_OPERATION, { hash, gameId });
 
 // Ошибка обращения к media → ошибка с HTTP-кодом для нашего клиента.
 // Коды media осмысленны (400 — нет варианта / неподдержанный тип, 413 — больше
@@ -376,6 +398,49 @@ const relocateYoutubeVideo = async (doc, formatId, options = {}) => {
   return { changed: true, results };
 };
 
+// ─── Кадр из видео ──────────────────────────────────────────────────────────
+// media снимает кадр до трёх запусков ffprobe/ffmpeg по 60 с каждый.
+const VIDEO_FRAME_TIMEOUT = 4 * 60 * 1000;
+
+const videoFrameUrl = (filename) =>
+  `${STATIC_MEDIA_URL}/${MEDIA_TYPE_VIDEOS}/${encodeURIComponent(filename)}/frame`;
+
+const getVideoFrame = async (filename, t, game, { signal } = {}) => {
+  try {
+    const resp = await axios({
+      method: 'get',
+      url: videoFrameUrl(filename),
+      params: { t },
+      headers: {
+        Authorization: 'Bearer ' + getServiceToken('frame', game),
+      },
+      timeout: VIDEO_FRAME_TIMEOUT,
+      signal,
+    });
+    return resp.data;
+  } catch (err) {
+    throw mediaRequestError(err);
+  }
+};
+
+const saveVideoFrame = async (filename, t, game, metadata) => {
+  try {
+    const resp = await axios({
+      method: 'post',
+      url: videoFrameUrl(filename),
+      headers: {
+        Authorization: 'Bearer ' + getServiceToken('frame_save', game),
+        'Content-Type': 'application/json',
+      },
+      data: { t, metadata },
+      timeout: VIDEO_FRAME_TIMEOUT,
+    });
+    return resp.data;
+  } catch (err) {
+    throw mediaRequestError(err);
+  }
+};
+
 module.exports = {
   MEDIA_TYPE_IMAGES,
   MEDIA_TYPE_VIDEOS,
@@ -388,10 +453,13 @@ module.exports = {
   getCurrentMediaHost,
   classifyUrl,
   isForeignMediaUrl,
+  parseMediaUrl,
   relocateUrl,
   relocateDocFields,
   getYoutubeVideoId,
   mediaRequestError,
   probeYoutubeVideo,
   relocateYoutubeVideo,
+  getVideoFrame,
+  saveVideoFrame,
 };

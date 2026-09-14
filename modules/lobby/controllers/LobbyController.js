@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Turn = require('../../game/models/Turn');
 const Game = require('../../game/models/Game');
 const { getInfo } = require('../../game/services/security');
+const { requireCsvString } = require('../../core/services/queryParams');
 
 // chosen приходит из query строкой: '0' и 'false' — это «выключено», а не истина.
 // Раньше проверялось просто `if (!chosen)`, и любая непустая строка (в том числе
@@ -9,7 +10,7 @@ const { getInfo } = require('../../game/services/security');
 const isChosen = (value) => value === '1' || value === 'true';
 
 const getCodesInfo = (codes) => {
-  return codes
+  return requireCsvString(codes, 'codes')
     .split(',')
     .map((str) => str.split(':'))
     .map(([hash, code]) => ({
@@ -197,7 +198,7 @@ const getGamesByHashes = async (req, res, next) => {
       res.status(400).json({ message: 'hashes is required' });
       return;
     }
-    const arrHashes = hashes.split(',');
+    const arrHashes = requireCsvString(hashes, 'hashes').split(',');
     const ids = [];
     const notFoundHashes = [];
     for (const hash of arrHashes) {

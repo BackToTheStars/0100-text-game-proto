@@ -7,6 +7,7 @@ const {
   generateAddress,
   generateCode,
   clearGamesCache,
+  withAddressRetry,
 } = require('../services/security');
 
 const {
@@ -20,17 +21,20 @@ const createGame = async (req, res, next) => {
   try {
     const { public, name } = req.body;
 
-    const hash = await generateAddress();
-    const code = {
-      role: ROLE_GAME_OWNER,
-      hash: await generateCode(),
-    };
-    const game = new Game({ public, name, hash });
-    if (game.accessLevel === 'link') {
-      game.codes.push({ role: ROLE_GAME_VISITOR, hash });
-    }
-    game.codes.push(code);
-    await game.save();
+    const { game, code } = await withAddressRetry(async () => {
+      const hash = await generateAddress();
+      const code = {
+        role: ROLE_GAME_OWNER,
+        hash: await generateCode(),
+      };
+      const game = new Game({ public, name, hash });
+      if (game.accessLevel === 'link') {
+        game.codes.push({ role: ROLE_GAME_VISITOR, hash });
+      }
+      game.codes.push(code);
+      await game.save();
+      return { game, code };
+    });
     clearGamesCache();
 
     res.json({

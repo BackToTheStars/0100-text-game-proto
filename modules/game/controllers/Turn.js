@@ -1,6 +1,7 @@
 const Turn = require('../models/Turn');
 const Game = require('../models/Game');
 const Line = require('../models/Line');
+const { requireCsvString } = require('../../core/services/queryParams');
 
 const getTurnsGeometry = async (req, res, next) => {
   try {
@@ -44,7 +45,7 @@ const getTurnsByIds = async (req, res, next) => {
       gameId,
     };
     if (ids) {
-      criteria._id = { $in: ids.split(',') };
+      criteria._id = { $in: requireCsvString(ids, 'ids').split(',') };
     }
     const turns = await Turn.find(criteria, {
       x: false,

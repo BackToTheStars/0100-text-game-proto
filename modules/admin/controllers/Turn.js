@@ -5,10 +5,14 @@ const Turn = require('../../game/models/Turn');
 const Game = require('../../game/models/Game');
 const {
   classifyUrl,
+  getCurrentMediaHost,
   getYoutubeVideoId,
+  parseMediaUrl,
   relocateDocFields,
   probeYoutubeVideo,
   relocateYoutubeVideo,
+  getVideoFrame,
+  saveVideoFrame,
   MEDIA_TYPE_VIDEOS,
   PROVIDER_YOUTUBE,
   TURN_FIELDS,
@@ -19,6 +23,11 @@ const addressOf = async (gameId) => {
   const game = await Game.findById(gameId).select({ hash: 1 }).lean();
   return game?.hash || null;
 };
+
+const mediaGameOf = async (turn) => ({
+  hash: await addressOf(turn.gameId),
+  gameId: turn.gameId ? String(turn.gameId) : undefined,
+});
 
 const list = async (req, res, next) => {
   try {
@@ -203,10 +212,11 @@ const relocateMedia = async (req, res, next) => {
     const { turnId } = req.body;
     const turn = await resolveTurn(turnId);
 
-    const { changed, results } = await relocateDocFields(turn, TURN_FIELDS, {
-      hash: await addressOf(turn.gameId),
-      gameId: String(turn.gameId),
-    });
+    const { changed, results } = await relocateDocFields(
+      turn,
+      TURN_FIELDS,
+      await mediaGameOf(turn)
+    );
     if (changed) {
       // validateModifiedOnly: голый save() валидирует документ целиком, и ход с
       // легаси-contentType вне enum (чинится скриптом SCRIPT_TURN_CONTENT_TYPE)
@@ -257,11 +267,8 @@ const youtubeProbe = async (req, res, next) => {
     const turn = await resolveTurn(turnId);
     const videoUrl = requireYoutubeVideoUrl(turn);
 
-    const info = await probeYoutubeVideo(
-      videoUrl,
-      await addressOf(turn.gameId),
-      String(turn.gameId)
-    );
+    const { hash, gameId } = await mediaGameOf(turn);
+    const info = await probeYoutubeVideo(videoUrl, hash, gameId);
 
     res.json({
       item: info,
@@ -286,10 +293,11 @@ const youtubeRelocate = async (req, res, next) => {
       throw getError('Не передан formatId', 400);
     }
 
-    const { changed, results } = await relocateYoutubeVideo(turn, formatId, {
-      hash: await addressOf(turn.gameId),
-      gameId: String(turn.gameId),
-    });
+    const { changed, results } = await relocateYoutubeVideo(
+      turn,
+      formatId,
+      await mediaGameOf(turn)
+    );
     if (changed) {
       // validateModifiedOnly — как в relocateMedia: легаси-contentType не
       // должен валить сохранение после того, как видео уже скачано.
@@ -307,6 +315,93 @@ const youtubeRelocate = async (req, res, next) => {
   }
 };
 
+// ─── Превью видео из кадра ──────────────────────────────────────────────────
+// Кадр снимает media: YouTube и чужие хосты отсекаются до похода в неё.
+const requireOwnVideoFilename = (turn) => {
+  const { videoUrl } = turn;
+  if (!videoUrl) {
+    throw getError('У хода нет videoUrl', 400);
+  }
+  const file = parseMediaUrl(videoUrl);
+  if (!file || file.type !== MEDIA_TYPE_VIDEOS) {
+    throw getError(
+      `Кадр берётся только из видео в media ${getCurrentMediaHost()}/videos/…, ` +
+        `а videoUrl хода — ${videoUrl}`,
+      400
+    );
+  }
+  return file.filename;
+};
+
+// Админ сдвигает ползунок и уходит — незачем держать один из двух слотов кадра в media.
+const abortOnClose = (res) => {
+  const controller = new AbortController();
+  const abort = () => {
+    if (!res.writableEnded) {
+      controller.abort();
+    }
+  };
+  if (res.socket?.destroyed) {
+    abort();
+  } else {
+    res.on('close', abort);
+  }
+  return controller.signal;
+};
+
+const videoFrame = async (req, res, next) => {
+  const signal = abortOnClose(res);
+  try {
+    const turn = await resolveTurn(req.params.id);
+    const filename = requireOwnVideoFilename(turn);
+    const { t } = req.body || {};
+
+    const frame = await getVideoFrame(filename, t, await mediaGameOf(turn), {
+      signal,
+    });
+
+    res.json({
+      item: frame,
+    });
+  } catch (err) {
+    if (signal.aborted) {
+      return;
+    }
+    next(err);
+  }
+};
+
+const videoPreview = async (req, res, next) => {
+  try {
+    const turn = await resolveTurn(req.params.id);
+    const filename = requireOwnVideoFilename(turn);
+    const { t } = req.body || {};
+
+    const { src, item } = await saveVideoFrame(
+      filename,
+      t,
+      await mediaGameOf(turn),
+      { turnId: String(turn._id) }
+    );
+    if (!src) {
+      throw getError('Медиа-сервер не вернул ссылку на кадр', 502);
+    }
+
+    turn.videoPreview = src;
+    // validateModifiedOnly — как в relocateMedia: картинка уже записана в media.
+    await turn.save({ validateModifiedOnly: true });
+
+    res.json({
+      item: {
+        turn,
+        image: { _id: item?._id, filename: item?.filename, src },
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   list,
   getById,
@@ -314,4 +409,6 @@ module.exports = {
   relocateMedia,
   youtubeProbe,
   youtubeRelocate,
+  videoFrame,
+  videoPreview,
 };

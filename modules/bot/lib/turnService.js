@@ -5,7 +5,7 @@ const {
   BOT_IMPORT_FILE_MAX_SIZE,
 } = require('../../../config/bot');
 const { STATIC_MEDIA_URL } = require('../../../config/url');
-const { getToken } = require('../../game/services/game');
+const { getServiceToken } = require('../../game/services/game');
 const { findGameByCode } = require('../../game/services/security');
 const Game = require('../../game/models/Game');
 const xcomService = require('./xcomService');
@@ -217,13 +217,10 @@ const getFileInfo = (message) => {
 const REVERSE_DOWNLOAD_TIMEOUT = 10 * 60 * 1000;
 
 const reverseDownloadMedia = async (type, mediaUrl, hash, gameId) => {
-  const tokenStaticServer = getToken(
-    process.env.JWT_SECRET_STATIC,
-    'download_and_save',
-    new Date().getTime() + 5 * 60 * 1000,
+  const tokenStaticServer = getServiceToken('download_and_save', {
     hash,
-    gameId
-  );
+    gameId,
+  });
 
   const config = {
     method: 'post',

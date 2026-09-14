@@ -7,6 +7,8 @@ const {
   relocateMedia,
   youtubeProbe,
   youtubeRelocate,
+  videoFrame,
+  videoPreview,
 } = require('../controllers/Turn');
 
 router.get('/', list);
@@ -15,6 +17,8 @@ router.get('/youtube-list', youtubeList);
 router.post('/relocate-media', relocateMedia);
 router.post('/youtube/probe', youtubeProbe);
 router.post('/youtube/relocate', youtubeRelocate);
+router.post('/:id/video-frame', videoFrame);
+router.post('/:id/video-preview', videoPreview);
 router.get('/:id', getById);
 
 module.exports = router;

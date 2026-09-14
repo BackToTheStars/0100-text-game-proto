@@ -12,6 +12,7 @@ const cors = require('cors');
 const express = require('express');
 
 const { corsOptionsDelegate } = require('./config/cors');
+const { describeInputError } = require('./modules/core/services/errors');
 
 const adminAuthRoutes = require('./modules/admin/routes/auth');
 const adminGamesRoutes = require('./modules/admin/routes/games');
@@ -126,11 +127,21 @@ app.use('*', (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  const { statusCode = 500, message, errorCode } = err;
   console.log({ err });
+  // res.json() в контроллере мог уже уйти (например createTurn отвечает до
+  // timeOfGameUpdate()) — второй ответ Express бы уронил с "headers sent".
+  if (res.headersSent) {
+    return next(err);
+  }
+  const { errorCode } = err;
+  // Неразобранные ValidationError/CastError mongoose — это всегда неверный
+  // ввод, а не поломка сервера; explicit statusCode (getError) имеет приоритет.
+  const inputMessage = err.statusCode ? null : describeInputError(err);
+  const statusCode = err.statusCode || (inputMessage ? 400 : 500);
+  const message =
+    statusCode === 500 ? 'На сервере произошла ошибка' : inputMessage || err.message;
   res.status(statusCode).send({
-    // проверяем статус и выставляем сообщение в зависимости от него
-    message: statusCode === 500 ? 'На сервере произошла ошибка' : message,
+    message,
     // Машинный код отказа, когда обработчик его назвал: текст отказа
     // виден пользователю и меняется, код — нет.
     ...(errorCode ? { errorCode } : {}),

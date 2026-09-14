@@ -1,16 +1,13 @@
 const { default: axios } = require('axios');
 const { STATIC_MEDIA_URL } = require('../../../config/url');
 const { mediaRequestError } = require('../../game/services/mediaRelocate');
-const { getToken } = require('../../game/services/game');
+const { getServiceToken } = require('../../game/services/game');
+const botConfig = require('../../../config/bot');
+const { describeBotLimits } = require('../services/botLimits');
 
-// media проверяет на этих роутах только операцию, hash не используется —
-// передаём константу-метку, чтобы payload не был безымянным в логах media.
-const STATS_HASH = 'admin-stats';
 const STATS_OPERATION = 'stats';
-const FILES_HASH = 'admin-files';
 const FILES_OPERATION = 'list';
-// Время жизни сервисного токена общее: токен живёт ровно на один поход в media.
-const TOKEN_TTL = 5 * 60 * 1000;
+const LIMITS_OPERATION = 'limits';
 const STATS_TIMEOUT = 5000;
 // Список считается сверкой с GridFS и, в отличие от сводки, не кэшируется —
 // запас времени больше.
@@ -20,12 +17,7 @@ const FILES_TIMEOUT = 15000;
 // иначе сервер завяжется на его форму. Кэш — на стороне media.
 const getStats = async (req, res, next) => {
   try {
-    const tokenStaticServer = getToken(
-      process.env.JWT_SECRET_STATIC,
-      STATS_OPERATION,
-      new Date().getTime() + TOKEN_TTL,
-      STATS_HASH
-    );
+    const tokenStaticServer = getServiceToken(STATS_OPERATION);
 
     let resp;
     try {
@@ -57,12 +49,7 @@ const getStats = async (req, res, next) => {
 // вторая проверка только разъехалась бы с настоящей.
 const getFiles = async (req, res, next) => {
   try {
-    const tokenStaticServer = getToken(
-      process.env.JWT_SECRET_STATIC,
-      FILES_OPERATION,
-      new Date().getTime() + TOKEN_TTL,
-      FILES_HASH
-    );
+    const tokenStaticServer = getServiceToken(FILES_OPERATION);
 
     // Query уходит транзитом той же строкой, что пришла: пересборка параметров
     // ломала бы повторяющиеся ключи (?type=images&type=videos) и молча
@@ -93,7 +80,36 @@ const getFiles = async (req, res, next) => {
   }
 };
 
+// Отчёт media пробрасывается как есть, лимиты бота — из конфигурации этого процесса.
+const getLimits = async (req, res, next) => {
+  try {
+    let resp;
+    try {
+      resp = await axios({
+        method: 'get',
+        url: STATIC_MEDIA_URL + '/limits',
+        headers: {
+          Authorization: 'Bearer ' + getServiceToken(LIMITS_OPERATION),
+        },
+        timeout: STATS_TIMEOUT,
+      });
+    } catch (err) {
+      throw mediaRequestError(err);
+    }
+
+    res.json({
+      item: {
+        media: resp.data,
+        bot: describeBotLimits(botConfig, process.env),
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getStats,
   getFiles,
+  getLimits,
 };

@@ -41,6 +41,29 @@ const generateAddress = async () => {
   return hash;
 };
 
+// Между проверкой адреса по базе и save() его может занять параллельный запрос,
+// поэтому повторяется весь шаг «новый адрес → save».
+const ADDRESS_COLLISION_RETRIES = 5;
+
+const isAddressCollisionError = (err) =>
+  !!err && err.code === 11000 && !!(err.keyPattern && err.keyPattern.hash);
+
+const withAddressRetry = async (
+  attempt,
+  { retries = ADDRESS_COLLISION_RETRIES, isCollision = isAddressCollisionError } = {}
+) => {
+  for (let tries = 0; ; tries++) {
+    try {
+      return await attempt();
+    } catch (e) {
+      if (isCollision(e) && tries < retries) {
+        continue;
+      }
+      throw e;
+    }
+  }
+};
+
 const generateCode = async () => {
   const hash = await pickFree(() => randomHex(CODE_LENGTH), isHashTaken);
   if (!hash) {
@@ -114,4 +137,7 @@ module.exports = {
   findGameByCode,
   getInfo,
   clearGamesCache,
+  ADDRESS_COLLISION_RETRIES,
+  isAddressCollisionError,
+  withAddressRetry,
 };
