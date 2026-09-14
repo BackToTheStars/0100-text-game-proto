@@ -1,6 +1,8 @@
 const { ROLE_GAME_VISITOR } = require('../../../../config/game/user');
 const Game = require('../../../game/models/Game');
-const { getHashByGame } = require('../../../game/services/security');
+
+// Игры без адреса — дело миграции адреса, здесь они пропускаются.
+const withAddress = { hash: { $exists: true } };
 
 const check = async () => {
   // get games without accessLevel
@@ -15,11 +17,12 @@ const check = async () => {
   // get games with access level link without visitor code=hash
   const gamesWithAccessLevelLink = await Game.find({
     accessLevel: 'link',
+    ...withAddress,
   });
   let gamesWithAccessLevelLinkWithoutVisitorCodeHashCount = 0;
   for (const game of gamesWithAccessLevelLink) {
     let exists = false;
-    const hash = getHashByGame(game);
+    const hash = game.hash;
     for (const code of game.codes) {
       if (code.role === ROLE_GAME_VISITOR && code.hash === hash) {
         exists = true;
@@ -33,11 +36,12 @@ const check = async () => {
   // get games with access level code with visitor code=hash
   const gamesWithAccessLevelCode = await Game.find({
     accessLevel: 'code',
+    ...withAddress,
   });
   let gamesWithAccessLevelCodeWithVisitorCodeHashCount = 0;
   for (const game of gamesWithAccessLevelCode) {
     let exists = false;
-    const hash = getHashByGame(game);
+    const hash = game.hash;
     for (const code of game.codes) {
       if (code.role === ROLE_GAME_VISITOR && code.hash === hash) {
         exists = true;
@@ -86,11 +90,12 @@ const run = async () => {
   // get games with access level link without visitor code=hash
   const gamesWithAccessLevelLink = await Game.find({
     accessLevel: 'link',
+    ...withAddress,
   });
   let visitorCodeForLinkAdded = 0;
   for (const game of gamesWithAccessLevelLink) {
     let exists = false;
-    const hash = getHashByGame(game);
+    const hash = game.hash;
     for (const code of game.codes) {
       if (code.role === ROLE_GAME_VISITOR && code.hash === hash) {
         exists = true;
@@ -98,7 +103,7 @@ const run = async () => {
       }
     }
     if (!exists) {
-      game.codes.push({ role: ROLE_GAME_VISITOR, hash: getHashByGame(game) });
+      game.codes.push({ role: ROLE_GAME_VISITOR, hash });
       await game.save();
       visitorCodeForLinkAdded++;
     }
@@ -106,11 +111,12 @@ const run = async () => {
   // get games with access level code with visitor code=hash
   const gamesWithAccessLevelCode = await Game.find({
     accessLevel: 'code',
+    ...withAddress,
   });
   let visitorCodeForLinkRemoved = 0;
   for (const game of gamesWithAccessLevelCode) {
     let exists = false;
-    const hash = getHashByGame(game);
+    const hash = game.hash;
     const codes = [];
     for (const code of game.codes) {
       if (code.role === ROLE_GAME_VISITOR && code.hash === hash) {

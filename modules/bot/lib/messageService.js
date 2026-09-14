@@ -72,7 +72,7 @@ const menuPaths = {
     descriptionCallback: (actorCtx) => {
       const arrText = ['List of games:'];
       actorCtx.games.forEach(({ name, code }) => {
-        const gameLink = `${CLIENT_URL}/game?hash=${code}`;
+        const gameLink = `${CLIENT_URL}/game?code=${code}`;
         arrText.push(`[${escapeMarkdownV2(name)}](${gameLink})`);
       });
 
@@ -135,7 +135,7 @@ const menuPaths = {
       const turnParam = messageService.lastTurnId
         ? `&turn=${messageService.lastTurnId}`
         : '';
-      const gameLink = `${CLIENT_URL}/game?hash=${lastTurnGameCode}${turnParam}`;
+      const gameLink = `${CLIENT_URL}/game?code=${lastTurnGameCode}${turnParam}`;
       const gameName = game?.name || lastTurnGameCode || 'game';
       return {
         type: 'markdown',

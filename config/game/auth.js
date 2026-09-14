@@ -17,8 +17,8 @@ const parseTtl = (raw) => {
     : null;
 };
 
-// Отказ старта при негодном значении — по образцу assertEnvCodeHashLength
-// и assertEnvLoginRateLimit; зовётся из server.js до создания приложения.
+// Отказ старта при негодном значении — по образцу assertEnvLoginRateLimit;
+// зовётся из server.js до создания приложения.
 const assertEnvGameTokenTtl = () => {
   const raw = process.env.GAME_TOKEN_TTL_MS;
   if (raw === undefined || raw === '') {

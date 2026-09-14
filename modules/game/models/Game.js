@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const Turn = require('./Turn');
-const { CODE_HASH_DEFAULT } = require('../../../config/game/code');
 
 const codeSchema = new Schema({
   role: {
@@ -40,15 +39,17 @@ const schema = new Schema(
     image: {
       type: String,
     },
+    // Адрес игры (`?hash=`). Играм, созданным до поля, его проставляет
+    // миграция в админке; sparse — иначе индекс не строится, пока есть
+    // документы без поля.
+    hash: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     codes: {
       type: [codeSchema],
       default: [],
-    },
-    // Длина (extraLength) хеша кодов этой игры; задаётся при создании.
-    // Используется addCode, чтобы новые коды были той же длины, что и исходные.
-    codeHashLength: {
-      type: Number,
-      default: CODE_HASH_DEFAULT,
     },
     public: {
       type: Boolean,
@@ -82,4 +83,13 @@ schema.methods.timeOfGameUpdate = async function () {
   await this.save();
 };
 
-module.exports = mongoose.model('Game', schema, 'games');
+const Game = mongoose.model('Game', schema, 'games');
+
+// Дубль адреса в базе оставляет коллекцию без индекса, а mongoose об этом молчит.
+Game.on('index', (err) => {
+  if (err) {
+    console.error(`games index build failed: ${err.message}`);
+  }
+});
+
+module.exports = Game;

@@ -4,18 +4,10 @@ const Turn = require('../models/Turn');
 
 const Line = require('../models/Line');
 const {
-  hashFunc,
-  hashUniqueForGame,
-  generateFreeGameId,
+  generateAddress,
+  generateCode,
   clearGamesCache,
-  getHashByGame,
-  getInfo,
 } = require('../services/security');
-const {
-  CODE_HASH_MIN,
-  CODE_HASH_MAX,
-  normalizeCodeHashLength,
-} = require('../../../config/game/code');
 
 const {
   ROLE_GAME_OWNER,
@@ -28,72 +20,24 @@ const createGame = async (req, res, next) => {
   try {
     const { public, name } = req.body;
 
-    const codeHashLength = normalizeCodeHashLength(req.query.codeLength);
-    if (codeHashLength === null) {
-      return next(
-        getError(
-          `codeLength должен быть целым числом в диапазоне [${CODE_HASH_MIN}, ${CODE_HASH_MAX}]`,
-          400
-        )
-      );
-    }
-
-    // Адрес игры — последние три символа её _id, то есть на всю базу 4096
-    // вариантов. Без подбора свободного адреса новая игра садилась на чужой:
-    // по своей ссылке она уже недостижима, а ссылка ведёт в чужую игру.
-    const game = new Game({
-      _id: await generateFreeGameId(),
-      public,
-      name,
-      codeHashLength,
-    });
-
-    await game.save();
-    try {
-      // @todo: optimization
-      const hash = getHashByGame(game);
-      const info = await getInfo(hash);
-      if (info.ambiguous) {
-        // Подбор адреса читает базу напрямую, а этот словарь мог устареть:
-        // страховка на случай, когда адрес всё же оказался спорным.
-        throw getError('Хеш игры неоднозначен', 409);
-      }
-    } catch (err) {
-      // deleteOne, а не remove: метод документа remove убран в mongoose 7,
-      // и откат сам падал с TypeError, оставляя игру в базе.
-      await game.deleteOne();
-      return next(
-        err.statusCode === 409
-          ? err
-          : getError('Game does not created. Try again', 400)
-      );
-    }
-
-    if (game.accessLevel === 'link') {
-      game.codes.push({
-        role: ROLE_GAME_VISITOR,
-        hash: hashFunc(game._id),
-      });
-    }
-
+    const hash = await generateAddress();
     const code = {
-      role: ROLE_GAME_OWNER, // @todo: check if need to use role hash
-      hash: hashUniqueForGame(game, game.codeHashLength),
+      role: ROLE_GAME_OWNER,
+      hash: await generateCode(),
     };
-
+    const game = new Game({ public, name, hash });
+    if (game.accessLevel === 'link') {
+      game.codes.push({ role: ROLE_GAME_VISITOR, hash });
+    }
     game.codes.push(code);
     await game.save();
-    // await Game.addZeroPointTurn(game._id);
-
-    // Один сброс кэша — после успешного сохранения игры с кодами: до save
-    // сбрасывать было нечего (новых хешей ещё нет в базе).
     clearGamesCache();
 
     res.json({
       item: {
         name: game.name,
         public: game.public,
-        hash: getHashByGame(game),
+        hash: game.hash,
         code,
       },
     });
@@ -156,7 +100,6 @@ const getGame = async (req, res, next) => {
     res.json({
       item: {
         ...gameObj,
-        hash: getHashByGame(game),
         lines: lines.map((line) => ({ ...line.toObject(), gameId: null })),
         auth: !!nickname,
       },
@@ -192,7 +135,7 @@ const editGame = async (req, res, next) => {
         _id: game._id,
         public: game.public,
         description: game.description,
-        hash: getHashByGame(game),
+        hash: game.hash,
         image: game.image,
       },
     });

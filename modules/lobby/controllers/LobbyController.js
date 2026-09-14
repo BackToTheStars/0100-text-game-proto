@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Turn = require('../../game/models/Turn');
 const Game = require('../../game/models/Game');
-const { getHashByGame, getInfo } = require('../../game/services/security');
+const { getInfo } = require('../../game/services/security');
 
 // chosen приходит из query строкой: '0' и 'false' — это «выключено», а не истина.
 // Раньше проверялось просто `if (!chosen)`, и любая непустая строка (в том числе
@@ -27,6 +27,7 @@ const getGameIdsByCodesInfo = async (codesInfo) => {
 };
 
 const fields = {
+  hash: true,
   name: true,
   public: true,
   description: true,
@@ -45,12 +46,7 @@ const getGames = async (req, res, next) => {
       const games = await Game.find({ public: true }, fields).sort({
         updatedAt: -1,
       });
-      res.json({
-        items: games.map((g) => ({
-          ...g.toObject(),
-          hash: getHashByGame(g),
-        })),
-      });
+      res.json({ items: games });
       return;
     }
 
@@ -72,12 +68,7 @@ const getGames = async (req, res, next) => {
       $or: idCriterias,
     };
     const games = await Game.find(criteria, fields).sort({ updatedAt: -1 });
-    res.json({
-      items: games.map((g) => ({
-        ...g.toObject(),
-        hash: getHashByGame(g),
-      })),
-    });
+    res.json({ items: games });
   } catch (err) {
     next(err);
   }
@@ -228,7 +219,7 @@ const getGamesByHashes = async (req, res, next) => {
       fields
     );
     res.json({
-      items: games.map((g) => ({ ...g.toObject(), hash: getHashByGame(g) })),
+      items: games,
       notFoundHashes,
     });
   } catch (error) {

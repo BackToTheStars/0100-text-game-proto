@@ -1,9 +1,6 @@
 require('dotenv').config();
 require('./config/db');
 
-const { assertEnvCodeHashLength } = require('./config/game/code');
-assertEnvCodeHashLength();
-
 const { assertEnvLoginRateLimit } = require('./modules/core/middlewares/rateLimit');
 assertEnvLoginRateLimit();
 

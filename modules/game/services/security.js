@@ -1,143 +1,117 @@
 const crypto = require('crypto');
-const mongoose = require('mongoose');
 const { ROLE_GAME_VISITOR } = require('../../../config/game/user');
+const { ADDRESS_LENGTH, CODE_LENGTH } = require('../../../config/game/code');
 const { getError } = require('../../core/services/errors');
+const { createGenerationCache } = require('../../core/services/generationCache');
 const Game = require('../models/Game');
 
-// @todo: заменить на кэширование
-let games;
-// Хеши, на которые претендует больше одной игры. Такой хеш не резолвится ни в
-// одну из них: молчаливый выбор «первой» однажды увёл удаление по ссылке в
-// чужую игру.
-let ambiguousHashes;
-
-// Случайная часть хеша кода. Криптостойкий источник вместо Math.random:
-// коды короткие (extraLength по умолчанию 6 hex), и предсказуемый PRNG
-// позволял бы их угадывать.
-const getRandHex = (exp) => {
-  return crypto
-    .randomBytes(Math.ceil(exp / 2))
+const randomHex = (length) =>
+  crypto
+    .randomBytes(Math.ceil(length / 2))
     .toString('hex')
-    .slice(0, exp);
-};
+    .slice(0, length);
 
-const hashFunc = (_id, extraLength = 0) => {
-  // реализацию можно изменить в любой момент
-  if (extraLength) {
-    return ('' + _id).slice(-3) + getRandHex(extraLength);
-  } else {
-    return ('' + _id).slice(-3);
-  }
-};
+const MAX_ATTEMPTS = 100;
 
-const getHashByGame = (game) => {
-  return hashFunc(game._id);
-};
-
-// Сгенерировать хеш кода, уникальный в рамках игры: не совпадающий ни с базовым
-// хешем игры, ни с хешами уже существующих кодов. Предотвращает коллизию хешей,
-// при которой codeLogin выбирал первый код с этим хешем → эскалация роли (баг #1).
-const MAX_HASH_ATTEMPTS = 100;
-const hashUniqueForGame = (game, extraLength) => {
-  const taken = new Set([hashFunc(game._id)]);
-  for (const code of game.codes || []) {
-    if (code.hash) {
-      taken.add(code.hash);
+// Первое сгенерированное значение, которое не занято; null после attempts попыток.
+const pickFree = async (generate, isTaken, attempts = MAX_ATTEMPTS) => {
+  for (let i = 0; i < attempts; i++) {
+    const value = generate();
+    if (!(await isTaken(value))) {
+      return value;
     }
   }
-  for (let i = 0; i < MAX_HASH_ATTEMPTS; i++) {
-    const hash = hashFunc(game._id, extraLength);
-    if (!taken.has(hash)) {
-      return hash;
-    }
+  return null;
+};
+
+// Адреса и коды делят одно пространство имён (у публичной игры код посетителя
+// равен адресу), поэтому новое значение не должно совпадать ни с одним адресом
+// и ни с одним кодом базы. Проверка по базе, а не по кэшу.
+const isHashTaken = async (hash) =>
+  !!(await Game.exists({ $or: [{ hash }, { 'codes.hash': hash }] }));
+
+const generateAddress = async () => {
+  const hash = await pickFree(() => randomHex(ADDRESS_LENGTH), isHashTaken);
+  if (!hash) {
+    throw getError(
+      'Не удалось подобрать свободный адрес игры. Попробуйте ещё раз.',
+      500
+    );
   }
-  throw getError(
-    'Не удалось сгенерировать уникальный код. Увеличьте длину кода (codeLength).',
-    500
-  );
+  return hash;
 };
 
-const clearGamesCache = () => {
-  games = null;
-  ambiguousHashes = null;
+const generateCode = async () => {
+  const hash = await pickFree(() => randomHex(CODE_LENGTH), isHashTaken);
+  if (!hash) {
+    throw getError(
+      'Не удалось сгенерировать уникальный код доступа. Попробуйте ещё раз.',
+      500
+    );
+  }
+  return hash;
 };
 
-// Словарь «хеш → игра» по всем хешам: и адресам игр, и кодам доступа.
-const buildHashIndex = async () => {
-  const list = await Game.find().select({ _id: true, 'codes.hash': true }).lean();
+// Старые коды выдавались без проверки уникальности по базе: код, найденный
+// больше чем в одной игре, — отказ, а не первая попавшаяся игра.
+const findGameByCode = async (code) => {
+  const games = await Game.find({ 'codes.hash': code }).limit(2);
+  if (games.length > 1) {
+    throw getError('Код доступа неоднозначен', 409, 'code-ambiguous');
+  }
+  return games[0] || null;
+};
+
+// Словарь «адрес → игра» по полю hash. Коды доступа сюда не входят: по коду
+// игра резолвится только через /codes/login.
+const buildAddressIndex = async () => {
+  const list = await Game.find({ hash: { $exists: true } })
+    .select({ _id: true, hash: true })
+    .lean();
   const d = {};
   const duplicated = new Set();
   for (const game of list) {
-    const hashes = [hashFunc(game._id)];
-    if (game.codes) {
-      for (const code of game.codes) {
-        if (code.hash) {
-          hashes.push(code.hash);
-        }
-      }
+    if (!game.hash) {
+      continue;
     }
-    for (const hash of hashes) {
-      if (d[hash] && '' + d[hash] !== '' + game._id) {
-        // Не валим резолвинг для всего сервера из-за одной "грязной" игры
-        // со старой коллизией, но и не выбираем за пользователя, какая из
-        // них "настоящая": помечаем хеш неоднозначным, вызывающий ответит
-        // отказом. Разбирается такая пара вручную — переименованием,
-        // удалением или сознательным решением оставить как есть.
-        console.warn(
-          `hash duplicated: ${hash} ids: ${d[hash]}, ${game._id} (хеш неоднозначен, не резолвится)`
-        );
-        duplicated.add(hash);
-        continue;
-      }
-      d[hash] = game._id;
+    if (d[game.hash] && '' + d[game.hash] !== '' + game._id) {
+      console.warn(
+        `hash duplicated: ${game.hash} ids: ${d[game.hash]}, ${game._id} (адрес неоднозначен, не резолвится)`
+      );
+      duplicated.add(game.hash);
+      continue;
     }
+    d[game.hash] = game._id;
   }
   return { d, duplicated };
 };
 
+const addressIndex = createGenerationCache(buildAddressIndex);
+
+const clearGamesCache = () => addressIndex.clear();
+
 const getInfo = async (hash) => {
-  if (!games) {
-    const { d, duplicated } = await buildHashIndex();
-    games = d;
-    ambiguousHashes = duplicated;
-  }
-  if (ambiguousHashes.has(hash)) {
+  const { d: addresses, duplicated } = await addressIndex.get();
+  // Адрес, на который претендует больше одной игры, не резолвится ни в одну:
+  // молчаливый выбор «первой» однажды увёл удаление по ссылке в чужую игру.
+  if (duplicated.has(hash)) {
     return { ambiguous: true };
   }
-  if (games[hash]) {
+  if (addresses[hash]) {
     return {
-      gameId: games[hash],
+      gameId: addresses[hash],
       role: ROLE_GAME_VISITOR,
     };
   }
   return {};
 };
 
-// Подобрать _id, чей адрес (последние три символа) ещё не занят ни одной
-// игрой. Адресов всего 4096, поэтому без подбора новая игра рано или поздно
-// садится на чужой адрес и становится недостижимой по своей же ссылке.
-// Занятые адреса читаются из базы, а не из кэша: кэш мог устареть, а цена
-// ошибки — навсегда потерянная ссылка на игру.
-const generateFreeGameId = async () => {
-  const list = await Game.find().select({ _id: true }).lean();
-  const taken = new Set(list.map((game) => hashFunc(game._id)));
-  for (let i = 0; i < MAX_HASH_ATTEMPTS; i++) {
-    const _id = new mongoose.Types.ObjectId();
-    if (!taken.has(hashFunc(_id))) {
-      return _id;
-    }
-  }
-  throw getError(
-    'Не удалось подобрать свободный адрес для новой игры. Попробуйте ещё раз.',
-    500
-  );
-};
-
 module.exports = {
-  hashFunc,
-  hashUniqueForGame,
-  generateFreeGameId,
+  randomHex,
+  pickFree,
+  generateAddress,
+  generateCode,
+  findGameByCode,
   getInfo,
-  getHashByGame,
   clearGamesCache,
 };

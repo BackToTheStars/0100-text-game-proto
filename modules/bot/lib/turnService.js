@@ -6,7 +6,7 @@ const {
 } = require('../../../config/bot');
 const { STATIC_MEDIA_URL } = require('../../../config/url');
 const { getToken } = require('../../game/services/game');
-const { hashFunc } = require('../../game/services/security');
+const { findGameByCode } = require('../../game/services/security');
 const Game = require('../../game/models/Game');
 const xcomService = require('./xcomService');
 const axios = require('axios');
@@ -263,13 +263,11 @@ const getTgFileHostUrl = async (fileId) => {
 // Игру бот выбирает кодом доступа, а не адресом, поэтому в токен media уходил
 // код — секрет, по которому файл к игре не привязать. Нет игры — нет и ключей.
 const resolveGameForMedia = async (code) => {
-  const game = await Game.findOne({ 'codes.hash': code })
-    .select({ _id: 1 })
-    .lean();
+  const game = await findGameByCode(code);
   if (!game) {
     return {};
   }
-  return { hash: hashFunc(game._id), gameId: String(game._id) };
+  return { hash: game.hash, gameId: String(game._id) };
 };
 
 const getTgFileUrlWithReverseDownload = async (fileId, type, game) => {

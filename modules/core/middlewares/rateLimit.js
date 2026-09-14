@@ -3,7 +3,7 @@ const { rateLimit } = require('express-rate-limit');
 // Дефолты: окно минута, 10 попыток. Переопределяются переменными окружения
 // LOGIN_RATE_WINDOW_MS / LOGIN_RATE_LIMIT — читаются один раз при старте
 // (см. assertEnvLoginRateLimit ниже; server.js вызывает её до создания
-// приложения, как assertEnvCodeHashLength).
+// приложения).
 const LOGIN_WINDOW_MS_DEFAULT = 60 * 1000;
 const LOGIN_LIMIT_DEFAULT = 10;
 
@@ -23,7 +23,7 @@ const readEnvInt = (name, fallback) => {
   return n === null ? NaN : n;
 };
 
-// Отказ старта при некорректном значении — по образцу assertEnvCodeHashLength.
+// Отказ старта при некорректном значении.
 const assertEnvLoginRateLimit = () => {
   [
     ['LOGIN_RATE_WINDOW_MS', process.env.LOGIN_RATE_WINDOW_MS],

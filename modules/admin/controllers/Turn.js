@@ -2,6 +2,7 @@ const { isValidObjectId } = require('mongoose');
 
 const { getError } = require('../../core/services/errors');
 const Turn = require('../../game/models/Turn');
+const Game = require('../../game/models/Game');
 const {
   classifyUrl,
   getYoutubeVideoId,
@@ -12,7 +13,12 @@ const {
   PROVIDER_YOUTUBE,
   TURN_FIELDS,
 } = require('../../game/services/mediaRelocate');
-const { hashFunc } = require('../../game/services/security');
+
+// Адрес игры — поле её документа; у хода под рукой только gameId.
+const addressOf = async (gameId) => {
+  const game = await Game.findById(gameId).select({ hash: 1 }).lean();
+  return game?.hash || null;
+};
 
 const list = async (req, res, next) => {
   try {
@@ -156,12 +162,19 @@ const youtubeList = async (req, res, next) => {
     });
 
     const from = (page - 1) * limit;
-    const items = youtubeDocs.slice(from, from + limit).map((doc) => ({
+    const pageDocs = youtubeDocs.slice(from, from + limit);
+    const games = await Game.find({
+      _id: { $in: pageDocs.map((doc) => doc.gameId).filter(Boolean) },
+    })
+      .select({ hash: 1 })
+      .lean();
+    const addressById = new Map(
+      games.map((game) => [String(game._id), game.hash || null])
+    );
+    const items = pageDocs.map((doc) => ({
       turnId: String(doc._id),
       gameId: doc.gameId ? String(doc.gameId) : null,
-      // hash игры считается из её id (hashFunc) — за самой игрой в базу
-      // ходить не нужно.
-      hash: doc.gameId ? hashFunc(doc.gameId) : null,
+      hash: doc.gameId ? addressById.get(String(doc.gameId)) ?? null : null,
       header: doc.header || '',
       videoUrl: doc.videoUrl,
       // id ролика — той же утилитой, что собирает превью-обложку. У ссылки на
@@ -191,7 +204,7 @@ const relocateMedia = async (req, res, next) => {
     const turn = await resolveTurn(turnId);
 
     const { changed, results } = await relocateDocFields(turn, TURN_FIELDS, {
-      hash: hashFunc(turn.gameId),
+      hash: await addressOf(turn.gameId),
       gameId: String(turn.gameId),
     });
     if (changed) {
@@ -246,7 +259,7 @@ const youtubeProbe = async (req, res, next) => {
 
     const info = await probeYoutubeVideo(
       videoUrl,
-      hashFunc(turn.gameId),
+      await addressOf(turn.gameId),
       String(turn.gameId)
     );
 
@@ -274,7 +287,7 @@ const youtubeRelocate = async (req, res, next) => {
     }
 
     const { changed, results } = await relocateYoutubeVideo(turn, formatId, {
-      hash: hashFunc(turn.gameId),
+      hash: await addressOf(turn.gameId),
       gameId: String(turn.gameId),
     });
     if (changed) {

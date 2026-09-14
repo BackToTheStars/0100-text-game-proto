@@ -1,9 +1,8 @@
 const jwt = require('jsonwebtoken');
 const Game = require('../models/Game');
-const { hashFunc, hashUniqueForGame, getHashByGame } = require('../services/security');
+const { generateCode, findGameByCode } = require('../services/security');
 const { getError } = require('../../core/services/errors');
 const { ROLE_GAME_PLAYER } = require('../../../config/game/user');
-const { CODE_HASH_DEFAULT } = require('../../../config/game/code');
 const {
   AUTH_VERSION,
   GAME_TOKEN_TTL_MS,
@@ -21,7 +20,7 @@ const issueGameToken = ({ game, code, nickname, role }) => {
   const data = {
     v: AUTH_VERSION,
     gameId: '' + game._id,
-    hash: getHashByGame(game),
+    hash: game.hash,
     code,
     nickname,
     role,
@@ -43,9 +42,7 @@ const codeLogin = async (req, res, next) => {
       return next(getError('Invalid code or nickname', 401));
     }
 
-    const game = await Game.findOne({
-      'codes.hash': code,
-    });
+    const game = await findGameByCode(code);
 
     if (!game) {
       return next(getError('Invalid code or nickname', 401));
@@ -86,10 +83,9 @@ const addCode = async (req, res, next) => {
       return next(getError('Game not found', 404));
     }
 
-    const extraLength = game.codeHashLength || CODE_HASH_DEFAULT;
     const code = {
       role,
-      hash: hashUniqueForGame(game, extraLength),
+      hash: await generateCode(),
     };
 
     game.codes.push(code);
@@ -121,13 +117,13 @@ const getStaticToken = async (req, res, next) => {
       );
     }
 
-    const { gameId } = req.gameInfo;
+    const { gameId, hash } = req.gameInfo;
 
     const token = getToken(
       process.env.JWT_SECRET_STATIC,
       action,
       new Date().getTime() + 5 * 60 * 1000,
-      hashFunc(gameId),
+      hash,
       gameId
     );
 

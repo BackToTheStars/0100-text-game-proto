@@ -3,6 +3,7 @@ const Game = require('../../game/models/Game');
 const Turn = require('../../game/models/Turn');
 const { fromPromise } = require('xstate');
 const { hasRule, RULE_TURNS_CRUD } = require('../../../config/game/user');
+const { findGameByCode } = require('../../game/services/security');
 
 class GameService {
   userId = null;
@@ -81,9 +82,7 @@ class GameService {
 
   async addGameByHash(code) {
     try {
-      const game = await Game.findOne({
-        'codes.hash': code,
-      });
+      const game = await findGameByCode(code);
 
       if (!game) {
         return [false, 'Game not found'];
@@ -115,6 +114,9 @@ class GameService {
       await this.reloadGames();
       return [true, `Game ${game.name} added`, gameToAdd];
     } catch (err) {
+      if (err.errorCode === 'code-ambiguous') {
+        return [false, `Game code ${code} belongs to several games`];
+      }
       console.log(err);
       return [false, 'Error while adding game'];
     }

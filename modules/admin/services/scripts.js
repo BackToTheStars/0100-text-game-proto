@@ -4,6 +4,7 @@ const SCRIPT_GAME_COMMON = 'SCRIPT_GAME_COMMON';
 const SCRIPT_BOT = 'SCRIPT_BOT';
 const SCRIPT_MEDIA = 'SCRIPT_MEDIA';
 const SCRIPT_TURN_CONTENT_TYPE = 'SCRIPT_TURN_CONTENT_TYPE';
+const SCRIPT_GAME_ADDRESS = 'SCRIPT_GAME_ADDRESS';
 
 const {
   checkZeroPoints,
@@ -35,6 +36,10 @@ const {
   check: contentTypeCheck,
   run: contentTypeRun,
 } = require('./scripts/ContentType');
+const {
+  check: gameAddressCheck,
+  run: gameAddressRun,
+} = require('./scripts/GameAddress');
 
 // Описание параметра команды для UI (name/type/description/required).
 const GAME_ID_PARAM = {
@@ -170,6 +175,24 @@ const scripts = [
         name: 'run',
         description: 'Заменить недопустимые contentType на "picture"',
         callback: contentTypeRun,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
+      },
+    ],
+  },
+  {
+    name: SCRIPT_GAME_ADDRESS,
+    description: 'Адрес игры полем: проставить играм, созданным до него',
+    commands: [
+      {
+        name: 'check',
+        description: 'Проверка: игры без адреса и кто из них столкнётся',
+        callback: gameAddressCheck,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
+      },
+      {
+        name: 'run',
+        description: 'Проставить адрес играм без него (столкнувшиеся пропустить)',
+        callback: gameAddressRun,
         modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
       },
     ],
