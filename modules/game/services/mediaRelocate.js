@@ -119,9 +119,9 @@ const classifyUrl = (url, type) => {
 // Совместимый булев хелпер: «переносим ли этот URL».
 const isForeignMediaUrl = (url, type) => classifyUrl(url, type).status === 'foreign';
 
-// Файл своей media: { type, filename } для адреса вида <хост media>/<тип>/<имя>, иначе null.
-const parseMediaUrl = (url, mediaHost = getCurrentMediaHost()) => {
-  if (typeof url !== 'string' || !url || !mediaHost) return null;
+// Адрес вида <хост>/<тип>/<имя> на любом http(s)-хосте: { host, type, filename }, иначе null.
+const parseMediaPath = (url) => {
+  if (typeof url !== 'string' || !url) return null;
   let parsed;
   try {
     parsed = new URL(url);
@@ -129,7 +129,6 @@ const parseMediaUrl = (url, mediaHost = getCurrentMediaHost()) => {
     return null;
   }
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
-  if (parsed.host !== mediaHost) return null;
 
   const segments = parsed.pathname.split('/');
   if (segments.length !== 3 || segments[0] !== '') return null;
@@ -145,7 +144,14 @@ const parseMediaUrl = (url, mediaHost = getCurrentMediaHost()) => {
   if (!filename || filename === '.' || filename === '..' || /[/\\]/.test(filename)) {
     return null;
   }
-  return { type, filename };
+  return { host: parsed.host, type, filename };
+};
+
+// Файл своей media: { type, filename } для адреса вида <хост media>/<тип>/<имя>, иначе null.
+const parseMediaUrl = (url, mediaHost = getCurrentMediaHost()) => {
+  const file = mediaHost ? parseMediaPath(url) : null;
+  if (!file || file.host !== mediaHost) return null;
+  return { type: file.type, filename: file.filename };
 };
 
 // Перенести один URL, если он 'foreign'. Возвращает status из classifyUrl,
@@ -453,6 +459,7 @@ module.exports = {
   getCurrentMediaHost,
   classifyUrl,
   isForeignMediaUrl,
+  parseMediaPath,
   parseMediaUrl,
   relocateUrl,
   relocateDocFields,

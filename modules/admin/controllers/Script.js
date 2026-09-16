@@ -14,6 +14,7 @@ const list = async (req, res, next) => {
             description: command.description,
             modes: command.modes,
             params: command.params || [],
+            confirm: !!command.confirm,
           });
         }
       }

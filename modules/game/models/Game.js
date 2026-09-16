@@ -10,6 +10,8 @@ const codeSchema = new Schema({
   hash: {
     type: String,
     required: true,
+    // Совпадение кодов у разных игр допускается намеренно — индекс не уникальный.
+    index: true,
   },
   viewportPointX: {
     // @deprecated

@@ -64,6 +64,8 @@ const list = async (req, res, next) => {
   }
 };
 
+const isDeletedDuringSave = (err) => err?.name === 'DocumentNotFoundError';
+
 // битый id роняет findById CastError'ом, отсюда общая 500 вместо 404
 const resolveTurn = async (turnId) => {
   const turn = isValidObjectId(turnId) ? await Turn.findById(turnId) : null;
@@ -398,6 +400,10 @@ const videoPreview = async (req, res, next) => {
       },
     });
   } catch (err) {
+    // картинка кадра в media уже записана и остаётся сиротой
+    if (isDeletedDuringSave(err)) {
+      return next(getError('Ход удалён', 404));
+    }
     next(err);
   }
 };
@@ -411,4 +417,5 @@ module.exports = {
   youtubeRelocate,
   videoFrame,
   videoPreview,
+  isDeletedDuringSave,
 };

@@ -31,7 +31,11 @@ const main = async () => {
     console.error('MONGO_URL не задан (.env рядом с server/)');
     process.exit(1);
   }
-  await mongoose.connect(process.env.MONGO_URL);
+  // Только чтение: индексов и коллекций на подключении не строить.
+  await mongoose.connect(process.env.MONGO_URL, {
+    autoIndex: false,
+    autoCreate: false,
+  });
   const db = mongoose.connection.db;
   console.log(`База: ${db.databaseName}\n`);
 

@@ -50,6 +50,25 @@ const removeOldLines = async () => {
   return [true, `Old lines removed from games`];
 };
 
+const CODE_HASH_LENGTH_FILTER = { codeHashLength: { $exists: true } };
+const CODE_HASH_LENGTH_UNSET = { $unset: { codeHashLength: 1 } };
+// codeHashLength вне схемы — обычный updateMany молча срежет $unset без этого.
+const CODE_HASH_LENGTH_UPDATE_OPTIONS = { strict: false };
+
+const checkCodeHashLength = async () => {
+  const count = await Game.countDocuments(CODE_HASH_LENGTH_FILTER);
+  return [true, `${count} games with codeHashLength found`];
+};
+
+const removeCodeHashLength = async () => {
+  const result = await Game.updateMany(
+    CODE_HASH_LENGTH_FILTER,
+    CODE_HASH_LENGTH_UNSET,
+    CODE_HASH_LENGTH_UPDATE_OPTIONS
+  );
+  return [true, `codeHashLength removed from ${result.modifiedCount} games`];
+};
+
 const checkCodeViewports = async () => {
   const gamesWithViewports = await Game.find({
     $or: [
@@ -109,4 +128,9 @@ module.exports = {
   removeOldLines,
   checkCodeViewports,
   removeCodeViewports,
+  checkCodeHashLength,
+  removeCodeHashLength,
+  CODE_HASH_LENGTH_FILTER,
+  CODE_HASH_LENGTH_UNSET,
+  CODE_HASH_LENGTH_UPDATE_OPTIONS,
 };
