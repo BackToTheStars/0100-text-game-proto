@@ -64,8 +64,6 @@ const list = async (req, res, next) => {
   }
 };
 
-const isDeletedDuringSave = (err) => err?.name === 'DocumentNotFoundError';
-
 // битый id роняет findById CastError'ом, отсюда общая 500 вместо 404
 const resolveTurn = async (turnId) => {
   const turn = isValidObjectId(turnId) ? await Turn.findById(turnId) : null;
@@ -373,6 +371,32 @@ const videoFrame = async (req, res, next) => {
   }
 };
 
+// Кадр снимается долго, и за это время ход могли удалить, сменить ему видео
+// или превью: картинка пишется только к тому состоянию, с которого снята.
+// При отказе сама картинка в media остаётся — её никто не удаляет.
+const attachVideoPreview = async (turn, src, model = Turn) => {
+  const updated = await model.findOneAndUpdate(
+    {
+      _id: turn._id,
+      videoUrl: turn.videoUrl,
+      videoPreview: turn.videoPreview ?? null,
+    },
+    { $set: { videoPreview: src } },
+    { new: true }
+  );
+  if (updated) {
+    return updated;
+  }
+  if (!(await model.exists({ _id: turn._id }))) {
+    throw getError('Ход удалён; кадр остался в media', 404);
+  }
+  throw getError(
+    'Ход изменился, пока снимался кадр (видео или превью): кадр остался в media, к ходу не привязан',
+    409,
+    'turn-changed'
+  );
+};
+
 const videoPreview = async (req, res, next) => {
   try {
     const turn = await resolveTurn(req.params.id);
@@ -389,21 +413,13 @@ const videoPreview = async (req, res, next) => {
       throw getError('Медиа-сервер не вернул ссылку на кадр', 502);
     }
 
-    turn.videoPreview = src;
-    // validateModifiedOnly — как в relocateMedia: картинка уже записана в media.
-    await turn.save({ validateModifiedOnly: true });
-
     res.json({
       item: {
-        turn,
+        turn: await attachVideoPreview(turn, src),
         image: { _id: item?._id, filename: item?.filename, src },
       },
     });
   } catch (err) {
-    // картинка кадра в media уже записана и остаётся сиротой
-    if (isDeletedDuringSave(err)) {
-      return next(getError('Ход удалён', 404));
-    }
     next(err);
   }
 };
@@ -417,5 +433,5 @@ module.exports = {
   youtubeRelocate,
   videoFrame,
   videoPreview,
-  isDeletedDuringSave,
+  attachVideoPreview,
 };

@@ -1,6 +1,10 @@
 const jwt = require('jsonwebtoken');
 const Game = require('../models/Game');
-const { generateCode, findGameByCode } = require('../services/security');
+const {
+  generateCode,
+  findGameByCode,
+  requireGameAddress,
+} = require('../services/security');
 const { getError } = require('../../core/services/errors');
 const { ROLE_GAME_PLAYER } = require('../../../config/game/user');
 const {
@@ -16,11 +20,13 @@ const { getToken } = require('../services/game');
 // именно на игру из запроса. Без этого поля роль из токена действовала в
 // любой игре, чей адрес известен.
 const issueGameToken = ({ game, code, nickname, role }) => {
+  // Токен без адреса клиент сохранил бы как game_undefined — отказ до подписи.
+  const hash = requireGameAddress(game);
   const expires = Math.floor((Date.now() + GAME_TOKEN_TTL_MS) / 1000);
   const data = {
     v: AUTH_VERSION,
     gameId: '' + game._id,
-    hash: game.hash,
+    hash,
     code,
     nickname,
     role,
@@ -136,6 +142,7 @@ const getStaticToken = async (req, res, next) => {
 };
 
 module.exports = {
+  issueGameToken,
   codeLogin,
   addCode,
   refreshCode,

@@ -52,8 +52,9 @@ const removeOldLines = async () => {
 
 const CODE_HASH_LENGTH_FILTER = { codeHashLength: { $exists: true } };
 const CODE_HASH_LENGTH_UNSET = { $unset: { codeHashLength: 1 } };
-// codeHashLength вне схемы — обычный updateMany молча срежет $unset без этого.
-const CODE_HASH_LENGTH_UPDATE_OPTIONS = { strict: false };
+// codeHashLength вне схемы — обычный updateMany молча срежет $unset без strict: false.
+// Служебное снятие поля — не правка игры: updatedAt (порядок в лобби) не трогаем.
+const CODE_HASH_LENGTH_UPDATE_OPTIONS = { strict: false, timestamps: false };
 
 const checkCodeHashLength = async () => {
   const count = await Game.countDocuments(CODE_HASH_LENGTH_FILTER);

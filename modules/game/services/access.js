@@ -27,8 +27,13 @@ const verifyGameToken = (token) =>
     );
   });
 
-const resolveGameAccess = async ({ hash, token, requireToken = false }) => {
-  const { gameId, role, ambiguous } = await getInfo(hash);
+const resolveGameAccess = async (
+  { hash, token, requireToken = false },
+  { resolveAddress = getInfo } = {}
+) => {
+  // Игры без адреса в словаре нет, и здесь она неотличима от удалённой: 404.
+  // Временный отказ «нет адреса» даётся там, где игра найдена по коду.
+  const { gameId, role, ambiguous } = await resolveAddress(hash);
   if (ambiguous) {
     // Этот адрес занят больше чем одной игрой. Раньше сервер молча отдавал
     // старшую из них — так запрос к одной игре уходил в другую.

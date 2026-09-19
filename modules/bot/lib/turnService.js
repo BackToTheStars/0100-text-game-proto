@@ -6,7 +6,11 @@ const {
 } = require('../../../config/bot');
 const { STATIC_MEDIA_URL } = require('../../../config/url');
 const { getServiceToken } = require('../../game/services/game');
-const { findGameByCode } = require('../../game/services/security');
+const {
+  findGameByCode,
+  isUsableAddress,
+} = require('../../game/services/security');
+const { getError } = require('../../core/services/errors');
 const Game = require('../../game/models/Game');
 const xcomService = require('./xcomService');
 const axios = require('axios');
@@ -257,12 +261,25 @@ const getTgFileHostUrl = async (fileId) => {
   return `${process.env.BOT_STATIC_URL}${host_path}`;
 };
 
+// Игра без адреса: окно миграции после выката или пропущенная миграцией игра.
+// Текст — бота (английский), код отказа — общий с веб-клиентом.
+const gameNoAddressError = (game) =>
+  getError(
+    `Game ${game.name} has no address yet: the server is being updated, try again later`,
+    503,
+    'game-no-address'
+  );
+
 // Игру бот выбирает кодом доступа, а не адресом, поэтому в токен media уходил
-// код — секрет, по которому файл к игре не привязать. Нет игры — нет и ключей.
+// код — секрет, по которому файл к игре не привязать. Нет игры — нет и ключей;
+// игра без адреса — отказ, а не файл с половиной пары.
 const resolveGameForMedia = async (code) => {
   const game = await findGameByCode(code);
   if (!game) {
     return {};
+  }
+  if (!isUsableAddress(game.hash)) {
+    throw gameNoAddressError(game);
   }
   return { hash: game.hash, gameId: String(game._id) };
 };
@@ -335,6 +352,10 @@ const prepareUploadedObject = async (message, fileType, fileObj, code) => {
       filePreview,
     };
   } catch (error) {
+    // Текст отказа должен дойти до пользователя, а не стать «Failed to upload media».
+    if (error.errorCode === 'game-no-address') {
+      throw error;
+    }
     console.error(error);
     return null;
   }
@@ -678,6 +699,7 @@ module.exports = {
   prepareXcomTurn,
   reverseDownloadMedia,
   resolveGameForMedia,
+  gameNoAddressError,
   fetchJsonDocument,
   setBot,
 };

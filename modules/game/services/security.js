@@ -85,16 +85,30 @@ const findGameByCode = async (code) => {
   return games[0] || null;
 };
 
+// Одно понятие «пригодный адрес» на словарь адресов, миграцию и выдачу токена:
+// непустая строка. null, '' и не-строка адресом не считаются.
+const isUsableAddress = (hash) => typeof hash === 'string' && hash.length > 0;
+
+// Игра есть, но адреса у неё нет: миграция после выката ещё не выполнена или
+// пропустила игру. Это временный отказ, не 404 удалённой игры.
+const requireGameAddress = (game) => {
+  if (!isUsableAddress(game?.hash)) {
+    throw getError(
+      'У игры ещё нет адреса: сервер обновляется, попробуйте позже',
+      503,
+      'game-no-address'
+    );
+  }
+  return game.hash;
+};
+
 // Словарь «адрес → игра» по полю hash. Коды доступа сюда не входят: по коду
 // игра резолвится только через /codes/login.
-const buildAddressIndex = async () => {
-  const list = await Game.find({ hash: { $exists: true } })
-    .select({ _id: true, hash: true })
-    .lean();
+const indexFromGames = (list) => {
   const d = {};
   const duplicated = new Set();
   for (const game of list) {
-    if (!game.hash) {
+    if (!isUsableAddress(game.hash)) {
       continue;
     }
     if (d[game.hash] && '' + d[game.hash] !== '' + game._id) {
@@ -108,6 +122,13 @@ const buildAddressIndex = async () => {
   }
   return { d, duplicated };
 };
+
+const buildAddressIndex = async () =>
+  indexFromGames(
+    await Game.find({ hash: { $exists: true } })
+      .select({ _id: true, hash: true })
+      .lean()
+  );
 
 const addressIndex = createGenerationCache(buildAddressIndex);
 
@@ -135,6 +156,9 @@ module.exports = {
   generateAddress,
   generateCode,
   findGameByCode,
+  isUsableAddress,
+  requireGameAddress,
+  indexFromGames,
   getInfo,
   clearGamesCache,
   ADDRESS_COLLISION_RETRIES,

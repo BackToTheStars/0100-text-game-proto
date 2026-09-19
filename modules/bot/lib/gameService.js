@@ -3,7 +3,11 @@ const Game = require('../../game/models/Game');
 const Turn = require('../../game/models/Turn');
 const { fromPromise } = require('xstate');
 const { hasRule, RULE_TURNS_CRUD } = require('../../../config/game/user');
-const { findGameByCode } = require('../../game/services/security');
+const {
+  findGameByCode,
+  isUsableAddress,
+} = require('../../game/services/security');
+const { gameNoAddressError } = require('./turnService');
 
 class GameService {
   userId = null;
@@ -98,6 +102,11 @@ class GameService {
           false,
           `Game code ${code} does not have role for turn management`,
         ];
+      }
+      // Игра без адреса — окно миграции после выката: её файлы media не
+      // привязать, а ссылки на неё ведут в никуда.
+      if (!isUsableAddress(game.hash)) {
+        return [false, gameNoAddressError(game).message];
       }
 
       const gameToAdd = {

@@ -19,15 +19,42 @@ const castedUpdate = (options) => {
   return query.getUpdate();
 };
 
+// Pre-hooks mongoose (timestamps) — тем же путём, что и exec(), без базы.
+const runPreHooks = (query) =>
+  new Promise((resolve, reject) =>
+    query._queryMiddleware.execPre(query.op, query, [], (err) =>
+      err ? reject(err) : resolve()
+    )
+  );
+
 describe('codeHashLength removal', () => {
   it('a plain updateMany silently strips the unset (the trap)', () => {
     assert.deepEqual(castedUpdate(undefined), { $unset: {} });
   });
 
   it('strict:false — the options removeCodeHashLength actually uses — keeps it', () => {
-    assert.deepEqual(CODE_HASH_LENGTH_UPDATE_OPTIONS, { strict: false });
+    assert.deepEqual(CODE_HASH_LENGTH_UPDATE_OPTIONS, {
+      strict: false,
+      timestamps: false,
+    });
     assert.deepEqual(castedUpdate(CODE_HASH_LENGTH_UPDATE_OPTIONS), {
       $unset: { codeHashLength: 1 },
     });
+  });
+
+  it('does not touch updatedAt: a service pass is not an edit of the game', async () => {
+    const query = Game.updateMany(
+      CODE_HASH_LENGTH_FILTER,
+      CODE_HASH_LENGTH_UNSET,
+      CODE_HASH_LENGTH_UPDATE_OPTIONS
+    );
+    await runPreHooks(query);
+    assert.deepEqual(query.getUpdate(), { $unset: { codeHashLength: 1 } });
+
+    const plain = Game.updateMany(CODE_HASH_LENGTH_FILTER, CODE_HASH_LENGTH_UNSET, {
+      strict: false,
+    });
+    await runPreHooks(plain);
+    assert.ok(plain.getUpdate().$set.updatedAt instanceof Date);
   });
 });
