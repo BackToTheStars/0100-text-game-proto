@@ -2,6 +2,7 @@ const Turn = require('../models/Turn');
 const Game = require('../models/Game');
 const Line = require('../models/Line');
 const { requireCsvString } = require('../../core/services/queryParams');
+const { GEOMETRY_FIELDS, toGeometryItem } = require('../services/turnsGeometry');
 
 const getTurnsGeometry = async (req, res, next) => {
   try {
@@ -10,27 +11,9 @@ const getTurnsGeometry = async (req, res, next) => {
       gameId,
       contentType: { $ne: 'zero-point' }, // @todo: remove after zero point deleting
     };
-    const turns = await Turn.find(criteria, {
-      _id: true,
-      x: true,
-      y: true,
-      width: true,
-      height: true,
-      contentType: true,
-    });
+    const turns = await Turn.find(criteria, GEOMETRY_FIELDS);
     res.json({
-      items: turns.map(({ _id, x, y, width, height, contentType }) => ({
-        _id,
-        contentType,
-        position: {
-          x,
-          y,
-        },
-        size: {
-          width,
-          height,
-        },
-      })),
+      items: turns.map(toGeometryItem),
     });
   } catch (err) {
     next(err);

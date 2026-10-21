@@ -60,10 +60,12 @@ const port = process.env.PORT || 3000;
 // не используется — req.ip/req.protocol в коде не читаются.
 app.set('trust proxy', 1);
 
-// Без CORS_ORIGINS API отвечает всем, как и раньше; со списком origin'ов —
-// только перечисленным. Публичные GET /lobby/* (и их preflight) открыты
-// всегда — делегат сам решает по пути запроса, см. config/cors.js.
+// Клиентский контракт открыт любому origin; список CORS_ORIGINS сужает только
+// /admin* — делегат решает по пути запроса, см. config/cors.js.
 app.use(cors(corsOptionsDelegate));
+
+// #local-network
+// app.use(cors());
 app.use(express.static('public'));
 app.use(express.json());
 
@@ -152,6 +154,8 @@ app.use((err, req, res, next) => {
 // (путь /ws, тот же порт), см. modules/presence/ws.js.
 const server = http.createServer(app);
 attachPresence(server);
+// #local-network
+// server.listen(port, '0.0.0.0', () => {
 server.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
   console.log(`Presence socket is listening on ws://localhost:${port}/ws`);

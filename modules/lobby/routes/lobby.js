@@ -8,9 +8,8 @@ const {
   checkGame,
 } = require('../controllers/LobbyController');
 
-// Три ручки ниже анонимны — токена не требуют. Открытость для любого origin'а
-// живёт теперь в config/cors.js (глобальный делегат), не здесь. /check-game
-// сюда не входит: он ходит с game-token и публичным не является.
+// Три ручки ниже анонимны — токена не требуют; /check-game ходит с game-token.
+// CORS для всех ручек вне /admin* открыт глобально, см. config/cors.js.
 router.get('/turns', getTurns);
 router.get('/games', getGames);
 router.get('/games-by-hashes', getGamesByHashes);
