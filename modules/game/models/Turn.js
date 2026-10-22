@@ -98,6 +98,10 @@ const schema = new Schema(
       type: String,
       required: false,
     },
+    audioTitle: {
+      trim: true,
+      type: String,
+    },
     pdfUrl: {
       type: String,
       required: false,
