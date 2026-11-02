@@ -2,8 +2,6 @@ const { default: axios } = require('axios');
 const { STATIC_MEDIA_URL } = require('../../../config/url');
 const { mediaRequestError } = require('../../game/services/mediaRelocate');
 const { getServiceToken } = require('../../game/services/game');
-const botConfig = require('../../../config/bot');
-const { describeBotLimits } = require('../services/botLimits');
 
 const STATS_OPERATION = 'stats';
 const FILES_OPERATION = 'list';
@@ -80,7 +78,7 @@ const getFiles = async (req, res, next) => {
   }
 };
 
-// Отчёт media пробрасывается как есть, лимиты бота — из конфигурации этого процесса.
+// Отчёт media пробрасывается как есть.
 const getLimits = async (req, res, next) => {
   try {
     let resp;
@@ -100,7 +98,6 @@ const getLimits = async (req, res, next) => {
     res.json({
       item: {
         media: resp.data,
-        bot: describeBotLimits(botConfig, process.env),
       },
     });
   } catch (err) {

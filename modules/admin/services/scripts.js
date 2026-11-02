@@ -1,7 +1,6 @@
 const SCRIPT_SYNC_DATABASE = 'SCRIPT_SYNC_DATABASE';
 const SCRIPT_ACCESS_LEVEL_INIT = 'SCRIPT_ACCESS_LEVEL_INIT';
 const SCRIPT_GAME_COMMON = 'SCRIPT_GAME_COMMON';
-const SCRIPT_BOT = 'SCRIPT_BOT';
 const SCRIPT_MEDIA = 'SCRIPT_MEDIA';
 const SCRIPT_TURN_CONTENT_TYPE = 'SCRIPT_TURN_CONTENT_TYPE';
 const SCRIPT_GAME_ADDRESS = 'SCRIPT_GAME_ADDRESS';
@@ -30,7 +29,6 @@ const {
   run: accessLevelRun,
 } = require('./scripts/AccessLevel');
 const { MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION } = require('../../../config/admin');
-const { checkTgCodes, removeTgCodesDuplicates } = require('./scripts/TgBot');
 const {
   check: mediaRelocateCheck,
   run: mediaRelocateRun,
@@ -89,25 +87,6 @@ const scripts = [
         modes: [MODE_DEVELOPMENT, MODE_LOCAL],
         confirm: true,
       },
-    ],
-  },
-  {
-    name: SCRIPT_BOT,
-    description: 'Управление ботом',
-    commands: [
-      {
-        name: 'checkTgUserCodes',
-        description: 'Проверка дублей кодов пользователей',
-        callback: checkTgCodes,
-        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
-      },
-      {
-        name: 'removeTgUserCodeDuplicates',
-        description: 'Удаление дублей кодов пользователей',
-        callback: removeTgCodesDuplicates,
-        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
-        confirm: true,
-      }
     ],
   },
   {

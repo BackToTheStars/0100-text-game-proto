@@ -2,10 +2,35 @@ const axios = require('axios');
 
 const { STATIC_MEDIA_URL } = require('../../../config/url');
 const { getError } = require('../../core/services/errors');
-// Переиспользуем готовый транспорт: media сам скачивает файл по URL и кладёт в GridFS,
-// возвращая новый src на текущем медиа-сервере (тот же путь, что использует бот).
-const { reverseDownloadMedia } = require('../../bot/lib/turnService');
 const { getServiceToken } = require('./game');
+
+// Потолок щедрый: media отвечает после полного скачивания (минуты), но у axios таймаута нет вовсе.
+// Он больше внутренних таймаутов media, чтобы доходил её ответ, а не наш обрыв.
+const REVERSE_DOWNLOAD_TIMEOUT = 10 * 60 * 1000;
+
+// media сама скачивает файл по URL, кладёт в GridFS и возвращает новый src на текущем медиа-сервере
+const reverseDownloadMedia = async (type, mediaUrl, hash, gameId) => {
+  const tokenStaticServer = getServiceToken('download_and_save', {
+    hash,
+    gameId,
+  });
+
+  const config = {
+    method: 'post',
+    url: STATIC_MEDIA_URL + `/${type}/download-and-save`,
+    headers: {
+      Authorization: 'Bearer ' + tokenStaticServer,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      mediaUrl,
+    },
+    timeout: REVERSE_DOWNLOAD_TIMEOUT,
+  };
+
+  const resp = await axios(config);
+  return resp.data.src;
+};
 
 // Типы медиа = сегменты путей media-сервиса (/images/, /videos/, /audios/, /pdfs/).
 const MEDIA_TYPE_IMAGES = 'images';

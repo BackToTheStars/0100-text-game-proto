@@ -18,7 +18,6 @@ const adminAuthRoutes = require('./modules/admin/routes/auth');
 const adminGamesRoutes = require('./modules/admin/routes/games');
 const adminTurnsRoutes = require('./modules/admin/routes/turns');
 const adminLogsRoutes = require('./modules/admin/routes/logs');
-const adminTgLogsRoutes = require('./modules/admin/routes/tg-logs');
 const adminMediaRoutes = require('./modules/admin/routes/media');
 
 const adminScriptsRoutes = require('./modules/admin/routes/scripts');
@@ -69,28 +68,6 @@ app.use(cors(corsOptionsDelegate));
 app.use(express.static('public'));
 app.use(express.json());
 
-if (process.env.BOT_MODE === 'hook') {
-  const bot = require('./bot');
-  const webhookPath = `/bot${process.env.BOT_TOKEN}`;
-  const secretToken = process.env.BOT_WEBHOOK_SECRET || undefined;
-
-  // server.js — единственный владелец webhook (bot.js в hook-режиме себя не запускает).
-  app.use(bot.webhookCallback(webhookPath, { secretToken }));
-
-  // Регистрируем webhook на выделенном домене (BOT_WEBHOOK_BASE_URL), с фолбэком на API_URL.
-  const base =
-    process.env.BOT_WEBHOOK_BASE_URL ||
-    process.env.API_URL ||
-    'http://localhost:3000';
-  bot.telegram
-    .setWebhook(
-      `${base}${webhookPath}`,
-      secretToken ? { secret_token: secretToken } : undefined
-    )
-    .then(() => console.log(`Webhook set: ${base}${webhookPath}`))
-    .catch((err) => console.error('setWebhook failed:', err.message));
-}
-
 // ADMIN ROUTES
 app.use('/admin/auth', adminAuthRoutes);
 const adminRoutes = {
@@ -102,7 +79,6 @@ const adminRoutes = {
   '/admin/snapshots': snapshotRoutes,
 
   '/admin/logs': adminLogsRoutes,
-  '/admin/tg-logs': adminTgLogsRoutes,
 
   '/admin/media': adminMediaRoutes,
 };

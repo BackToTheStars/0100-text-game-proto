@@ -5,27 +5,19 @@
   "main": "server.js",
   "dependencies": {
     "argon2": "^0.44.0",
-    "async-get-file": "^1.0.4",
     "axios": "^1.17.0",
     "cors": "^2.8.6",
     "dotenv": "^16.6.1",
     "express": "^4.22.2",
     "express-rate-limit": "^8.7.0",
-    "https-proxy-agent": "^9.1.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.24.0",
-    "telegraf": "^4.16.3",
-    "uniqid": "^5.4.0",
-    "winston": "^3.19.0",
-    "winston-mongodb": "^6.0.0",
-    "ws": "^8.21.3",
-    "xstate": "^5.32.0"
+    "ws": "^8.21.3"
   },
   "overrides": {
     "qs": "^6.16.0"
   },
   "scripts": {
-    "bot": "nodemon bot.js",
     "server": "nodemon server.js",
     "start": "node server.js",
     "test": "node --test \"tests/**/*.test.js\"",

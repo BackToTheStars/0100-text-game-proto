@@ -1,4 +1,4 @@
-# API + бот (webhook-режим): один контейнер, см. docs/deploy/02-core-services.md
+# API: один контейнер, см. docs/deploy/02-core-services.md
 # Node 22 LTS — единый стек со всеми сервисами (media, file-server).
 FROM node:22-alpine
 
