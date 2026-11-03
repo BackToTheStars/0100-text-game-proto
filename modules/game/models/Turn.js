@@ -102,6 +102,9 @@ const schema = new Schema(
       trim: true,
       type: String,
     },
+    markdown: {
+      type: String,
+    },
     pdfUrl: {
       type: String,
       required: false,
