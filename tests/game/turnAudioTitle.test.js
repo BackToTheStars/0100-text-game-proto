@@ -169,7 +169,9 @@ describe('audioTitle in the Turn schema', () => {
     const { items } = await call(getTurns, {
       query: { codes: 'aaaaaa:bbbbbbbb', mode: 'chrono' },
     });
-    assert.equal(find.mock.calls[0].arguments.length, 1);
+    // Лента отдаёт документ целиком, кроме рядов перевода (они растут с ходом).
+    const projection = find.mock.calls[0].arguments[1];
+    assert.ok(Object.values(projection).every((flag) => flag === false));
     assert.equal(items[0].audioTitle, 'Feed');
   });
 

@@ -27,6 +27,12 @@ const getGameIdsByCodesInfo = async (codesInfo) => {
   return games.map((g) => g._id);
 };
 
+// Лента показывает paragraph; ряды перевода растут с ходом и ей не нужны.
+const FEED_TURN_PROJECTION = {
+  rows: false,
+  rowsVersion: false,
+};
+
 const fields = {
   hash: true,
   name: true,
@@ -108,10 +114,13 @@ const getTurns = async (req, res, next) => {
     const allGameIds = games.map((game) => game._id);
 
     if (mode === 'chrono') {
-      const items = await Turn.find({
-        gameId: { $in: allGameIds },
-        contentType: { $nin: ['zero-point'] },
-      })
+      const items = await Turn.find(
+        {
+          gameId: { $in: allGameIds },
+          contentType: { $nin: ['zero-point'] },
+        },
+        FEED_TURN_PROJECTION
+      )
         .skip(skip)
         .limit(limit)
         .sort({ updatedAt: -1 });
@@ -160,6 +169,9 @@ const getTurns = async (req, res, next) => {
               },
               {
                 $limit: +turnLimit,
+              },
+              {
+                $project: FEED_TURN_PROJECTION,
               },
             ],
           },

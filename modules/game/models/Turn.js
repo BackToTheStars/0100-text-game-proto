@@ -105,6 +105,30 @@ const schema = new Schema(
     markdown: {
       type: String,
     },
+    // Ячейки перевода — md-исходники: без trim, ведущие пробелы и переводы
+    // строк значимы. Ряд меняется только через /turns/:id/rows.
+    rows: [
+      {
+        _id: false,
+        id: String,
+        left: String,
+        right: String,
+      },
+    ],
+    // Версия рядов: запись рядов идёт с фильтром по прочитанной версии и $inc,
+    // чтобы двое, правящие разные ряды, не затирали друг друга.
+    rowsVersion: {
+      type: Number,
+      default: 0,
+    },
+    languages: {
+      type: {
+        left: { type: String, trim: true },
+        right: { type: String, trim: true },
+      },
+      required: false,
+      _id: false,
+    },
     pdfUrl: {
       type: String,
       required: false,

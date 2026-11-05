@@ -66,7 +66,9 @@ app.use(cors(corsOptionsDelegate));
 // #local-network
 // app.use(cors());
 app.use(express.static('public'));
-app.use(express.json());
+// 5 МБ: большой ход создаётся одним запросом (копия, длинная статья); vhost API
+// на проде пропускает 6 МБ. Превышение — 413 { message } через обработчик ниже.
+app.use(express.json({ limit: '5mb' }));
 
 // ADMIN ROUTES
 app.use('/admin/auth', adminAuthRoutes);

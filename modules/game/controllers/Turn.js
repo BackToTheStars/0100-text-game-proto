@@ -2,7 +2,11 @@ const Turn = require('../models/Turn');
 const Game = require('../models/Game');
 const Line = require('../models/Line');
 const { requireCsvString } = require('../../core/services/queryParams');
+const { getError } = require('../../core/services/errors');
 const { GEOMETRY_FIELDS, toGeometryItem } = require('../services/turnsGeometry');
+const { applyRowOps } = require('../services/rows');
+
+const ROWS_WRITE_ATTEMPTS = 3;
 
 const getTurnsGeometry = async (req, res, next) => {
   try {
@@ -66,6 +70,51 @@ async function updateTurn(req, res, next) {
     }); // new true говорит отдать новую модель, а не старую
     const game = await Game.findById(gameId);
     await game.timeOfGameUpdate();
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Ряды хода перевода: операции применяются к свежим рядам, запись идёт с
+// фильтром по прочитанной версии; промах — перечитать и повторить.
+async function updateTurnRows(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { gameId } = req.gameInfo;
+    const ops = req.body;
+    for (let attempt = 0; attempt < ROWS_WRITE_ATTEMPTS; attempt += 1) {
+      const turn = await Turn.findOne(
+        { _id: id, gameId },
+        { rows: true, rowsVersion: true }
+      ).lean();
+      if (!turn) {
+        return next(getError('Turn not found', 404));
+      }
+      const rows = applyRowOps(turn.rows, ops);
+      // У хода, созданного до поля, версии нет: null в фильтре находит и её.
+      const rowsVersion = turn.rowsVersion === undefined ? null : turn.rowsVersion;
+      const written = await Turn.findOneAndUpdate(
+        { _id: id, gameId, rowsVersion },
+        { $set: { rows }, $inc: { rowsVersion: 1 } },
+        { new: true, projection: { rowsVersion: true } }
+      );
+      if (written) {
+        res.json({
+          success: true,
+          rowsVersion: written.rowsVersion,
+        });
+        const game = await Game.findById(gameId);
+        await game.timeOfGameUpdate();
+        return;
+      }
+    }
+    next(
+      getError(
+        'The rows of this turn were changed by someone else, try again',
+        409,
+        'rows-changed'
+      )
+    );
   } catch (error) {
     next(error);
   }
@@ -204,5 +253,6 @@ module.exports = {
   updateCoordinates,
   updateScrollPositions,
   updateTurn,
+  updateTurnRows,
   deleteTurn,
 };

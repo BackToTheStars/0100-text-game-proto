@@ -9,6 +9,7 @@ const TEMPLATE_CAROUSEL = 'carousel';
 const TEMPLATE_NEWS = 'news';
 const TEMPLATE_PICTURE_ONLY = 'picture-only';
 const TEMPLATE_MD = 'md';
+const TEMPLATE_TRANSLATION = 'translation';
 
 const WIDGET_PICTURE = 'picture';
 const WIDGET_PARAGRAPH = 'paragraph';
@@ -18,6 +19,7 @@ const WIDGET_AUDIO = 'audio';
 const WIDGET_SOURCE = 'source';
 const WIDGET_PDF = 'pdf';
 const WIDGET_MD = 'md';
+const WIDGET_TRANSLATION = 'translation';
 
 const AVAILABLE_TEMPLATES = [
   TEMPLATE_PICTURE,
@@ -27,6 +29,7 @@ const AVAILABLE_TEMPLATES = [
   TEMPLATE_PICTURE_ONLY,
   TEMPLATE_PDF,
   TEMPLATE_MD,
+  TEMPLATE_TRANSLATION,
 ];
 
 module.exports = {
@@ -41,6 +44,7 @@ module.exports = {
   TEMPLATE_NEWS,
   TEMPLATE_PICTURE_ONLY,
   TEMPLATE_MD,
+  TEMPLATE_TRANSLATION,
 
   AVAILABLE_TEMPLATES,
 
@@ -52,4 +56,5 @@ module.exports = {
   WIDGET_SOURCE,
   WIDGET_PDF,
   WIDGET_MD,
+  WIDGET_TRANSLATION,
 };
