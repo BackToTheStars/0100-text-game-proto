@@ -4,6 +4,7 @@ const GEOMETRY_FIELDS = {
   y: true,
   width: true,
   height: true,
+  z: true,
   contentType: true,
   createdAt: true,
 };
@@ -17,7 +18,7 @@ const toIsoDate = (value) => {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 };
 
-const toGeometryItem = ({ _id, x, y, width, height, contentType, createdAt }) => ({
+const toGeometryItem = ({ _id, x, y, z, width, height, contentType, createdAt }) => ({
   _id,
   contentType,
   position: {
@@ -28,6 +29,7 @@ const toGeometryItem = ({ _id, x, y, width, height, contentType, createdAt }) =>
     width,
     height,
   },
+  z: typeof z === 'number' && Number.isFinite(z) ? z : 0,
   createdAt: toIsoDate(createdAt),
 });
 

@@ -44,6 +44,10 @@ const schema = new Schema(
       type: Number,
       required: true,
     },
+    // Порядок наложения; нет поля — 0.
+    z: {
+      type: Number,
+    },
     scrollPosition: {
       type: Number,
       required: false, // temp bug

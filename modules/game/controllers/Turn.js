@@ -194,12 +194,13 @@ async function updateCoordinates(req, res, next) {
     const { turns = [] } = req.body;
 
     const updates = turns.map((turn) => {
-      const { _id, x, y, height, width, scrollPosition, splitHeight } = turn;
+      const { _id, x, y, z, height, width, scrollPosition, splitHeight } = turn;
       const $set = {};
       setIfNumber($set, 'x', x);
       setIfNumber($set, 'y', y);
       setIfNumber($set, 'height', height);
       setIfNumber($set, 'width', width);
+      setIfNumber($set, 'z', z);
       // клиент шлёт сюда только геометрию (см. saveField), а позиция скролла
       // приходит отдельным запросом /turns/scroll-positions — присваивать
       // undefined нельзя, иначе сохранённый скролл стирается
