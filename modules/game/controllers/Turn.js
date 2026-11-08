@@ -4,9 +4,12 @@ const Line = require('../models/Line');
 const { requireCsvString } = require('../../core/services/queryParams');
 const { getError } = require('../../core/services/errors');
 const { GEOMETRY_FIELDS, toGeometryItem } = require('../services/turnsGeometry');
-const { applyRowOps } = require('../services/rows');
+const { applyTurnOps, changesRows } = require('../services/turnOps');
 
-const ROWS_WRITE_ATTEMPTS = 3;
+const OPS_WRITE_ATTEMPTS = 3;
+
+// Ряды и их версия пишутся только операциями: иначе запись прошла бы мимо версии.
+const OPS_ONLY_KEYS = ['rows', 'opsVersion', 'rowsVersion'];
 
 const getTurnsGeometry = async (req, res, next) => {
   try {
@@ -53,6 +56,15 @@ async function updateTurn(req, res, next) {
     const { id } = req.params;
     const { gameId } = req.gameInfo;
     const turn = req.body;
+    const refused = OPS_ONLY_KEYS.find((key) => Object.hasOwn(turn || {}, key));
+    if (refused) {
+      return next(
+        getError(
+          `«${refused}» is not accepted here: rows are written by POST /turns/:id/ops`,
+          400
+        )
+      );
+    }
     const turnModel = await Turn.findOneAndUpdate(
       {
         gameId,
@@ -63,7 +75,7 @@ async function updateTurn(req, res, next) {
         _id: id,
         gameId,
       },
-      { new: true }
+      { new: true, projection: { rows: false } }
     ); //функция ищет по ид и апдейтит
     res.json({
       item: turnModel,
@@ -75,33 +87,34 @@ async function updateTurn(req, res, next) {
   }
 }
 
-// Ряды хода перевода: операции применяются к свежим рядам, запись идёт с
-// фильтром по прочитанной версии; промах — перечитать и повторить.
-async function updateTurnRows(req, res, next) {
+// Операции применяются к свежему ходу, запись идёт с фильтром по прочитанной
+// версии; промах — перечитать и повторить.
+async function applyTurnOperations(req, res, next) {
   try {
     const { id } = req.params;
     const { gameId } = req.gameInfo;
-    const ops = req.body;
-    for (let attempt = 0; attempt < ROWS_WRITE_ATTEMPTS; attempt += 1) {
+    const { ops } = req.body || {};
+    for (let attempt = 0; attempt < OPS_WRITE_ATTEMPTS; attempt += 1) {
       const turn = await Turn.findOne(
         { _id: id, gameId },
-        { rows: true, rowsVersion: true }
+        { rows: true, opsVersion: true }
       ).lean();
       if (!turn) {
         return next(getError('Turn not found', 404));
       }
-      const rows = applyRowOps(turn.rows, ops);
-      // У хода, созданного до поля, версии нет: null в фильтре находит и её.
-      const rowsVersion = turn.rowsVersion === undefined ? null : turn.rowsVersion;
+      const { rows, fields } = applyTurnOps(turn, ops);
+      const $set = changesRows(ops) ? { ...fields, rows } : fields;
+      // У хода, созданного до поля, версии нет: null в фильтре находит и его.
+      const opsVersion = turn.opsVersion ?? null;
       const written = await Turn.findOneAndUpdate(
-        { _id: id, gameId, rowsVersion },
-        { $set: { rows }, $inc: { rowsVersion: 1 } },
-        { new: true, projection: { rowsVersion: true } }
+        { _id: id, gameId, opsVersion },
+        { $set, $inc: { opsVersion: 1 } },
+        { new: true, projection: { opsVersion: true } }
       );
       if (written) {
         res.json({
           success: true,
-          rowsVersion: written.rowsVersion,
+          version: written.opsVersion,
         });
         const game = await Game.findById(gameId);
         await game.timeOfGameUpdate();
@@ -110,9 +123,9 @@ async function updateTurnRows(req, res, next) {
     }
     next(
       getError(
-        'The rows of this turn were changed by someone else, try again',
+        'The turn was changed by someone else, try again',
         409,
-        'rows-changed'
+        'turn-changed'
       )
     );
   } catch (error) {
@@ -148,6 +161,7 @@ async function createTurn(req, res, next) {
     const { gameId } = req.gameInfo;
     let turn = req.body; // деструктуризатор
     delete turn._id;
+    delete turn.opsVersion;
     const turnModel = new Turn({
       ...turn,
       gameId,
@@ -254,6 +268,6 @@ module.exports = {
   updateCoordinates,
   updateScrollPositions,
   updateTurn,
-  updateTurnRows,
+  applyTurnOperations,
   deleteTurn,
 };

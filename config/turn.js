@@ -21,6 +21,9 @@ const WIDGET_PDF = 'pdf';
 const WIDGET_MD = 'md';
 const WIDGET_TRANSLATION = 'translation';
 
+// Больше операций над ходом в одном запросе сервер не принимает.
+const TURN_OPS_MAX = 500;
+
 const AVAILABLE_TEMPLATES = [
   TEMPLATE_PICTURE,
   TEMPLATE_VIDEO,
@@ -47,6 +50,7 @@ module.exports = {
   TEMPLATE_TRANSLATION,
 
   AVAILABLE_TEMPLATES,
+  TURN_OPS_MAX,
 
   WIDGET_PICTURE,
   WIDGET_PARAGRAPH,

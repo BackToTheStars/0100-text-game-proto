@@ -8,7 +8,7 @@ const {
   updateCoordinates,
   updateScrollPositions,
   updateTurn,
-  updateTurnRows,
+  applyTurnOperations,
   deleteTurn,
 } = require('../controllers/Turn');
 const { rulesEndpoint } = require('../middlewares/games');
@@ -22,7 +22,7 @@ router.put(
   rulesEndpoint(RULE_TURNS_CRUD),
   updateScrollPositions
 );
-router.put('/:id/rows', rulesEndpoint(RULE_TURNS_CRUD), updateTurnRows);
+router.post('/:id/ops', rulesEndpoint(RULE_TURNS_CRUD), applyTurnOperations);
 router.put('/:id', rulesEndpoint(RULE_TURNS_CRUD), updateTurn);
 router.delete('/:id', rulesEndpoint(RULE_TURNS_CRUD), deleteTurn);
 

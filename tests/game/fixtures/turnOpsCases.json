@@ -1,0 +1,264 @@
+{
+  "about": "Shared cases of turn operations: applyTurnOps(turn, ops) -> { rows, fields } or an error with status 400. The same file is copied into the tests of server and brain-e2e.",
+  "cases": [
+    {
+      "name": "row.set replaces only the given side",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "" }, { "id": "r2", "left": "two", "right": "zwei" }] },
+      "ops": [{ "op": "row.set", "id": "r1", "right": "eins" }],
+      "expect": { "rows": [{ "id": "r1", "left": "one", "right": "eins" }, { "id": "r2", "left": "two", "right": "zwei" }] }
+    },
+    {
+      "name": "row.set with both sides, an empty string is a value",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "eins" }] },
+      "ops": [{ "op": "row.set", "id": "r1", "left": "ONE", "right": "" }],
+      "expect": { "rows": [{ "id": "r1", "left": "ONE", "right": "" }] }
+    },
+    {
+      "name": "row.set of a missing row recreates it at the end",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "" }] },
+      "ops": [{ "op": "row.set", "id": "gone", "right": "text" }],
+      "expect": { "rows": [{ "id": "r1", "left": "one", "right": "" }, { "id": "gone", "left": "", "right": "text" }] }
+    },
+    {
+      "name": "row.insert after an existing row",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "" }, { "id": "r2", "left": "two", "right": "" }] },
+      "ops": [{ "op": "row.insert", "after": "r1", "row": { "id": "n1", "left": "new", "right": "neu" } }],
+      "expect": {
+        "rows": [
+          { "id": "r1", "left": "one", "right": "" },
+          { "id": "n1", "left": "new", "right": "neu" },
+          { "id": "r2", "left": "two", "right": "" }
+        ]
+      }
+    },
+    {
+      "name": "row.insert with after null goes to the beginning",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "" }] },
+      "ops": [{ "op": "row.insert", "after": null, "row": { "id": "n1", "left": "first" } }],
+      "expect": { "rows": [{ "id": "n1", "left": "first", "right": "" }, { "id": "r1", "left": "one", "right": "" }] }
+    },
+    {
+      "name": "row.insert after an unknown row goes to the end",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "" }] },
+      "ops": [{ "op": "row.insert", "after": "gone", "row": { "id": "n1", "left": "last" } }],
+      "expect": { "rows": [{ "id": "r1", "left": "one", "right": "" }, { "id": "n1", "left": "last", "right": "" }] }
+    },
+    {
+      "name": "row.insert of an existing id works as row.set and keeps the place",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "eins" }, { "id": "r2", "left": "two", "right": "" }] },
+      "ops": [{ "op": "row.insert", "after": "r2", "row": { "id": "r1", "left": "ONE" } }],
+      "expect": { "rows": [{ "id": "r1", "left": "ONE", "right": "eins" }, { "id": "r2", "left": "two", "right": "" }] }
+    },
+    {
+      "name": "row.insert without sides makes an empty row",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "" }] },
+      "ops": [{ "op": "row.insert", "after": "r1", "row": { "id": "n1" } }],
+      "expect": { "rows": [{ "id": "r1", "left": "one", "right": "" }, { "id": "n1", "left": "", "right": "" }] }
+    },
+    {
+      "name": "row.insert into a turn without rows",
+      "turn": {},
+      "ops": [{ "op": "row.insert", "after": null, "row": { "id": "n1", "left": "first", "right": "" } }],
+      "expect": { "rows": [{ "id": "n1", "left": "first", "right": "" }] }
+    },
+    {
+      "name": "row.remove of an existing row",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "" }, { "id": "r2", "left": "two", "right": "" }] },
+      "ops": [{ "op": "row.remove", "id": "r1" }],
+      "expect": { "rows": [{ "id": "r2", "left": "two", "right": "" }] }
+    },
+    {
+      "name": "row.remove of an unknown row is not an error",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "" }] },
+      "ops": [{ "op": "row.remove", "id": "gone" }],
+      "expect": { "rows": [{ "id": "r1", "left": "one", "right": "" }] }
+    },
+    {
+      "name": "operations run in order: insert, then set of the same row",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "" }] },
+      "ops": [
+        { "op": "row.insert", "after": "r1", "row": { "id": "n1", "left": "new" } },
+        { "op": "row.set", "id": "n1", "right": "neu" }
+      ],
+      "expect": { "rows": [{ "id": "r1", "left": "one", "right": "" }, { "id": "n1", "left": "new", "right": "neu" }] }
+    },
+    {
+      "name": "operations run in order: remove, then set recreates the row at the end",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "eins" }, { "id": "r2", "left": "two", "right": "" }] },
+      "ops": [
+        { "op": "row.remove", "id": "r1" },
+        { "op": "row.set", "id": "r1", "left": "again" }
+      ],
+      "expect": { "rows": [{ "id": "r2", "left": "two", "right": "" }, { "id": "r1", "left": "again", "right": "" }] }
+    },
+    {
+      "name": "two new rows in a chain",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "" }, { "id": "r2", "left": "two", "right": "" }] },
+      "ops": [
+        { "op": "row.insert", "after": "r1", "row": { "id": "n1", "left": "a" } },
+        { "op": "row.insert", "after": "n1", "row": { "id": "n2", "left": "b" } }
+      ],
+      "expect": {
+        "rows": [
+          { "id": "r1", "left": "one", "right": "" },
+          { "id": "n1", "left": "a", "right": "" },
+          { "id": "n2", "left": "b", "right": "" },
+          { "id": "r2", "left": "two", "right": "" }
+        ]
+      }
+    },
+    {
+      "name": "new rows saved bottom-up, each after the nearest saved row above",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "" }, { "id": "r2", "left": "two", "right": "" }] },
+      "ops": [
+        { "op": "row.insert", "after": "r1", "row": { "id": "n2", "left": "b" } },
+        { "op": "row.insert", "after": "r1", "row": { "id": "n1", "left": "a" } }
+      ],
+      "expect": {
+        "rows": [
+          { "id": "r1", "left": "one", "right": "" },
+          { "id": "n1", "left": "a", "right": "" },
+          { "id": "n2", "left": "b", "right": "" },
+          { "id": "r2", "left": "two", "right": "" }
+        ]
+      }
+    },
+    {
+      "name": "fields.set leaves the rows alone",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "" }], "header": "old" },
+      "ops": [
+        {
+          "op": "fields.set",
+          "fields": { "header": "new", "dontShowHeader": false, "languages": { "left": "en", "right": "ru" }, "paragraph": [{ "insert": "one\n" }] }
+        }
+      ],
+      "expect": {
+        "rows": [{ "id": "r1", "left": "one", "right": "" }],
+        "fields": { "header": "new", "dontShowHeader": false, "languages": { "left": "en", "right": "ru" }, "paragraph": [{ "insert": "one\n" }] }
+      }
+    },
+    {
+      "name": "a row operation and the preview in one request",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "" }] },
+      "ops": [
+        { "op": "row.set", "id": "r1", "left": "ONE" },
+        { "op": "fields.set", "fields": { "paragraph": [{ "insert": "ONE\n" }] } }
+      ],
+      "expect": { "rows": [{ "id": "r1", "left": "ONE", "right": "" }], "fields": { "paragraph": [{ "insert": "ONE\n" }] } }
+    },
+    {
+      "name": "several fields.set merge, the later value wins",
+      "turn": { "rows": [] },
+      "ops": [
+        { "op": "fields.set", "fields": { "header": "a", "sourceUrl": "https://example.org" } },
+        { "op": "fields.set", "fields": { "header": "b", "date": null } }
+      ],
+      "expect": { "rows": [], "fields": { "header": "b", "sourceUrl": "https://example.org", "date": null } }
+    },
+    {
+      "name": "date and source may be cleared with null",
+      "turn": { "rows": [] },
+      "ops": [{ "op": "fields.set", "fields": { "date": null, "sourceUrl": null } }],
+      "expect": { "rows": [], "fields": { "date": null, "sourceUrl": null } }
+    },
+    {
+      "name": "broken stored rows are dropped, a repeated id keeps the first",
+      "turn": { "rows": [{ "id": "r1", "left": "one" }, null, { "id": "", "left": "x" }, { "id": "r1", "left": "dup" }] },
+      "ops": [{ "op": "row.set", "id": "r1", "right": "eins" }],
+      "expect": { "rows": [{ "id": "r1", "left": "one", "right": "eins" }] }
+    },
+    {
+      "name": "error: empty list of operations",
+      "turn": { "rows": [] },
+      "ops": [],
+      "expect": { "error": 400 }
+    },
+    {
+      "name": "error: operations are not a list",
+      "turn": { "rows": [] },
+      "ops": { "op": "row.remove", "id": "r1" },
+      "expect": { "error": 400 }
+    },
+    {
+      "name": "error: unknown operation",
+      "turn": { "rows": [] },
+      "ops": [{ "op": "row.move", "id": "r1", "after": null }],
+      "expect": { "error": 400 }
+    },
+    {
+      "name": "error: row.set without a side",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "" }] },
+      "ops": [{ "op": "row.set", "id": "r1" }],
+      "expect": { "error": 400 }
+    },
+    {
+      "name": "error: a side is not a string",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "" }] },
+      "ops": [{ "op": "row.set", "id": "r1", "left": 5 }],
+      "expect": { "error": 400 }
+    },
+    {
+      "name": "error: row.set with an empty id",
+      "turn": { "rows": [] },
+      "ops": [{ "op": "row.set", "id": "", "left": "x" }],
+      "expect": { "error": 400 }
+    },
+    {
+      "name": "error: row.insert without the after key",
+      "turn": { "rows": [] },
+      "ops": [{ "op": "row.insert", "row": { "id": "n1", "left": "x" } }],
+      "expect": { "error": 400 }
+    },
+    {
+      "name": "error: row.insert without a row id",
+      "turn": { "rows": [] },
+      "ops": [{ "op": "row.insert", "after": null, "row": { "left": "x" } }],
+      "expect": { "error": 400 }
+    },
+    {
+      "name": "error: row.remove with a non-string id",
+      "turn": { "rows": [] },
+      "ops": [{ "op": "row.remove", "id": 7 }],
+      "expect": { "error": 400 }
+    },
+    {
+      "name": "error: fields.set with a field outside the list",
+      "turn": { "rows": [] },
+      "ops": [{ "op": "fields.set", "fields": { "rows": [] } }],
+      "expect": { "error": 400 }
+    },
+    {
+      "name": "error: fields.set with the content type",
+      "turn": { "rows": [] },
+      "ops": [{ "op": "fields.set", "fields": { "header": "ok", "contentType": "picture" } }],
+      "expect": { "error": 400 }
+    },
+    {
+      "name": "error: fields.set without fields",
+      "turn": { "rows": [] },
+      "ops": [{ "op": "fields.set", "fields": {} }],
+      "expect": { "error": 400 }
+    },
+    {
+      "name": "error: languages with a foreign key",
+      "turn": { "rows": [] },
+      "ops": [{ "op": "fields.set", "fields": { "languages": { "left": "en", "middle": "de" } } }],
+      "expect": { "error": 400 }
+    },
+    {
+      "name": "error: paragraph is not a list",
+      "turn": { "rows": [] },
+      "ops": [{ "op": "fields.set", "fields": { "paragraph": "text" } }],
+      "expect": { "error": 400 }
+    },
+    {
+      "name": "error: a valid operation followed by a broken one applies nothing",
+      "turn": { "rows": [{ "id": "r1", "left": "one", "right": "" }] },
+      "ops": [
+        { "op": "row.set", "id": "r1", "left": "ONE" },
+        { "op": "row.remove" }
+      ],
+      "expect": { "error": 400 }
+    }
+  ]
+}

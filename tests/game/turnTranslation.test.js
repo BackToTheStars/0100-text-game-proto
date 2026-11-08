@@ -6,7 +6,8 @@ const Turn = require('../../modules/game/models/Turn');
 const Game = require('../../modules/game/models/Game');
 const {
   createTurn,
-  updateTurnRows,
+  getTurnsByIds,
+  updateTurn,
 } = require('../../modules/game/controllers/Turn');
 const { getTurns } = require('../../modules/lobby/controllers/LobbyController');
 const {
@@ -15,8 +16,8 @@ const {
   WIDGET_TRANSLATION,
 } = require('../../config/turn');
 
-// Ход перевода в схеме Turn и PUT /turns/:id/rows без базы: коллекция модели
-// подменена, как в turnMarkdown.test.js. Запуск: npm test.
+// Ход перевода в схеме Turn, лента лобби и PUT /turns/:id без базы: коллекция
+// модели подменена, как в turnMarkdown.test.js. Запуск: npm test.
 
 const gameId = '66a3da300b474f60ae07d6d0';
 const turnId = '66a3da300b474f60ae07d6d1';
@@ -97,7 +98,14 @@ describe('translation turn in the Turn schema', () => {
     assert.equal(item.contentType, 'translation');
     assert.deepEqual(item.rows, ROWS);
     assert.deepEqual(asJson(stored.rows), ROWS);
-    assert.equal(item.rowsVersion, 0);
+    assert.equal(item.opsVersion, 0);
+  });
+
+  it('create ignores a version sent in the body', async () => {
+    const { item } = await create(body({ opsVersion: 9, rowsVersion: 7 }));
+    assert.equal(item.opsVersion, 0);
+    assert.equal(stored.opsVersion, 0);
+    assert.equal('rowsVersion' in stored, false);
   });
 
   it('create trims the languages and keeps them as a plain pair', async () => {
@@ -120,8 +128,8 @@ describe('translation turn in the Turn schema', () => {
     assert.deepEqual(item.rows, []);
   });
 
-  it('the lobby feed leaves rows and their version out, nothing else', async () => {
-    const doc = Turn.hydrate({ ...body(), _id: turnId, rowsVersion: 3 });
+  it('the lobby feed leaves rows and the version out, nothing else', async () => {
+    const doc = Turn.hydrate({ ...body(), _id: turnId, opsVersion: 3 });
     mock.method(Game, 'find', () =>
       lookup([{ _id: new mongoose.Types.ObjectId(gameId) }])
     );
@@ -130,12 +138,12 @@ describe('translation turn in the Turn schema', () => {
       query: { codes: 'aaaaaa:bbbbbbbb', mode: 'chrono' },
     });
     const projection = find.mock.calls[0].arguments[1];
-    assert.deepEqual(projection, { rows: false, rowsVersion: false });
+    assert.deepEqual(projection, { rows: false, opsVersion: false });
     assert.equal(items[0].header, 'Header');
     assert.equal(items[0].paragraph[0].insert, 'Title\n');
   });
 
-  it('the by-game feed projects rows and their version out of the lookup', async () => {
+  it('the by-game feed projects rows and the version out of the lookup', async () => {
     mock.method(Game, 'find', () =>
       lookup([{ _id: new mongoose.Types.ObjectId(gameId) }])
     );
@@ -146,166 +154,106 @@ describe('translation turn in the Turn schema', () => {
     const pipe = aggregate.mock.calls[0].arguments[0];
     const lookupStage = pipe.find((stage) => stage.$lookup).$lookup;
     const project = lookupStage.pipeline.find((stage) => stage.$project);
-    assert.deepEqual(project.$project, { rows: false, rowsVersion: false });
+    assert.deepEqual(project.$project, { rows: false, opsVersion: false });
+  });
+
+  it('the canvas load carries the rows and the version', async () => {
+    const docs = [
+      Turn.hydrate({ ...body(), _id: turnId, opsVersion: 3 }),
+      Turn.hydrate({ ...body(), _id: '66a3da300b474f60ae07d6d2' }),
+    ];
+    const find = mock.method(Turn, 'find', () => lookup(docs));
+    const { items } = await call(getTurnsByIds, {
+      gameInfo: { gameId },
+      query: {},
+    });
+    const projection = find.mock.calls[0].arguments[1];
+    assert.equal('rows' in projection, false);
+    assert.equal('opsVersion' in projection, false);
+    assert.deepEqual(items[0].rows, ROWS);
+    assert.equal(items[0].opsVersion, 3);
+    // Ход, записанный до поля, отдаётся с версией 0.
+    assert.equal(items[1].opsVersion, 0);
   });
 });
 
-describe('PUT /turns/:id/rows', () => {
+describe('PUT /turns/:id', () => {
   let stored;
-  let reads;
   let writes;
   let gameUpdated;
 
-  const seed = (extra = {}) => {
-    stored = {
-      ...body(),
-      _id: new mongoose.Types.ObjectId(turnId),
-      gameId: new mongoose.Types.ObjectId(gameId),
-      rowsVersion: 5,
-      ...extra,
-    };
-  };
-
-  const stripUndefined = (value) => JSON.parse(JSON.stringify(value));
-
   beforeEach(() => {
-    reads = 0;
     writes = [];
     gameUpdated = 0;
-    seed();
+    stored = {
+      ...body({ languages: { left: 'en', right: 'ru' } }),
+      _id: new mongoose.Types.ObjectId(turnId),
+      gameId: new mongoose.Types.ObjectId(gameId),
+      opsVersion: 5,
+    };
     mock.method(Game, 'findById', async () => ({
       timeOfGameUpdate: async () => {
         gameUpdated += 1;
       },
     }));
-    mock.method(Turn.collection, 'findOne', async () => {
-      reads += 1;
-      return stored && stripUndefined(stored);
-    });
-    mock.method(Turn.collection, 'findOneAndUpdate', async (filter, update) => {
-      writes.push({ filter: stripUndefined(filter), update: stripUndefined(update) });
-      const current = stored.rowsVersion === undefined ? null : stored.rowsVersion;
-      if (filter.rowsVersion !== current) {
-        return null;
+    mock.method(
+      Turn.collection,
+      'findOneAndUpdate',
+      async (filter, update, { projection = {} }) => {
+        writes.push({ filter, update, projection });
+        stored = { ...stored, ...update.$set };
+        const answer = { ...stored };
+        for (const [key, shown] of Object.entries(projection)) {
+          if (!shown) {
+            delete answer[key];
+          }
+        }
+        return answer;
       }
-      stored = stripUndefined({
-        ...stored,
-        ...update.$set,
-        rowsVersion: (stored.rowsVersion || 0) + update.$inc.rowsVersion,
-      });
-      return stored;
-    });
+    );
   });
 
   afterEach(() => {
     mock.restoreAll();
   });
 
-  const put = (ops) =>
-    call(updateTurnRows, {
+  const put = (turn) =>
+    call(updateTurn, {
       gameInfo: { gameId },
       params: { id: turnId },
-      body: ops,
+      body: turn,
     });
 
-  it('applies the operations to the stored rows and bumps the version', async () => {
-    const result = await put({
-      upsert: [{ id: 'r2', right: 'перевод' }, { id: 'r3', left: 'new' }],
-    });
-    assert.deepEqual(result, { success: true, rowsVersion: 6 });
-    assert.equal(reads, 1);
-    assert.equal(writes.length, 1);
-    assert.deepEqual(writes[0].filter.rowsVersion, 5);
-    assert.deepEqual(writes[0].update.$inc, { rowsVersion: 1 });
-    assert.deepEqual(stored.rows, [
-      { id: 'r1', left: ROWS[0].left, right: ROWS[0].right },
-      { id: 'r2', left: ROWS[1].left, right: 'перевод' },
-      { id: 'r3', left: 'new', right: '' },
-    ]);
-    assert.equal(stored.rowsVersion, 6);
+  it('answers without the rows, the other fields are in place', async () => {
+    const { item } = await put({ header: 'New header', x: 96 });
+    assert.deepEqual(writes[0].projection, { rows: false });
+    assert.equal('rows' in item, false);
+    assert.equal(item.header, 'New header');
+    assert.equal(item.x, 96);
+    assert.equal(item.opsVersion, 5);
+    assert.deepEqual(item.languages, { left: 'en', right: 'ru' });
+    assert.equal(item.paragraph[0].insert, 'Title\n');
+    assert.deepEqual(stored.rows, ROWS);
     assert.equal(gameUpdated, 1);
   });
 
-  it('writes only rows and the version, scoped to the game', async () => {
-    await put({ remove: ['r1'] });
-    const { $set, $inc, ...rest } = writes[0].update;
-    // $setOnInsert.createdAt добавляют timestamps mongoose; без upsert он не пишет.
-    assert.deepEqual(Object.keys(rest), ['$setOnInsert']);
-    assert.deepEqual(Object.keys($set).sort(), ['rows', 'updatedAt']);
-    assert.deepEqual($inc, { rowsVersion: 1 });
-    assert.equal(String(writes[0].filter.gameId), gameId);
-    assert.equal(String(writes[0].filter._id), turnId);
+  it('refuses a body with the rows or a version and writes nothing', async () => {
+    const bodies = [
+      { header: 'x', rows: [{ id: 'r1', left: 'overwritten', right: '' }] },
+      { header: 'x', rows: [] },
+      { header: 'x', opsVersion: 0 },
+      { header: 'x', rowsVersion: 6 },
+    ];
+    for (const turn of bodies) {
+      await assert.rejects(
+        put(turn),
+        (error) =>
+          error.statusCode === 400 && /is not accepted here/.test(error.message),
+        JSON.stringify(turn)
+      );
+    }
+    assert.equal(writes.length, 0);
+    assert.equal(gameUpdated, 0);
     assert.equal(stored.header, 'Header');
-  });
-
-  it('retries on a version miss and succeeds on the fresh rows', async () => {
-    let bumped = false;
-    mock.method(Turn.collection, 'findOne', async () => {
-      reads += 1;
-      if (!bumped) {
-        // Между чтением и записью другой игрок добавил ряд и поднял версию.
-        bumped = true;
-        const snapshot = stripUndefined(stored);
-        stored = {
-          ...stored,
-          rows: [...stored.rows, { id: 'other', left: 'theirs', right: '' }],
-          rowsVersion: stored.rowsVersion + 1,
-        };
-        return snapshot;
-      }
-      return stripUndefined(stored);
-    });
-    const result = await put({ upsert: [{ id: 'r1', left: 'mine' }] });
-    assert.deepEqual(result, { success: true, rowsVersion: 7 });
-    assert.equal(reads, 2);
-    assert.equal(writes.length, 2);
-    assert.equal(writes[0].filter.rowsVersion, 5);
-    assert.equal(writes[1].filter.rowsVersion, 6);
-    assert.deepEqual(
-      stored.rows.map((row) => [row.id, row.left]),
-      [['r1', 'mine'], ['r2', ROWS[1].left], ['other', 'theirs']]
-    );
-  });
-
-  it('gives up with 409 after three misses', async () => {
-    mock.method(Turn.collection, 'findOneAndUpdate', async () => null);
-    await assert.rejects(
-      put({ upsert: [{ id: 'r1', left: 'mine' }] }),
-      (error) =>
-        error.statusCode === 409 &&
-        error.errorCode === 'rows-changed' &&
-        /changed by someone else/.test(error.message)
-    );
-    assert.equal(reads, 3);
-    assert.equal(gameUpdated, 0);
-  });
-
-  it('a turn created before the version field is matched by null', async () => {
-    seed({ rowsVersion: undefined });
-    const result = await put({ upsert: [{ id: 'r1', right: 'x' }] });
-    assert.equal(writes[0].filter.rowsVersion, null);
-    assert.deepEqual(result, { success: true, rowsVersion: 1 });
-  });
-
-  it('answers 404 when the turn is not in the game', async () => {
-    stored = null;
-    await assert.rejects(
-      put({ remove: ['r1'] }),
-      (error) => error.statusCode === 404
-    );
-    assert.equal(writes.length, 0);
-  });
-
-  it('answers 400 on a malformed body without touching the turn', async () => {
-    await assert.rejects(
-      put({ upsert: [{ id: 'r1' }], order: ['r1'] }),
-      (error) => error.statusCode === 400 && /order/.test(error.message)
-    );
-    await assert.rejects(
-      put({}),
-      (error) => error.statusCode === 400
-    );
-    assert.equal(writes.length, 0);
-    assert.equal(gameUpdated, 0);
   });
 });

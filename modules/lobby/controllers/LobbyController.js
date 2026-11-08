@@ -30,7 +30,7 @@ const getGameIdsByCodesInfo = async (codesInfo) => {
 // Лента показывает paragraph; ряды перевода растут с ходом и ей не нужны.
 const FEED_TURN_PROJECTION = {
   rows: false,
-  rowsVersion: false,
+  opsVersion: false,
 };
 
 const fields = {
