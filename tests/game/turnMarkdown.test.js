@@ -61,10 +61,12 @@ describe('markdown turn in the Turn schema', () => {
       stored = doc;
       return { acknowledged: true, insertedId: doc._id };
     });
-    mock.method(Turn.collection, 'findOneAndUpdate', async (filter, update) => {
-      updates.push({ filter, update });
+    mock.method(Turn.collection, 'findOneAndUpdate', async (filter, update, { projection }) => {
+      updates.push({ filter, update, projection });
       stored = { ...stored, ...update.$set };
-      return stored;
+      const result = { ...stored };
+      for (const [key, included] of Object.entries(projection)) if (!included) delete result[key];
+      return result;
     });
   });
 
@@ -107,7 +109,7 @@ describe('markdown turn in the Turn schema', () => {
     assert.equal(stored, null);
   });
 
-  it('update sets the source as is', async () => {
+  it('update stores the source as is and omits it from the response', async () => {
     stored = { ...body({ markdown: 'old' }), _id: turnId };
     const { item } = await call(updateTurn, {
       gameInfo: { gameId },
@@ -115,6 +117,7 @@ describe('markdown turn in the Turn schema', () => {
       body: body(),
     });
     assert.equal(updates[0].update.$set.markdown, SOURCE);
-    assert.equal(item.markdown, SOURCE);
+    assert.equal(stored.markdown, SOURCE);
+    assert.equal('markdown' in item, false);
   });
 });

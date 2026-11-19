@@ -8,8 +8,14 @@ const { applyTurnOps, changesRows } = require('../services/turnOps');
 
 const OPS_WRITE_ATTEMPTS = 3;
 
-// Ряды и их версия пишутся только операциями: иначе запись прошла бы мимо версии.
-const OPS_ONLY_KEYS = ['rows', 'opsVersion', 'rowsVersion'];
+// Верхнеуровневые поля обычной правки. Ряды и версия принадлежат маршруту операций.
+const EDITABLE_TURN_FIELDS = new Set([
+  'header', 'dontShowHeader', 'date', 'sourceUrl', 'paragraph', 'markdown', 'languages',
+  'contentType', 'backgroundColor', 'fontColor', 'pictureOnly', 'quotes', 'imageUrl',
+  'videoUrl', 'videoPreview', 'videoQuotes', 'audioUrl', 'audioTitle', 'audioQuotes',
+  'pdfUrl', 'pdfCrop', 'x', 'y', 'z', 'width', 'height', 'scrollPosition', 'splitHeight',
+  'compressed', 'compressedHeight', 'uncompressedHeight',
+]);
 
 const getTurnsGeometry = async (req, res, next) => {
   try {
@@ -55,31 +61,21 @@ async function updateTurn(req, res, next) {
   try {
     const { id } = req.params;
     const { gameId } = req.gameInfo;
-    const turn = req.body;
-    const refused = OPS_ONLY_KEYS.find((key) => Object.hasOwn(turn || {}, key));
-    if (refused) {
-      return next(
-        getError(
-          `«${refused}» is not accepted here: rows are written by POST /turns/:id/ops`,
-          400
-        )
-      );
+    if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
+      return next(getError('Expected a turn object', 400));
+    }
+    // Форма передаёт _id и в теле. Ход определяется маршрутом и игрой из токена.
+    const { _id, ...fields } = req.body;
+    for (const key of Object.keys(fields)) {
+      if (!EDITABLE_TURN_FIELDS.has(key)) return next(getError(`«${key}» is not accepted here`, 400));
     }
     const turnModel = await Turn.findOneAndUpdate(
-      {
-        gameId,
-        _id: id,
-      },
-      {
-        ...turn,
-        _id: id,
-        gameId,
-      },
-      { new: true, projection: { rows: false } }
-    ); //функция ищет по ид и апдейтит
-    res.json({
-      item: turnModel,
-    }); // new true говорит отдать новую модель, а не старую
+      { gameId, _id: id },
+      { $set: fields },
+      { new: true, projection: { rows: false, markdown: false } }
+    );
+    if (!turnModel) return next(getError('Turn not found', 404));
+    res.json({ item: turnModel });
     const game = await Game.findById(gameId);
     await game.timeOfGameUpdate();
   } catch (error) {

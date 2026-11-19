@@ -226,7 +226,7 @@ describe('PUT /turns/:id', () => {
 
   it('answers without the rows, the other fields are in place', async () => {
     const { item } = await put({ header: 'New header', x: 96 });
-    assert.deepEqual(writes[0].projection, { rows: false });
+    assert.deepEqual(writes[0].projection, { rows: false, markdown: false });
     assert.equal('rows' in item, false);
     assert.equal(item.header, 'New header');
     assert.equal(item.x, 96);
@@ -243,6 +243,8 @@ describe('PUT /turns/:id', () => {
       { header: 'x', rows: [] },
       { header: 'x', opsVersion: 0 },
       { header: 'x', rowsVersion: 6 },
+      { header: 'x', unexpected: true },
+      { header: 'x', gameId },
     ];
     for (const turn of bodies) {
       await assert.rejects(
@@ -255,5 +257,11 @@ describe('PUT /turns/:id', () => {
     assert.equal(writes.length, 0);
     assert.equal(gameUpdated, 0);
     assert.equal(stored.header, 'Header');
+  });
+
+  it('returns 404 for a missing turn without updating the game', async () => {
+    mock.method(Turn, 'findOneAndUpdate', async () => null);
+    await assert.rejects(put({ header: 'Gone' }), { statusCode: 404 });
+    assert.equal(gameUpdated, 0);
   });
 });
