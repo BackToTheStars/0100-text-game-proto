@@ -211,6 +211,8 @@ const schema = new Schema(
   }
 );
 
+schema.index({ gameId: 1, createdAt: -1, _id: -1 });
+
 schema.statics = {
   QUOTE_TYPE_TEXT,
   QUOTE_TYPE_PICTURE,

@@ -11,6 +11,7 @@
     "express": "^4.22.2",
     "express-rate-limit": "^8.7.0",
     "jsonwebtoken": "^9.0.3",
+    "markdown-it": "^15.0.3",
     "mongoose": "^8.24.0",
     "ws": "^8.21.3"
   },

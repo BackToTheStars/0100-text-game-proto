@@ -4,6 +4,7 @@ const Line = require('../models/Line');
 const { requireCsvString } = require('../../core/services/queryParams');
 const { getError } = require('../../core/services/errors');
 const { GEOMETRY_FIELDS, toGeometryItem } = require('../services/turnsGeometry');
+const { listTurns } = require('../services/turnNavigator');
 const { applyTurnOps, changesRows } = require('../services/turnOps');
 
 const OPS_WRITE_ATTEMPTS = 3;
@@ -30,6 +31,15 @@ const getTurnsGeometry = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+const getTurnNavigatorPage = async (req, res, next) => {
+  try {
+    const page = await listTurns(Turn, req.gameInfo.gameId, req.query, () => res.destroyed);
+    if (!res.destroyed) res.json(page);
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -259,6 +269,7 @@ async function updateScrollPositions(req, res, next) {
 
 module.exports = {
   getTurnsGeometry,
+  getTurnNavigatorPage,
   getTurnsByIds,
   createTurn,
   updateCoordinates,
