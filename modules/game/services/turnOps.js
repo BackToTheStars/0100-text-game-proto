@@ -1,5 +1,5 @@
 const { getError } = require('../../core/services/errors');
-const { TURN_OPS_MAX } = require('../../../config/turn');
+const { TURN_OPS_MAX, TEMPLATE_MD } = require('../../../config/turn');
 
 // Ход правится операциями над свежим документом из базы, а не присылается
 // целиком: перевод растёт неделями, тело запроса — нет.
@@ -168,6 +168,16 @@ const checkOp = (op) => {
   OPERATIONS[op.op].check(op);
 };
 
+const hasRight = (side) => side !== undefined && side !== '';
+
+// Статья хранит блоки в рядах одной колонкой: правая ячейка у неё всегда пустая.
+const checkArticleOp = (op) => {
+  const sides = op.op === 'row.insert' ? op.row : op;
+  if ((op.op === 'row.set' || op.op === 'row.insert') && hasRight(sides.right)) {
+    throw invalid(`${op.op}: an article has no right column`);
+  }
+};
+
 // Чистая функция: сначала проверяется весь список, потом операции применяются
 // по порядку. Возвращает ряды после операций и поля, которые надо записать.
 const applyTurnOps = (turn, ops) => {
@@ -178,6 +188,9 @@ const applyTurnOps = (turn, ops) => {
     throw invalid(`«ops»: at most ${TURN_OPS_MAX} operations`);
   }
   ops.forEach(checkOp);
+  if (turn?.contentType === TEMPLATE_MD) {
+    ops.forEach(checkArticleOp);
+  }
 
   const state = { rows: storedRows(turn?.rows), fields: {} };
   for (const op of ops) {

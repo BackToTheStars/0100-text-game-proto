@@ -5,6 +5,7 @@ const SCRIPT_MEDIA = 'SCRIPT_MEDIA';
 const SCRIPT_TURN_CONTENT_TYPE = 'SCRIPT_TURN_CONTENT_TYPE';
 const SCRIPT_GAME_ADDRESS = 'SCRIPT_GAME_ADDRESS';
 const SCRIPT_MEDIA_FILES = 'SCRIPT_MEDIA_FILES';
+const SCRIPT_MD_BLOCKS = 'SCRIPT_MD_BLOCKS';
 
 const {
   checkZeroPoints,
@@ -48,6 +49,11 @@ const {
   runGameBackfill,
   revertGameBackfill,
 } = require('./scripts/MediaFiles');
+const {
+  check: mdBlocksCheck,
+  run: mdBlocksRun,
+  revert: mdBlocksRevert,
+} = require('./scripts/MdBlocks');
 
 // Описание параметра команды для UI (name/type/description/required).
 const GAME_ID_PARAM = {
@@ -257,6 +263,32 @@ const scripts = [
         name: 'run',
         description: 'Проставить адрес играм без него (столкнувшиеся пропустить)',
         callback: gameAddressRun,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
+        confirm: true,
+      },
+    ],
+  },
+  {
+    name: SCRIPT_MD_BLOCKS,
+    description: 'Статья md в ряды: деление текста статьи на блоки',
+    commands: [
+      {
+        name: 'check',
+        description: 'Отчёт: статьи без рядов, размеры, сколько блоков получится и сколько больших поделится',
+        callback: mdBlocksCheck,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
+      },
+      {
+        name: 'run',
+        description: 'Разделить статьи без рядов на ряды (с меткой прохода; markdown остаётся)',
+        callback: mdBlocksRun,
+        modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
+        confirm: true,
+      },
+      {
+        name: 'revert',
+        description: 'Откатить: ряды с меткой прохода обратно в markdown, ряды и метку снять',
+        callback: mdBlocksRevert,
         modes: [MODE_DEVELOPMENT, MODE_LOCAL, MODE_PRODUCTION],
         confirm: true,
       },

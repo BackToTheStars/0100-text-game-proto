@@ -27,9 +27,10 @@ const getGameIdsByCodesInfo = async (codesInfo) => {
   return games.map((g) => g._id);
 };
 
-// Лента показывает paragraph; ряды перевода растут с ходом и ей не нужны.
+// Лента показывает paragraph; ряды и текст статьи растут с ходом и ей не нужны.
 const FEED_TURN_PROJECTION = {
   rows: false,
+  markdown: false,
   opsVersion: false,
 };
 

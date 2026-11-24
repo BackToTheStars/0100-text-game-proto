@@ -329,6 +329,41 @@ describe('POST /turns/:id/ops', () => {
     assert.deepEqual(asJson(stored.rows), [{ id: 'r1', left: 'x', right: '' }]);
     assert.equal(stored.contentType, 'comment');
   });
+
+  describe('over an article stored in rows', () => {
+    const BLOCKS = [
+      { id: 'b1', left: '# Title', right: '' },
+      { id: 'b2', left: 'Text with ==🔴 a quote==^1700000000001.', right: '' },
+    ];
+
+    beforeEach(() => {
+      seed({ contentType: 'md', rows: BLOCKS, languages: undefined });
+    });
+
+    it('edits, inserts and removes blocks like translation rows', async () => {
+      const result = await post([
+        { op: 'row.set', id: 'b2', left: 'Edited block.' },
+        { op: 'row.insert', after: 'b1', row: { id: 'b3', left: 'New block', right: '' } },
+        { op: 'row.remove', id: 'b1' },
+      ]);
+      assert.deepEqual(result, { success: true, version: 6 });
+      assert.deepEqual(asJson(stored.rows), [
+        { id: 'b3', left: 'New block', right: '' },
+        { id: 'b2', left: 'Edited block.', right: '' },
+      ]);
+    });
+
+    it('refuses text in the right column and writes nothing', async () => {
+      await refused(post([{ op: 'row.set', id: 'b1', right: 'x' }]), 400, /no right column/);
+      await refused(
+        post([{ op: 'row.insert', after: null, row: { id: 'b4', left: 'a', right: 'b' } }]),
+        400,
+        /no right column/
+      );
+      assert.equal(writes.length, 0);
+      assert.deepEqual(asJson(stored.rows), BLOCKS);
+    });
+  });
 });
 
 describe('turn routes', () => {

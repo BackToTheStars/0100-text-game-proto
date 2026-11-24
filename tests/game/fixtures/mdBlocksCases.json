@@ -1,0 +1,258 @@
+{
+  "limitDefault": 16384,
+  "cases": [
+    {
+      "name": "empty source",
+      "source": "",
+      "blocks": []
+    },
+    {
+      "name": "blank lines only",
+      "source": "\n\n  \n",
+      "blocks": []
+    },
+    {
+      "name": "single paragraph",
+      "source": "Just one paragraph.",
+      "blocks": [
+        "Just one paragraph."
+      ]
+    },
+    {
+      "name": "heading right before paragraph",
+      "source": "# Title\nText under it.",
+      "blocks": [
+        "# Title",
+        "Text under it."
+      ]
+    },
+    {
+      "name": "blank line runs collapse",
+      "source": "First.\n\n\n\nSecond.",
+      "blocks": [
+        "First.",
+        "Second."
+      ]
+    },
+    {
+      "name": "single newline stays inside a paragraph",
+      "source": "Line one\nline two (a <br>)",
+      "blocks": [
+        "Line one\nline two (a <br>)"
+      ]
+    },
+    {
+      "name": "leading and trailing blank lines dropped",
+      "source": "\n\nBody.\n\n\n",
+      "blocks": [
+        "Body."
+      ]
+    },
+    {
+      "name": "crlf normalised",
+      "source": "One\r\n\r\nTwo\r\nstill two",
+      "blocks": [
+        "One",
+        "Two\nstill two"
+      ]
+    },
+    {
+      "name": "tight bullet list is one block",
+      "source": "- a\n- b\n- c",
+      "blocks": [
+        "- a\n- b\n- c"
+      ]
+    },
+    {
+      "name": "loose list with blank lines is one block",
+      "source": "- a\n\n- b\n\n- c",
+      "blocks": [
+        "- a\n\n- b\n\n- c"
+      ]
+    },
+    {
+      "name": "ordered list starting with 1 interrupts a paragraph",
+      "source": "Intro text\n1. first\n2. second",
+      "blocks": [
+        "Intro text",
+        "1. first\n2. second"
+      ]
+    },
+    {
+      "name": "escaped number keeps a paragraph",
+      "source": "1\\. Not a list item.\nSecond line.",
+      "blocks": [
+        "1\\. Not a list item.\nSecond line."
+      ]
+    },
+    {
+      "name": "fenced code with blank lines is one block",
+      "source": "```js\nconst a = 1;\n\nconst b = 2;\n```",
+      "blocks": [
+        "```js\nconst a = 1;\n\nconst b = 2;\n```"
+      ]
+    },
+    {
+      "name": "blockquote with an empty quoted line is one block",
+      "source": "> one\n>\n> two",
+      "blocks": [
+        "> one\n>\n> two"
+      ]
+    },
+    {
+      "name": "table is one block",
+      "source": "| a | b |\n| - | - |\n| 1 | 2 |\n| 3 | 4 |",
+      "blocks": [
+        "| a | b |\n| - | - |\n| 1 | 2 |\n| 3 | 4 |"
+      ]
+    },
+    {
+      "name": "thematic break between paragraphs",
+      "source": "Above.\n\n---\n\nBelow.",
+      "blocks": [
+        "Above.",
+        "---",
+        "Below."
+      ]
+    },
+    {
+      "name": "link reference definition is its own block",
+      "source": "See [the site][s].\n\n[s]: https://example.com",
+      "blocks": [
+        "See [the site][s].",
+        "[s]: https://example.com"
+      ]
+    },
+    {
+      "name": "highlight with id across a soft break stays in one block",
+      "source": "Start ==🔴 quoted\ntext==^1234567890 end.\n\nNext.",
+      "blocks": [
+        "Start ==🔴 quoted\ntext==^1234567890 end.",
+        "Next."
+      ]
+    },
+    {
+      "name": "indented code after a blank line",
+      "source": "Para.\n\n    code line 1\n    code line 2",
+      "blocks": [
+        "Para.",
+        "    code line 1\n    code line 2"
+      ]
+    },
+    {
+      "name": "heading levels and setext heading",
+      "source": "## Chapter 1—Start\n\nSetext\n======\n\nText.",
+      "blocks": [
+        "## Chapter 1—Start",
+        "Setext\n======",
+        "Text."
+      ]
+    },
+    {
+      "name": "nested list stays with its item",
+      "source": "- a\n  - a1\n  - a2\n- b",
+      "blocks": [
+        "- a\n  - a1\n  - a2\n- b"
+      ]
+    },
+    {
+      "name": "oversized table repeats its header",
+      "limit": 40,
+      "source": "| a | b |\n| - | - |\n| 1 | 2 |\n| 3 | 4 |\n| 5 | 6 |\n| 7 | 8 |",
+      "blocks": [
+        "| a | b |\n| - | - |\n| 1 | 2 |\n| 3 | 4 |",
+        "| a | b |\n| - | - |\n| 5 | 6 |\n| 7 | 8 |"
+      ]
+    },
+    {
+      "name": "oversized bullet list splits between items",
+      "limit": 26,
+      "source": "- alpha item\n- beta item\n- gamma item\n- delta item",
+      "blocks": [
+        "- alpha item\n- beta item",
+        "- gamma item\n- delta item"
+      ]
+    },
+    {
+      "name": "oversized ordered list renumbers the next part",
+      "limit": 28,
+      "source": "1. alpha item\n2. beta item\n3. gamma item\n4. delta item",
+      "blocks": [
+        "1. alpha item\n2. beta item",
+        "3. gamma item\n4. delta item"
+      ]
+    },
+    {
+      "name": "oversized lazy numbered list gets real numbers",
+      "limit": 28,
+      "source": "1. alpha item\n1. beta item\n1. gamma item\n1. delta item",
+      "blocks": [
+        "1. alpha item\n1. beta item",
+        "3. gamma item\n1. delta item"
+      ]
+    },
+    {
+      "name": "oversized fence repeats the fence",
+      "limit": 24,
+      "source": "```\nline 1\nline 2\nline 3\nline 4\n```",
+      "blocks": [
+        "```\nline 1\nline 2\n```",
+        "```\nline 3\nline 4\n```"
+      ]
+    },
+    {
+      "name": "oversized paragraph splits by sentences keeping separators",
+      "limit": 45,
+      "source": "First sentence here. Second one follows!\nThird after a break? Fourth closes.",
+      "blocks": [
+        "First sentence here. Second one follows!",
+        "Third after a break? Fourth closes."
+      ]
+    },
+    {
+      "name": "cut never falls inside a highlight",
+      "limit": 30,
+      "source": "Alpha. ==🟢 Beta. Gamma.==^42 Delta. Epsilon.",
+      "blocks": [
+        "Alpha.",
+        "==🟢 Beta. Gamma.==^42 Delta.",
+        "Epsilon."
+      ]
+    },
+    {
+      "name": "sentence larger than the limit stays whole",
+      "limit": 20,
+      "source": "This single sentence is far longer than the tiny limit allows",
+      "blocks": [
+        "This single sentence is far longer than the tiny limit allows"
+      ]
+    },
+    {
+      "name": "oversized indented code splits by lines",
+      "limit": 20,
+      "source": "    one\n    two\n    three\n    four",
+      "blocks": [
+        "    one\n    two",
+        "    three\n    four"
+      ]
+    },
+    {
+      "name": "oversized blockquote splits by lines",
+      "limit": 24,
+      "source": "> one line\n> two line\n> three line",
+      "blocks": [
+        "> one line\n> two line",
+        "> three line"
+      ]
+    },
+    {
+      "name": "limit counts utf8 bytes",
+      "limit": 40,
+      "source": "Первое предложение. Второе предложение.",
+      "blocks": [
+        "Первое предложение.",
+        "Второе предложение."
+      ]
+    }
+  ]
+}

@@ -128,7 +128,7 @@ describe('translation turn in the Turn schema', () => {
     assert.deepEqual(item.rows, []);
   });
 
-  it('the lobby feed leaves rows and the version out, nothing else', async () => {
+  it('the lobby feed leaves rows, the article text and the version out, nothing else', async () => {
     const doc = Turn.hydrate({ ...body(), _id: turnId, opsVersion: 3 });
     mock.method(Game, 'find', () =>
       lookup([{ _id: new mongoose.Types.ObjectId(gameId) }])
@@ -138,12 +138,12 @@ describe('translation turn in the Turn schema', () => {
       query: { codes: 'aaaaaa:bbbbbbbb', mode: 'chrono' },
     });
     const projection = find.mock.calls[0].arguments[1];
-    assert.deepEqual(projection, { rows: false, opsVersion: false });
+    assert.deepEqual(projection, { rows: false, markdown: false, opsVersion: false });
     assert.equal(items[0].header, 'Header');
     assert.equal(items[0].paragraph[0].insert, 'Title\n');
   });
 
-  it('the by-game feed projects rows and the version out of the lookup', async () => {
+  it('the by-game feed projects rows, the article text and the version out of the lookup', async () => {
     mock.method(Game, 'find', () =>
       lookup([{ _id: new mongoose.Types.ObjectId(gameId) }])
     );
@@ -154,7 +154,7 @@ describe('translation turn in the Turn schema', () => {
     const pipe = aggregate.mock.calls[0].arguments[0];
     const lookupStage = pipe.find((stage) => stage.$lookup).$lookup;
     const project = lookupStage.pipeline.find((stage) => stage.$project);
-    assert.deepEqual(project.$project, { rows: false, opsVersion: false });
+    assert.deepEqual(project.$project, { rows: false, markdown: false, opsVersion: false });
   });
 
   it('the canvas load carries the rows and the version', async () => {

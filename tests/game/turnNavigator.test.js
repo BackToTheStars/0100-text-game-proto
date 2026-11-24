@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { listTurns, summary, pageCriteria, TEXT_BUDGET } = require('../../modules/game/services/turnNavigator');
+const { listTurns, summary, pageCriteria, TEXT_BUDGET, SEARCH_QUEUE_LIMIT, PARSE_SLICE } = require('../../modules/game/services/turnNavigator');
 
 test('formatted Quill inserts make one searchable untitled turn', () => {
   const row = summary({ paragraph: [{ insert: 'First line\nThe ' }, { insert: 'harbour' }] }, 'the harbour');
@@ -192,4 +192,172 @@ test('a dropped request stops reading and parsing turns', async () => {
   assert.deepEqual([...new Set(reads)], [id(6), id(5)]);
   assert.equal(stats.yielded, 3);
   assert.equal(stats.closed, 1);
+});
+
+// A search that holds the queue until open() is called; finds counts the reads it started.
+function heldSearch() {
+  let open;
+  const gate = new Promise(resolve => { open = resolve; });
+  const stats = { finds: 0 };
+  const Turn = {
+    find() {
+      stats.finds++;
+      const chain = {
+        sort: () => chain, limit: () => chain, lean: () => chain,
+        cursor: () => ({
+          async *[Symbol.asyncIterator]() {
+            await gate;
+            yield { _id: id(1), createdAt: new Date(1000), contentType: 'md', markdown: 'held' };
+          },
+          close: async () => {},
+        }),
+      };
+      return chain;
+    },
+  };
+  return { Turn, stats, open };
+}
+
+const settled = promise => Promise.race([promise.then(() => true, () => true), new Promise(r => setImmediate(() => r(false)))]);
+
+test('two searches parse one after the other, not interleaved', async () => {
+  const reads = [];
+  const turnsOf = name => [1, 2, 3].map(n =>
+    loggedTurn({ _id: id(n), createdAt: new Date(n * 1000), contentType: 'md' }, 'text ' + name + n, reads));
+  const first = turnsOf('a');
+  const second = turnsOf('b');
+  const names = new Map([...first.map(t => [t, 'a']), ...second.map(t => [t, 'b'])]);
+  const named = [];
+  const wrap = turns => ({ find: (...args) => {
+    const chain = pagedTurns(turns).Turn.find(...args);
+    const cursor = chain.cursor;
+    chain.cursor = () => {
+      const inner = cursor();
+      return { async *[Symbol.asyncIterator]() { for await (const t of inner) { named.push(names.get(t)); yield t; } },
+        close: inner.close };
+    };
+    return chain;
+  } });
+  await Promise.all([listTurns(wrap(first), 'game', { q: 'missing' }), listTurns(wrap(second), 'game', { q: 'missing' })]);
+  assert.deepEqual(named, ['a', 'a', 'a', 'b', 'b', 'b']);
+});
+
+test('an empty search does not wait for a running search', async () => {
+  const held = heldSearch();
+  const search = listTurns(held.Turn, 'game', { q: 'held' });
+  const { Turn } = pagedTurns([{ _id: id(2), createdAt: new Date(2000), contentType: 'comment', header: 'Plain' }]);
+  const page = await listTurns(Turn, 'game', { q: '' });
+  assert.equal(page.items[0].title, 'Plain');
+  assert.equal(await settled(search), false);
+  held.open();
+  assert.equal((await search).items.length, 1);
+});
+
+test('searches beyond the waiting limit are refused with 429 and the rest still finish', async () => {
+  const held = heldSearch();
+  const running = listTurns(held.Turn, 'game', { q: 'held' });
+  await new Promise(r => setImmediate(r));
+  const waiting = Array.from({ length: SEARCH_QUEUE_LIMIT }, () => listTurns(pagedTurns([]).Turn, 'game', { q: 'x' }));
+  await assert.rejects(listTurns(pagedTurns([]).Turn, 'game', { q: 'x' }), { statusCode: 429 });
+  held.open();
+  await running;
+  for (const page of await Promise.all(waiting)) assert.deepEqual(page, { items: [], next: null });
+});
+
+test('a failed search frees the queue for the next one', async () => {
+  const broken = { find() { throw new Error('mongo down'); } };
+  const failed = listTurns(broken, 'game', { q: 'x' });
+  const { Turn } = pagedTurns([{ _id: id(1), createdAt: new Date(1000), contentType: 'comment', header: 'Next one' }]);
+  const next = listTurns(Turn, 'game', { q: 'next' });
+  await assert.rejects(failed, /mongo down/);
+  assert.equal((await next).items[0].title, 'Next one');
+});
+
+test('a request dropped while waiting in the queue reads no turns', async () => {
+  const held = heldSearch();
+  const running = listTurns(held.Turn, 'game', { q: 'held' });
+  let gone = false;
+  const late = heldSearch();
+  const dropped = listTurns(late.Turn, 'game', { q: 'late' }, () => gone);
+  gone = true;
+  held.open();
+  await running;
+  assert.deepEqual(await dropped, { items: [], next: null });
+  assert.equal(late.stats.finds, 0);
+});
+
+test('an article in rows is searched by rows and points at the row, the column and the occurrence', () => {
+  const turn = { contentType: 'md', paragraph: [{ insert: 'Intro\n' }],
+    rows: [{ id: 'b1', left: '# Intro', right: '' }, { id: 'b2', left: 'Plain text.', right: '' },
+      { id: 'b3', left: 'Wait for the **signal** and the signal again.', right: '' }] };
+  Object.defineProperty(turn, 'markdown', { get() { throw new Error('the old text must not be read'); } });
+  const row = summary(turn, 'the signal');
+  assert.deepEqual(row.at, { row: 'b3', column: 'left', nth: 1 });
+  assert.equal(row.column, null);
+  assert.equal(row.title, 'Intro');
+  assert.match(row.snippet, /Wait for the signal/);
+});
+
+test('a repeated phrase points at its first row', () => {
+  const turn = { contentType: 'md', rows: [{ id: 'b1', left: 'One.' }, { id: 'b2', left: 'echo and echo' },
+    { id: 'b3', left: 'echo' }] };
+  assert.deepEqual(summary(turn, 'echo').at, { row: 'b2', column: 'left', nth: 1 });
+});
+
+test('a translation hit in the right column carries its row', () => {
+  const turn = { contentType: 'translation', rows: [{ id: 'r1', left: 'Letter', right: 'Письмо' },
+    { id: 'r2', left: 'Wait', right: 'Жди *сигнала*' }] };
+  const row = summary(turn, 'жди сигнала');
+  assert.equal(row.column, 'right');
+  assert.deepEqual(row.at, { row: 'r2', column: 'right', nth: 1 });
+});
+
+test('a paragraph and an article not yet in rows point at the occurrence only', () => {
+  assert.deepEqual(summary({ contentType: 'comment', paragraph: [{ insert: 'The harbour\n' }] }, 'harbour').at, { nth: 1 });
+  assert.deepEqual(summary({ contentType: 'md', markdown: 'Old **article** text' }, 'article text').at, { nth: 1 });
+});
+
+test('a hit only in the header, an audio title or an empty search has no place', () => {
+  assert.equal('at' in summary({ header: 'Signal', paragraph: [{ insert: 'Body\n' }] }, 'signal'), false);
+  assert.equal('at' in summary({ contentType: 'audio', audioTitle: 'Signal song' }, 'signal'), false);
+  assert.equal('at' in summary({ contentType: 'md', rows: [{ id: 'b1', left: 'Text' }] }, ''), false);
+});
+
+test('search reads the row ids', async () => {
+  const { Turn, calls } = fakeTurns([]);
+  await listTurns(Turn, 'game', { q: 'x' });
+  assert.match(calls[0], /rows\.id/);
+});
+
+// Rows larger than the slice in one turn: the event loop must run before the last row is read.
+function bigArticle(count, onLastRead) {
+  const rows = Array.from({ length: count }, (_, n) => ({ id: 'b' + n, left: 'word '.repeat(PARSE_SLICE / 10) }));
+  const last = rows[count - 1];
+  const left = last.left;
+  let seen = false;
+  Object.defineProperty(last, 'left', { enumerable: true, get() { if (!seen) { seen = true; onLastRead(); } return left; } });
+  return { _id: id(1), createdAt: new Date(1000), contentType: 'md', rows };
+}
+
+test('a large article lets other work run between its rows', async () => {
+  let ticks = 0;
+  let running = true;
+  const tick = () => { ticks++; if (running) setImmediate(tick); };
+  setImmediate(tick);
+  let ticksAtLast = null;
+  const { Turn } = pagedTurns([bigArticle(6, () => { ticksAtLast = ticks; })]);
+  const page = await listTurns(Turn, 'game', { q: 'missing' });
+  running = false;
+  assert.deepEqual(page, { items: [], next: null });
+  assert.ok(ticksAtLast > 0, 'no pause inside the turn');
+});
+
+test('a request dropped during a pause inside a large article stops reading its rows', async () => {
+  let gone = false;
+  let lastRead = false;
+  setImmediate(() => { gone = true; });
+  const { Turn } = pagedTurns([bigArticle(6, () => { lastRead = true; })]);
+  const page = await listTurns(Turn, 'game', { q: 'missing' }, () => gone);
+  assert.deepEqual(page, { items: [], next: null });
+  assert.equal(lastRead, false);
 });
