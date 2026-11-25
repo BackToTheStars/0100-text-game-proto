@@ -64,10 +64,17 @@ describe('markdown turn in the Turn schema', () => {
       stored = doc;
       return { acknowledged: true, insertedId: doc._id };
     });
+    // Отвечает на условия по типу и рядам так же, как Mongo.
+    const meets = (condition) =>
+      Object.entries(condition).every(([key, value]) => {
+        if (key === '$or') return value.some(meets);
+        if (key === 'rows.0') return value.$exists === (stored.rows?.length > 0);
+        if (key === 'contentType') return '$ne' in value ? stored.contentType !== value.$ne : stored.contentType === value;
+        return true;
+      });
     mock.method(Turn.collection, 'findOneAndUpdate', async (filter, update, { projection }) => {
       updates.push({ filter, update, projection });
-      const article = stored?.contentType === 'md' && stored.rows?.length > 0;
-      if (!stored || (filter.$or && article)) return null;
+      if (!stored || !meets(filter)) return null;
       stored = { ...stored, ...update.$set };
       const result = { ...stored };
       for (const [key, included] of Object.entries(projection)) if (!included) delete result[key];
@@ -162,12 +169,56 @@ describe('markdown turn in the Turn schema', () => {
     stored = { ...body({ markdown: 'old' }), _id: turnId };
     const { item } = await put(body());
     assert.equal(updates[0].update.$set.markdown, SOURCE);
+    assert.equal(stored.markdown, SOURCE);
+    assert.equal('markdown' in item, false);
+  });
+
+  it('update with markdown and no type checks the stored type', async () => {
+    stored = { ...body({ markdown: 'old' }), _id: turnId };
+    const { markdown } = body();
+    await put({ markdown });
     assert.deepEqual(updates[0].filter.$or, [
       { contentType: { $ne: 'md' } },
       { 'rows.0': { $exists: false } },
     ]);
     assert.equal(stored.markdown, SOURCE);
-    assert.equal('markdown' in item, false);
+  });
+
+  it('update that turns a translation with rows into an article with markdown is refused', async () => {
+    const rows = [{ id: 'r1', left: 'left', right: 'right' }];
+    stored = { ...body({ contentType: 'translation', markdown: undefined }), rows, _id: turnId };
+    mock.method(Turn.collection, 'findOne', async () => ({ _id: turnId }));
+    await assert.rejects(
+      put(body()),
+      (error) => error.statusCode === 400 && error.errorCode === 'article-in-rows'
+    );
+    assert.equal(stored.contentType, 'translation');
+    assert.equal(stored.markdown, undefined);
+  });
+
+  it('update that turns an article in rows into another type with markdown goes through', async () => {
+    const rows = [{ id: 'b1', left: 'Block', right: '' }];
+    stored = { ...body({ markdown: undefined }), rows, _id: turnId };
+    const { item } = await put(body({ contentType: 'comment' }));
+    assert.equal(item.contentType, 'comment');
+    assert.equal(stored.markdown, SOURCE);
+  });
+
+  it('create from rows gives a new id to a row without a usable id and to a repeated id', async () => {
+    const rows = [
+      { left: 'no id' },
+      { id: '', left: 'empty id' },
+      { id: 'b1', left: 'first b1' },
+      { id: 'b1', left: 'second b1' },
+      { id: 7, left: 'number id' },
+      { id: 'b2', left: 'kept' },
+    ];
+    const { item } = await create(body({ rows }));
+    assert.deepEqual(item.rows.map((row) => row.left), rows.map((row) => row.left));
+    assert.equal(item.rows[2].id, 'b1');
+    assert.equal(item.rows[5].id, 'b2');
+    for (const index of [0, 1, 3, 4]) assert.match(item.rows[index].id, /^[0-9a-z]{14}$/);
+    assert.equal(new Set(item.rows.map((row) => row.id)).size, rows.length);
   });
 
   it('update with markdown of an article in rows is refused and writes nothing', async () => {
@@ -176,7 +227,8 @@ describe('markdown turn in the Turn schema', () => {
     mock.method(Turn.collection, 'findOne', async () => ({ _id: turnId }));
     await assert.rejects(
       put(body()),
-      (error) => error.statusCode === 400 && error.errorCode === 'article-in-rows'
+      (error) =>
+        error.statusCode === 400 && error.errorCode === 'article-in-rows' && /reload the page/i.test(error.message)
     );
     assert.equal(stored.markdown, undefined);
     assert.deepEqual(stored.rows, rows);

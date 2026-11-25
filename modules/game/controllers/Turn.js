@@ -6,7 +6,7 @@ const { getError } = require('../../core/services/errors');
 const { GEOMETRY_FIELDS, toGeometryItem } = require('../services/turnsGeometry');
 const { listTurns } = require('../services/turnNavigator');
 const { applyTurnOps, changesRows } = require('../services/turnOps');
-const { rowsFromMarkdown } = require('../services/mdBlocks');
+const { rowsFromMarkdown, newBlockId } = require('../services/mdBlocks');
 const { TEMPLATE_MD } = require('../../../config/turn');
 
 const OPS_WRITE_ATTEMPTS = 3;
@@ -90,17 +90,29 @@ async function updateTurn(req, res, next) {
     }
     const filter = { gameId, _id: id };
     // Старый клиент шлёт статью целиком: у статьи в рядах он затёр бы блоки, правленные операциями.
+    // Тип берётся итоговый: из тела, иначе хранимый.
     if ('markdown' in fields) {
-      filter.$or = [{ contentType: { $ne: TEMPLATE_MD } }, { 'rows.0': { $exists: false } }];
+      if (!('contentType' in fields)) {
+        filter.$or = [{ contentType: { $ne: TEMPLATE_MD } }, { 'rows.0': { $exists: false } }];
+      } else if (fields.contentType === TEMPLATE_MD) {
+        filter['rows.0'] = { $exists: false };
+      }
     }
+    const guarded = !!filter.$or || 'rows.0' in filter;
     const turnModel = await Turn.findOneAndUpdate(
       filter,
       { $set: fields },
       { new: true, projection: { rows: false, markdown: false } }
     );
     if (!turnModel) {
-      if (filter.$or && (await Turn.exists({ gameId, _id: id }))) {
-        return next(getError('The article is stored in rows: «markdown» is not accepted', 400, 'article-in-rows'));
+      if (guarded && (await Turn.exists({ gameId, _id: id }))) {
+        return next(
+          getError(
+            'The article is stored in rows: «markdown» is not accepted. Reload the page: it was opened before the update',
+            400,
+            'article-in-rows'
+          )
+        );
       }
       return next(getError('Turn not found', 404));
     }
@@ -182,13 +194,24 @@ async function deleteTurn(req, res, next) {
 }
 // Статья хранится блоками в рядах одной колонкой. Старый клиент, сиды и старые копии хода присылают
 // markdown — он делится здесь; присланные ряды важнее, поле markdown не пишется.
+// Ряд без id или с повтором id первая же операция отбросила бы — ему выдаётся новый.
 function articleFields(turn) {
   const { markdown, ...rest } = turn;
   if (Array.isArray(turn.rows) && turn.rows.length) {
     if (turn.rows.some((row) => typeof row?.right === 'string' && row.right !== '')) {
       throw getError('An article has no right column', 400);
     }
-    return { ...rest, rows: turn.rows.map((row) => (row && typeof row === 'object' ? { ...row, right: '' } : row)) };
+    const seen = new Set();
+    const rows = turn.rows.map((row) => {
+      if (!row || typeof row !== 'object') return row;
+      let { id } = row;
+      if (typeof id !== 'string' || id === '' || seen.has(id)) {
+        do id = newBlockId(); while (seen.has(id));
+      }
+      seen.add(id);
+      return { ...row, id, right: '' };
+    });
+    return { ...rest, rows };
   }
   return { ...rest, rows: typeof markdown === 'string' ? rowsFromMarkdown(markdown) : [] };
 }

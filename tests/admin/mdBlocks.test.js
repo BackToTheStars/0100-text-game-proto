@@ -189,6 +189,28 @@ describe('article migration into rows: run and revert', () => {
     assert.equal(byId(model, '004').rows.length, 1);
   });
 
+  it('a marked article edited after it was read is not reverted', async () => {
+    const { model, run, revert } = commandsOn(stand());
+    await run();
+    const find = model.find;
+    model.find = (criteria) => ({
+      lean: async () => {
+        const read = await find(criteria).lean();
+        const first = byId(model, '001');
+        first.rows[0].left = '# Edited during revert';
+        first.opsVersion = 1;
+        return read;
+      },
+    });
+    const [ok, lines] = await revert();
+    assert.equal(ok, false);
+    assert.ok(lines.some((line) => line.startsWith(`not reverted ${id('001')}`)));
+    const first = byId(model, '001');
+    assert.equal(first.rows[0].left, '# Edited during revert');
+    assert.deepEqual(first.mdBlocksPass, PASS);
+    assert.equal(first.markdown, QUOTED);
+  });
+
   it('revert of an edited article joins its rows', async () => {
     const { model, run, revert } = commandsOn(stand());
     await run();
@@ -227,6 +249,45 @@ describe('article migration into rows: run and revert', () => {
     const [ok, lines] = await run();
     assert.equal(ok, false);
     assert.ok(lines.some((line) => line.startsWith(`not written ${id('002')}`)));
+  });
+});
+
+describe('article migration into rows: rows without the mark over a source', () => {
+  // Первая запись большой статьи оборвалась: в рядах начало, в markdown — весь текст.
+  const FULL = 'One.\n\nTwo.\n\nThree.\n\nFour.';
+  const docs = () => [
+    article('011', { markdown: FULL, rows: [{ id: 'b1', left: 'One.', right: '' }, { id: 'b2', left: 'Two.', right: '' }] }),
+    article('012', { markdown: 'Same.\r\n\r\n\r\nText.\n', rows: [{ id: 'b1', left: 'Same.', right: '' }, { id: 'b2', left: 'Text.', right: '' }] }),
+    article('013', { markdown: '\n\n', rows: [{ id: 'b1', left: 'Only rows', right: '' }] }),
+  ];
+
+  it('check lists such articles with the number of rows and of blocks in markdown', async () => {
+    const { model, check } = commandsOn(docs());
+    assert.deepEqual(model.docs.map(classify), ['inRowsOverSource', 'inRows', 'inRows']);
+    const [ok, lines] = await check();
+    assert.equal(ok, true);
+    assert.ok(lines.includes('  в рядах без метки, markdown не совпадает с рядами — откат не тронет: 1'), lines.join('\n'));
+    assert.ok(lines.includes(`  ${id('011')} (игра ${gameId}): рядов 2, блоков в markdown 4`), lines.join('\n'));
+    assert.match(lines.join('\n'), /в рядах без метки — созданы рядами, откат склеит: 2/);
+  });
+
+  it('revert keeps the source and the rows of such an article and reports it', async () => {
+    const { model, revert } = commandsOn(docs());
+    const [ok, lines] = await revert();
+    assert.equal(ok, false);
+    assert.ok(
+      lines.includes(`kept ${id('011')}: rows 2, blocks in markdown 4 — markdown differs from the rows, nothing written`),
+      lines.join('\n')
+    );
+    assert.ok(lines.includes('созданы рядами — склеены: 2 из 2'), lines.join('\n'));
+    assert.ok(lines.includes('в рядах без метки поверх другого markdown — не тронуты: 1'), lines.join('\n'));
+    const kept = byId(model, '011');
+    assert.equal(kept.markdown, FULL);
+    assert.equal(kept.rows.length, 2);
+    assert.equal(byId(model, '012').markdown, 'Same.\n\nText.');
+    assert.equal('rows' in byId(model, '012'), false);
+    assert.equal(byId(model, '013').markdown, 'Only rows');
+    assert.ok(model.calls.every((call) => '' + call.filter._id !== id('011')));
   });
 });
 

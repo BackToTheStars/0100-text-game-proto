@@ -24,8 +24,18 @@ const hasMark = (turn) => turn.mdBlocksPass != null;
 const kb = (size) => `${(size / 1024).toFixed(1)} KB`;
 const bytes = (text) => Buffer.byteLength(text, 'utf8');
 
+// Ряды без метки поверх непустого markdown, с которым они не сходятся: возможно, оборванная первая запись
+// статьи — откат такой markdown не затирает.
+const overSource = (turn) =>
+  typeof turn.markdown === 'string' &&
+  turn.markdown.trim() !== '' &&
+  joinBlocks(splitBlocks(turn.markdown)) !== markdownFromRows(turn.rows);
+
 const classify = (turn) => {
-  if (hasRows(turn)) return hasMark(turn) ? 'migrated' : 'inRows';
+  if (hasRows(turn)) {
+    if (hasMark(turn)) return 'migrated';
+    return overSource(turn) ? 'inRowsOverSource' : 'inRows';
+  }
   if (typeof turn.markdown !== 'string') return 'noText';
   return 'toSplit';
 };
@@ -48,7 +58,7 @@ const limited = (lines) =>
   lines.length > LIST_LIMIT ? [...lines.slice(0, LIST_LIMIT), `  … и ещё ${lines.length - LIST_LIMIT}`] : lines;
 
 const describePlan = (turns) => {
-  const groups = { toSplit: [], migrated: [], inRows: [], noText: [] };
+  const groups = { toSplit: [], migrated: [], inRows: [], inRowsOverSource: [], noText: [] };
   for (const turn of turns) groups[classify(turn)].push(turn);
   const plans = [];
   const failed = [];
@@ -72,6 +82,12 @@ const describePlan = (turns) => {
     `  без рядов, с текстом — к делению: ${work.length} (${kb(sum((plan) => plan.size))}), пустой текст: ${empty}`,
     `  в рядах с меткой прохода: ${groups.migrated.length}`,
     `  в рядах без метки — созданы рядами, откат склеит: ${groups.inRows.length}`,
+    `  в рядах без метки, markdown не совпадает с рядами — откат не тронет: ${groups.inRowsOverSource.length}`,
+    ...limited(
+      groups.inRowsOverSource.map(
+        (turn) => `  ${turn._id} (игра ${turn.gameId}): рядов ${turn.rows.length}, блоков в markdown ${splitBlocks(turn.markdown).length}`
+      )
+    ),
     `  без рядов и без текста: ${groups.noText.length}`,
     `Блоков получится: ${sum((plan) => plan.blocks.length)}; ` +
       `больших блоков (> ${kb(BLOCK_LIMIT)}) поделится: ${sum((plan) => plan.oversized)}`,
@@ -142,6 +158,13 @@ const createMdBlocksCommands = ({ Turn: model, now = () => new Date() }) => {
     const articles = await loadArticles();
     const marked = articles.filter(hasMark);
     const madeInRows = articles.filter((turn) => classify(turn) === 'inRows');
+    const kept = articles
+      .filter((turn) => classify(turn) === 'inRowsOverSource')
+      .map(
+        (turn) =>
+          `kept ${turn._id}: rows ${turn.rows.length}, blocks in markdown ${splitBlocks(turn.markdown).length}` +
+          ' — markdown differs from the rows, nothing written'
+      );
     let restored = 0;
     let joined = 0;
     let madeJoined = 0;
@@ -155,12 +178,12 @@ const createMdBlocksCommands = ({ Turn: model, now = () => new Date() }) => {
           typeof turn.markdown === 'string' && joinBlocks(splitBlocks(turn.markdown)) === rowsText;
         const markdown = untouched ? turn.markdown : rowsText;
         const result = await model.updateOne(
-          { _id: turn._id, mdBlocksPass: turn.mdBlocksPass },
+          { _id: turn._id, mdBlocksPass: turn.mdBlocksPass, opsVersion: turn.opsVersion ?? null },
           { $set: { markdown }, $unset: { rows: 1, mdBlocksPass: 1 } },
           { timestamps: false }
         );
         if (result.matchedCount === 0) {
-          unmatched.push(`not reverted ${turn._id}: the mark is gone since it was read`);
+          unmatched.push(`not reverted ${turn._id}: the rows changed or the mark is gone since it was read`);
         } else if (untouched) {
           restored += 1;
         } else {
@@ -188,16 +211,19 @@ const createMdBlocksCommands = ({ Turn: model, now = () => new Date() }) => {
       }
     }
     const after = describePlan(await loadArticles());
+    const inRowsAfter = after.groups.migrated.length + after.groups.inRows.length + after.groups.inRowsOverSource.length;
     return [
-      failed.length === 0 && unmatched.length === 0,
+      failed.length === 0 && unmatched.length === 0 && kept.length === 0,
       [
         'Статья md в ряды — откат',
         `Статей с меткой прохода: ${marked.length}`,
         `  исходник возвращён как был: ${restored}`,
         `  ряды правились — текст склеен из рядов: ${joined}`,
         `созданы рядами — склеены: ${madeJoined} из ${madeInRows.length}`,
-        `После отката: в рядах ${after.groups.migrated.length + after.groups.inRows.length}, без рядов с текстом ${after.work.length}`,
+        `в рядах без метки поверх другого markdown — не тронуты: ${kept.length}`,
+        `После отката: в рядах ${inRowsAfter}, без рядов с текстом ${after.work.length}`,
         ...unmatched,
+        ...limited(kept),
         ...failed,
       ],
     ];
